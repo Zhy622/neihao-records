@@ -76,7 +76,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
   };
 
   return (
-    <Screen>
+    <Screen keyboardAvoiding contentStyle={styles.content}>
       <Field label="这次纠结的事情 *">
         <TextInput value={title} onChangeText={setTitle} placeholder="例如：要不要接下这个任务" placeholderTextColor={colors.muted} style={styles.input} />
       </Field>
@@ -96,6 +96,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
 }
 
 const styles = StyleSheet.create({
+  content: { paddingBottom: 120 },
   field: { gap: 9 },
   label: { color: colors.text, fontSize: 16, fontWeight: '600' },
   hint: { color: colors.muted, fontSize: 13 },
