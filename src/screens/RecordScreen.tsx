@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSQLiteContext } from 'expo-sqlite';
 import { Chip } from '../components/Chip';
@@ -32,6 +32,7 @@ function Field({ label, children, hint }: { label: string; children: React.React
 
 export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Record'>) {
   const db = useSQLiteContext();
+  const scrollViewRef = useRef<ScrollView>(null);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<Category>('工作');
   const [emotions, setEmotions] = useState<Emotion[]>([]);
@@ -47,6 +48,11 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
     setEmotions((current) =>
       current.includes(emotion) ? current.filter((item) => item !== emotion) : [...current, emotion],
     );
+  };
+
+  const revealBottomFields = () => {
+    // Wait until the keyboard has resized the Android window before scrolling.
+    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 300);
   };
 
   const save = async () => {
@@ -76,7 +82,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
   };
 
   return (
-    <Screen keyboardAvoiding contentStyle={styles.content}>
+    <Screen keyboardAvoiding scrollViewRef={scrollViewRef} contentStyle={styles.content}>
       <Field label="这次纠结的事情 *">
         <TextInput value={title} onChangeText={setTitle} placeholder="例如：要不要接下这个任务" placeholderTextColor={colors.muted} style={styles.input} />
       </Field>
@@ -85,8 +91,8 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
       <Field label={`情绪强度 · ${emotionIntensity}/10`}><View style={styles.chips}>{levels.map((level) => <Chip key={level} label={String(level)} selected={emotionIntensity === level} onPress={() => setEmotionIntensity(level)} />)}</View></Field>
       <Field label={`决策难度 · ${decisionDifficulty}/10`}><View style={styles.chips}>{levels.map((level) => <Chip key={level} label={String(level)} selected={decisionDifficulty === level} onPress={() => setDecisionDifficulty(level)} />)}</View></Field>
       <Field label="耗费时间"><View style={styles.chips}>{TIME_COSTS.map((item) => <Chip key={item} label={item} selected={timeCost === item} onPress={() => setTimeCost(item)} />)}</View></Field>
-      <Field label="当时反复出现的想法"><TextInput value={thoughts} onChangeText={setThoughts} placeholder="脑海里一直在想什么？" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline /></Field>
-      <Field label="最后怎么决定"><TextInput value={finalDecision} onChangeText={setFinalDecision} placeholder="写下最终选择或暂时的处理方式" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline /></Field>
+      <Field label="当时反复出现的想法"><TextInput value={thoughts} onChangeText={setThoughts} onFocus={revealBottomFields} placeholder="脑海里一直在想什么？" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline /></Field>
+      <Field label="最后怎么决定"><TextInput value={finalDecision} onChangeText={setFinalDecision} onFocus={revealBottomFields} placeholder="写下最终选择或暂时的处理方式" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline /></Field>
       <Field label="事后看是否值得纠结"><View style={styles.chips}>{WORTH_OPTIONS.map((item) => <Chip key={item} label={item} selected={worthIt === item} onPress={() => setWorthIt(item)} />)}</View></Field>
       <Pressable disabled={saving} style={({ pressed }) => [styles.save, (pressed || saving) && styles.pressed]} onPress={save}>
         <Text style={styles.saveText}>{saving ? '保存中…' : '保存记录'}</Text>

@@ -1,4 +1,4 @@
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, Ref } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -12,15 +12,19 @@ import { colors } from '../theme';
 interface ScreenProps {
   contentStyle?: ViewStyle;
   keyboardAvoiding?: boolean;
+  scrollViewRef?: Ref<ScrollView>;
 }
 
 export function Screen({
   children,
   contentStyle,
   keyboardAvoiding = false,
+  scrollViewRef,
 }: PropsWithChildren<ScreenProps>) {
   const content = (
     <ScrollView
+      ref={scrollViewRef}
+      style={styles.scroll}
       contentContainerStyle={[styles.content, contentStyle]}
       keyboardDismissMode="on-drag"
       keyboardShouldPersistTaps="handled"
@@ -31,9 +35,9 @@ export function Screen({
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {keyboardAvoiding ? (
+      {keyboardAvoiding && Platform.OS === 'ios' ? (
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior="padding"
           style={styles.keyboardAvoiding}
         >
           {content}
@@ -48,5 +52,6 @@ export function Screen({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   keyboardAvoiding: { flex: 1 },
+  scroll: { flex: 1 },
   content: { padding: 20, paddingBottom: 40, gap: 16 },
 });
