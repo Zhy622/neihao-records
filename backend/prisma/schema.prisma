@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Category {
+  WORK
+  STUDY
+  RELATIONSHIP
+  CONSUMPTION
+  CHOICE
+  EMOTION
+  OTHER
+}
+
+enum Emotion {
+  ANXIETY
+  OVERTHINKING
+  FEAR
+  GRIEVANCE
+  ANGER
+  AVOIDANCE
+  BLANK
+}
+
+enum TimeCost {
+  WITHIN_5_MINUTES
+  WITHIN_30_MINUTES
+  WITHIN_1_HOUR
+  HALF_DAY
+  OVER_1_DAY
+}
+
+enum WorthIt {
+  WORTH_IT
+  NOT_WORTH_IT
+  UNCLEAR
+}
+
+enum RecordSyncStatus {
+  ACTIVE
+  DELETED
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  passwordHash String
+  displayName  String?
+  records      Record[]
+  refreshTokens RefreshToken[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@map("users")
+}
+
+model Record {
+  id                 String           @id @default(uuid())
+  userId             String
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId           String?
+  title              String
+  category           Category
+  emotions           Emotion[]
+  emotionIntensity   Int
+  decisionDifficulty Int
+  timeCost           TimeCost
+  thoughts           String           @default("")
+  finalDecision      String           @default("")
+  worthIt            WorthIt
+  syncStatus         RecordSyncStatus @default(ACTIVE)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  deletedAt          DateTime?
+
+  @@index([userId, createdAt])
+  @@index([userId, category])
+  @@unique([userId, clientId])
+  @@map("records")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}

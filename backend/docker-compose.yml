@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: neihao-records-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: neihao
+      POSTGRES_PASSWORD: neihao_password
+      POSTGRES_DB: neihao_records
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

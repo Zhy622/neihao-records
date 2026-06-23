@@ -46,6 +46,7 @@ npx expo export --platform android
 ## 项目结构
 
 ```text
+backend/          NestJS + Prisma + PostgreSQL 后端基础工程
 src/
   components/       通用 UI 组件
   constants/        本地静态建议规则
@@ -72,3 +73,23 @@ SQLite 数据库名为 `neihao-records.db`。首次启动时会自动创建 `rec
 - 增加按周、月的趋势图和时间成本统计
 - 允许用户维护自己的固定规则
 - 增加数据库迁移版本和自动化测试
+
+## 后端基础工程
+
+后端工程位于 `backend/`，使用 NestJS、Prisma 和 PostgreSQL。
+
+```bash
+cd backend
+npm install
+copy .env.example .env
+docker compose up -d
+npm run prisma:migrate -- --name init
+npm run start:dev
+```
+
+启动后可访问：
+
+```text
+GET http://localhost:3001/api/health
+GET http://localhost:3001/api/health/db
+```
