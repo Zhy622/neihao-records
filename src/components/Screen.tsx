@@ -1,4 +1,5 @@
 import { PropsWithChildren, Ref, useContext } from 'react';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { HeaderHeightContext } from '@react-navigation/elements';
 import {
   KeyboardAvoidingView,
@@ -26,15 +27,17 @@ export function Screen({
   scrollViewRef,
 }: PropsWithChildren<ScreenProps>) {
   const headerHeight = useContext(HeaderHeightContext) ?? 0;
+  const bottomTabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
   const shouldAvoidKeyboard =
     keyboardAvoiding && (Platform.OS === 'ios' || keyboardAvoidingMode === 'fullscreen');
   const keyboardVerticalOffset =
     keyboardAvoidingMode === 'header' && Platform.OS === 'ios' ? headerHeight : 0;
+  const bottomPadding = 40 + bottomTabBarHeight;
   const content = (
     <ScrollView
       ref={scrollViewRef}
       style={styles.scroll}
-      contentContainerStyle={[styles.content, contentStyle]}
+      contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }, contentStyle]}
       contentInsetAdjustmentBehavior="automatic"
       keyboardDismissMode="on-drag"
       keyboardShouldPersistTaps="handled"

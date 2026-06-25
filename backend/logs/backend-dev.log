@@ -2,31 +2,63 @@
 > neihao-records-backend@0.1.0 start:dev
 > nest start --watch
 
-[2J[3J[H[[90m14:52:15[0m] Starting compilation in watch mode...
+[2J[3J[H[[90m16:52:27[0m] Starting compilation in watch mode...
 
-[[90m14:52:34[0m] Found 0 errors. Watching for file changes.
+[[90m16:52:30[0m] Found 0 errors. Watching for file changes.
 
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [NestFactory] Starting Nest application...
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [InstanceLoader] AppModule dependencies initialized +14ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [InstanceLoader] PrismaModule dependencies initialized +1ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [InstanceLoader] ConfigHostModule dependencies initialized +64ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [InstanceLoader] JwtModule dependencies initialized +1ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [InstanceLoader] ConfigModule dependencies initialized +1ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [InstanceLoader] HealthModule dependencies initialized +0ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [InstanceLoader] AuthModule dependencies initialized +1ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [InstanceLoader] RecordsModule dependencies initialized +0ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [RoutesResolver] AuthController {/api/auth}: +24ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [RouterExplorer] Mapped {/api/auth/register, POST} route +3ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [RouterExplorer] Mapped {/api/auth/login, POST} route +0ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [RouterExplorer] Mapped {/api/auth/refresh, POST} route +1ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [RouterExplorer] Mapped {/api/auth/logout, POST} route +0ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [RoutesResolver] RecordsController {/api/records}: +0ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [RouterExplorer] Mapped {/api/records, GET} route +1ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [RouterExplorer] Mapped {/api/records/:id, GET} route +0ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [RouterExplorer] Mapped {/api/records, POST} route +1ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [RouterExplorer] Mapped {/api/records/:id, PATCH} route +0ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [RouterExplorer] Mapped {/api/records/:id, DELETE} route +0ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [RoutesResolver] HealthController {/api/health}: +1ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [RouterExplorer] Mapped {/api/health, GET} route +0ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [RouterExplorer] Mapped {/api/health/db, GET} route +0ms
-[Nest] 29208  - 2026/06/25 14:53:08     LOG [NestApplication] Nest application successfully started +18ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [NestFactory] Starting Nest application...
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [InstanceLoader] AppModule dependencies initialized +41ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [InstanceLoader] PrismaModule dependencies initialized +1ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [InstanceLoader] ConfigHostModule dependencies initialized +9ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [InstanceLoader] JwtModule dependencies initialized +0ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [InstanceLoader] ConfigModule dependencies initialized +1ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [InstanceLoader] HealthModule dependencies initialized +0ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [InstanceLoader] AuthModule dependencies initialized +1ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [InstanceLoader] RecordsModule dependencies initialized +0ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [RoutesResolver] AuthController {/api/auth}: +30ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [RouterExplorer] Mapped {/api/auth/register, POST} route +3ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [RouterExplorer] Mapped {/api/auth/login, POST} route +0ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [RouterExplorer] Mapped {/api/auth/refresh, POST} route +1ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [RouterExplorer] Mapped {/api/auth/logout, POST} route +0ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [RoutesResolver] RecordsController {/api/records}: +1ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [RouterExplorer] Mapped {/api/records, GET} route +0ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [RouterExplorer] Mapped {/api/records/:id, GET} route +1ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [RouterExplorer] Mapped {/api/records, POST} route +0ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [RouterExplorer] Mapped {/api/records/:id, PATCH} route +1ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [RouterExplorer] Mapped {/api/records/:id, DELETE} route +0ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [RoutesResolver] HealthController {/api/health}: +0ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [RouterExplorer] Mapped {/api/health, GET} route +1ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [RouterExplorer] Mapped {/api/health/db, GET} route +0ms
+[Nest] 20984  - 2026/06/25 16:52:31     LOG [NestApplication] Nest application successfully started +23ms
+[2J[3J[H[[90m17:00:17[0m] File change detected. Starting incremental compilation...
+
+[[90m17:00:18[0m] Found 0 errors. Watching for file changes.
+
+[2J[3J[H[[90m17:00:18[0m] File change detected. Starting incremental compilation...
+
+[[90m17:00:18[0m] Found 0 errors. Watching for file changes.
+
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [NestFactory] Starting Nest application...
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [InstanceLoader] AppModule dependencies initialized +17ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [InstanceLoader] PrismaModule dependencies initialized +1ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [InstanceLoader] ConfigHostModule dependencies initialized +8ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [InstanceLoader] JwtModule dependencies initialized +0ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [InstanceLoader] ConfigModule dependencies initialized +1ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [InstanceLoader] HealthModule dependencies initialized +0ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [InstanceLoader] AuthModule dependencies initialized +1ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [InstanceLoader] RecordsModule dependencies initialized +0ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [RoutesResolver] AuthController {/api/auth}: +33ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [RouterExplorer] Mapped {/api/auth/register, POST} route +2ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [RouterExplorer] Mapped {/api/auth/login, POST} route +1ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [RouterExplorer] Mapped {/api/auth/refresh, POST} route +1ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [RouterExplorer] Mapped {/api/auth/logout, POST} route +0ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [RoutesResolver] RecordsController {/api/records}: +0ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [RouterExplorer] Mapped {/api/records, GET} route +1ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [RouterExplorer] Mapped {/api/records/:id, GET} route +1ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [RouterExplorer] Mapped {/api/records, POST} route +0ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [RouterExplorer] Mapped {/api/records/:id, PATCH} route +0ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [RouterExplorer] Mapped {/api/records/:id, DELETE} route +1ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [RoutesResolver] HealthController {/api/health}: +0ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [RouterExplorer] Mapped {/api/health, GET} route +1ms
+[Nest] 25124  - 2026/06/25 17:00:19     LOG [RouterExplorer] Mapped {/api/health/db, GET} route +0ms
+[Nest] 25124  - 2026/06/25 17:00:20     LOG [NestApplication] Nest application successfully started +25ms

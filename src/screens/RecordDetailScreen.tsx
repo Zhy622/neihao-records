@@ -1,10 +1,12 @@
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuth } from '../auth/AuthProvider';
 import { Chip } from '../components/Chip';
+import { HapticPressable } from '../components/HapticPressable';
 import { Screen } from '../components/Screen';
 import { deleteAndSyncRecord, syncRecordById } from '../sync/records-sync';
 import { getRecord, updateRecord } from '../database/database';
@@ -20,7 +22,7 @@ import {
   WorthIt,
 } from '../types/record';
 import { RootStackParamList } from '../types/navigation';
-import { colors } from '../theme';
+import { colors, fonts } from '../theme';
 
 const levels = Array.from({ length: 10 }, (_, index) => index + 1);
 
@@ -242,21 +244,24 @@ export function RecordDetailScreen({
       <View style={styles.actions}>
         {editing ? (
           <>
-            <Pressable disabled={saving} style={({ pressed }) => [styles.secondaryButton, (pressed || saving) && styles.pressed]} onPress={() => { applyRecord(record); setEditing(false); }}>
+            <HapticPressable disabled={saving} style={({ pressed }) => [styles.secondaryButton, (pressed || saving) && styles.pressed]} onPress={() => { applyRecord(record); setEditing(false); }}>
               <Text style={styles.secondaryButtonText}>取消</Text>
-            </Pressable>
-            <Pressable disabled={saving} style={({ pressed }) => [styles.primaryButton, (pressed || saving) && styles.pressed]} onPress={() => void save()}>
+            </HapticPressable>
+            <HapticPressable disabled={saving} style={({ pressed }) => [styles.primaryButton, (pressed || saving) && styles.pressed]} onPress={() => void save()}>
+              <Ionicons name="checkmark-circle-outline" size={19} color={colors.white} />
               <Text style={styles.primaryButtonText}>{saving ? '保存中…' : '保存修改'}</Text>
-            </Pressable>
+            </HapticPressable>
           </>
         ) : (
           <>
-            <Pressable disabled={deleting} style={({ pressed }) => [styles.secondaryButton, (pressed || deleting) && styles.pressed]} onPress={() => setEditing(true)}>
+            <HapticPressable disabled={deleting} style={({ pressed }) => [styles.secondaryButton, (pressed || deleting) && styles.pressed]} onPress={() => setEditing(true)}>
+              <Ionicons name="create-outline" size={18} color={colors.primary} />
               <Text style={styles.secondaryButtonText}>编辑</Text>
-            </Pressable>
-            <Pressable disabled={deleting} style={({ pressed }) => [styles.deleteButton, (pressed || deleting) && styles.pressed]} onPress={confirmDelete}>
+            </HapticPressable>
+            <HapticPressable disabled={deleting} style={({ pressed }) => [styles.deleteButton, (pressed || deleting) && styles.pressed]} onPress={confirmDelete}>
+              <Ionicons name="trash-outline" size={18} color={colors.white} />
               <Text style={styles.deleteButtonText}>{deleting ? '删除中…' : '删除'}</Text>
-            </Pressable>
+            </HapticPressable>
           </>
         )}
       </View>
@@ -267,28 +272,28 @@ export function RecordDetailScreen({
 const styles = StyleSheet.create({
   content: { paddingBottom: 120 },
   header: { gap: 8 },
-  date: { color: colors.muted, fontSize: 13 },
-  title: { color: colors.text, fontSize: 26, fontWeight: '700', lineHeight: 34 },
-  syncStatus: { color: colors.primary, fontSize: 13, fontWeight: '600' },
+  date: { color: colors.muted, fontFamily: fonts.regular, fontSize: 13 },
+  title: { color: colors.text, fontFamily: fonts.bold, fontSize: 26, lineHeight: 34 },
+  syncStatus: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 13 },
   form: { gap: 16 },
   field: { gap: 9 },
-  label: { color: colors.text, fontSize: 16, fontWeight: '600' },
+  label: { color: colors.text, fontFamily: fonts.semibold, fontSize: 16 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  input: { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15 },
+  input: { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 20, paddingHorizontal: 15, paddingVertical: 13, fontFamily: fonts.regular, fontSize: 15 },
   multiline: { minHeight: 92, textAlignVertical: 'top' },
   details: { gap: 12 },
   detailLine: { flexDirection: 'row', justifyContent: 'space-between', gap: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
-  detailLabel: { color: colors.muted, fontSize: 14 },
-  detailValue: { flex: 1, color: colors.text, fontSize: 15, fontWeight: '600', textAlign: 'right' },
+  detailLabel: { color: colors.muted, fontFamily: fonts.regular, fontSize: 14 },
+  detailValue: { flex: 1, color: colors.text, fontFamily: fonts.semibold, fontSize: 15, textAlign: 'right' },
   noteBlock: { gap: 8, padding: 16, borderRadius: 14, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-  note: { color: colors.text, lineHeight: 22 },
+  note: { color: colors.text, fontFamily: fonts.regular, lineHeight: 22 },
   actions: { flexDirection: 'row', gap: 10 },
-  primaryButton: { flex: 1, alignItems: 'center', padding: 16, borderRadius: 16, backgroundColor: colors.primary },
-  primaryButtonText: { color: colors.white, fontSize: 16, fontWeight: '700' },
-  secondaryButton: { flex: 1, alignItems: 'center', padding: 16, borderRadius: 16, backgroundColor: colors.primarySoft },
-  secondaryButtonText: { color: colors.primary, fontSize: 16, fontWeight: '700' },
-  deleteButton: { flex: 1, alignItems: 'center', padding: 16, borderRadius: 16, backgroundColor: colors.danger },
-  deleteButtonText: { color: colors.white, fontSize: 16, fontWeight: '700' },
+  primaryButton: { flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, padding: 16, borderRadius: 20, backgroundColor: colors.primary },
+  primaryButtonText: { color: colors.white, fontFamily: fonts.bold, fontSize: 16 },
+  secondaryButton: { flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, padding: 16, borderRadius: 20, backgroundColor: colors.primarySoft },
+  secondaryButtonText: { color: colors.primary, fontFamily: fonts.bold, fontSize: 16 },
+  deleteButton: { flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, padding: 16, borderRadius: 20, backgroundColor: colors.danger },
+  deleteButtonText: { color: colors.white, fontFamily: fonts.bold, fontSize: 16 },
   pressed: { opacity: 0.75 },
-  empty: { color: colors.muted, textAlign: 'center', paddingVertical: 40 },
+  empty: { color: colors.muted, fontFamily: fonts.regular, textAlign: 'center', paddingVertical: 40 },
 });
