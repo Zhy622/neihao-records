@@ -1,6 +1,7 @@
 import { randomUUID } from 'expo-crypto';
 import { SQLiteDatabase } from 'expo-sqlite';
 import {
+  DateRange,
   DilemmaRecord,
   Emotion,
   LocalSyncStatus,
@@ -185,6 +186,54 @@ export async function markRecordPendingDelete(
   );
 }
 
+export async function updateRecord(
+  db: SQLiteDatabase,
+  ownerUserId: string,
+  id: number,
+  input: RecordInput,
+) {
+  const current = await getRecord(db, ownerUserId, id);
+
+  if (!current || current.syncStatus === 'pending_delete') {
+    return null;
+  }
+
+  const nextSyncStatus: LocalSyncStatus =
+    current.syncStatus === 'pending_create' ? 'pending_create' : 'pending_update';
+  const now = new Date().toISOString();
+
+  await db.runAsync(
+    `UPDATE records
+     SET title = ?,
+         category = ?,
+         emotions = ?,
+         emotionIntensity = ?,
+         decisionDifficulty = ?,
+         timeCost = ?,
+         thoughts = ?,
+         finalDecision = ?,
+         worthIt = ?,
+         syncStatus = ?,
+         updatedAt = ?
+     WHERE id = ? AND ownerUserId = ?`,
+    input.title.trim(),
+    input.category,
+    JSON.stringify(input.emotions),
+    input.emotionIntensity,
+    input.decisionDifficulty,
+    input.timeCost,
+    input.thoughts.trim(),
+    input.finalDecision.trim(),
+    input.worthIt,
+    nextSyncStatus,
+    now,
+    id,
+    ownerUserId,
+  );
+
+  return getRecord(db, ownerUserId, id);
+}
+
 export async function deleteLocalRecord(
   db: SQLiteDatabase,
   ownerUserId: string,
@@ -192,6 +241,21 @@ export async function deleteLocalRecord(
 ) {
   return db.runAsync('DELETE FROM records WHERE id = ? AND ownerUserId = ?', id, ownerUserId);
 }
+
+const getDateRangeStart = (dateRange: DateRange) => {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+
+  if (dateRange === 'week') {
+    start.setDate(start.getDate() - 6);
+  }
+
+  if (dateRange === 'month') {
+    start.setDate(start.getDate() - 29);
+  }
+
+  return start.toISOString();
+};
 
 export async function getRecords(
   db: SQLiteDatabase,
@@ -204,6 +268,14 @@ export async function getRecords(
   if (filters.category) {
     clauses.push('category = ?');
     params.push(filters.category);
+  }
+  if (filters.emotion) {
+    clauses.push('emotions LIKE ?');
+    params.push(`%"${filters.emotion}"%`);
+  }
+  if (filters.dateRange) {
+    clauses.push('createdAt >= ?');
+    params.push(getDateRangeStart(filters.dateRange));
   }
   if (filters.search?.trim()) {
     clauses.push('(title LIKE ? OR thoughts LIKE ?)');

@@ -53,6 +53,10 @@ export function AuthScreen() {
     setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 250);
   };
 
+  const revealPasswordField = () => {
+    setTimeout(() => scrollViewRef.current?.scrollTo({ y: 120, animated: true }), 250);
+  };
+
   const submit = async () => {
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -88,6 +92,7 @@ export function AuthScreen() {
   return (
     <Screen
       keyboardAvoiding
+      keyboardAvoidingMode="fullscreen"
       scrollViewRef={scrollViewRef}
       contentStyle={[styles.content, height < 720 && styles.compactContent]}
     >
@@ -139,7 +144,6 @@ export function AuthScreen() {
             autoCorrect={false}
             keyboardType="email-address"
             onChangeText={setEmail}
-            onFocus={mode === 'register' ? revealFormActions : undefined}
             placeholder="name@example.com"
             placeholderTextColor={colors.muted}
             style={styles.input}
@@ -153,7 +157,7 @@ export function AuthScreen() {
             autoCapitalize="none"
             autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             onChangeText={setPassword}
-            onFocus={revealFormActions}
+            onFocus={mode === 'register' ? revealPasswordField : undefined}
             placeholder="至少 8 位"
             placeholderTextColor={colors.muted}
             secureTextEntry

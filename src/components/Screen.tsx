@@ -1,4 +1,5 @@
-import { PropsWithChildren, Ref } from 'react';
+import { PropsWithChildren, Ref, useContext } from 'react';
+import { HeaderHeightContext } from '@react-navigation/elements';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +14,7 @@ import { colors } from '../theme';
 interface ScreenProps {
   contentStyle?: StyleProp<ViewStyle>;
   keyboardAvoiding?: boolean;
+  keyboardAvoidingMode?: 'header' | 'fullscreen';
   scrollViewRef?: Ref<ScrollView>;
 }
 
@@ -20,14 +22,19 @@ export function Screen({
   children,
   contentStyle,
   keyboardAvoiding = false,
+  keyboardAvoidingMode = 'header',
   scrollViewRef,
 }: PropsWithChildren<ScreenProps>) {
+  const headerHeight = useContext(HeaderHeightContext) ?? 0;
+  const shouldAvoidKeyboard =
+    keyboardAvoiding && (Platform.OS === 'ios' || keyboardAvoidingMode === 'fullscreen');
+  const keyboardVerticalOffset =
+    keyboardAvoidingMode === 'header' && Platform.OS === 'ios' ? headerHeight : 0;
   const content = (
     <ScrollView
       ref={scrollViewRef}
       style={styles.scroll}
       contentContainerStyle={[styles.content, contentStyle]}
-      automaticallyAdjustKeyboardInsets={keyboardAvoiding}
       contentInsetAdjustmentBehavior="automatic"
       keyboardDismissMode="on-drag"
       keyboardShouldPersistTaps="handled"
@@ -38,9 +45,10 @@ export function Screen({
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {keyboardAvoiding ? (
+      {shouldAvoidKeyboard ? (
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={keyboardVerticalOffset}
           style={styles.keyboardAvoiding}
         >
           {content}

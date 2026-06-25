@@ -2,6 +2,7 @@ export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
   Record: undefined;
+  RecordDetail: { id: number };
 };
 
 export type MainTabsParamList = {

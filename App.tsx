@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './src/auth/AuthProvider';
 import { AppTabs } from './src/navigation/AppTabs';
 import { AuthLoadingScreen } from './src/screens/AuthLoadingScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
+import { RecordDetailScreen } from './src/screens/RecordDetailScreen';
 import { RecordScreen } from './src/screens/RecordScreen';
 import { RecordSyncBootstrap } from './src/sync/RecordSyncBootstrap';
 import { initializeDatabase } from './src/database/database';
@@ -41,6 +42,7 @@ function RootNavigation() {
           <>
             <Stack.Screen name="Main" component={AppTabs} options={{ headerShown: false }} />
             <Stack.Screen name="Record" component={RecordScreen} options={{ title: '记录一次纠结' }} />
+            <Stack.Screen name="RecordDetail" component={RecordDetailScreen} options={{ title: '记录详情' }} />
           </>
         ) : (
           <Stack.Screen name="Auth" component={AuthScreen} options={{ headerShown: false }} />

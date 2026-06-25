@@ -7,7 +7,8 @@ export type Category = (typeof CATEGORIES)[number];
 export type Emotion = (typeof EMOTIONS)[number];
 export type TimeCost = (typeof TIME_COSTS)[number];
 export type WorthIt = (typeof WORTH_OPTIONS)[number];
-export type LocalSyncStatus = 'pending_create' | 'synced' | 'pending_delete';
+export type LocalSyncStatus = 'pending_create' | 'pending_update' | 'synced' | 'pending_delete';
+export type DateRange = 'today' | 'week' | 'month';
 
 export interface RecordInput {
   title: string;
@@ -33,5 +34,7 @@ export interface DilemmaRecord extends RecordInput {
 
 export interface RecordFilters {
   category?: Category;
+  emotion?: Emotion;
+  dateRange?: DateRange;
   search?: string;
 }

@@ -2,7 +2,15 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { DilemmaRecord } from '../types/record';
 import { colors } from '../theme';
 
-export function RecordCard({ record, onDelete }: { record: DilemmaRecord; onDelete?: () => void }) {
+export function RecordCard({
+  record,
+  onDelete,
+  onOpen,
+}: {
+  record: DilemmaRecord;
+  onDelete?: () => void;
+  onOpen?: () => void;
+}) {
   return (
     <View style={styles.card}>
       <View style={styles.row}>
@@ -17,6 +25,11 @@ export function RecordCard({ record, onDelete }: { record: DilemmaRecord; onDele
         <Text style={styles.date}>{new Date(record.createdAt).toLocaleString('zh-CN')}</Text>
         <View style={styles.actions}>
           {record.syncStatus !== 'synced' ? <Text style={styles.pending}>待同步</Text> : null}
+          {onOpen ? (
+            <Pressable onPress={onOpen} hitSlop={10}>
+              <Text style={styles.open}>查看</Text>
+            </Pressable>
+          ) : null}
           {onDelete ? (
             <Pressable onPress={onDelete} hitSlop={10}>
               <Text style={styles.delete}>删除</Text>
@@ -45,5 +58,6 @@ const styles = StyleSheet.create({
   date: { color: colors.muted, fontSize: 12 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   pending: { color: colors.primary, fontSize: 12 },
+  open: { color: colors.primary, fontSize: 13, fontWeight: '600' },
   delete: { color: colors.danger, fontSize: 13 },
 });

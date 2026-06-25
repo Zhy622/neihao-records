@@ -101,6 +101,23 @@ export function deleteRemoteRecord(serverId: string) {
   return apiRequest<RemoteRecord>(`/records/${serverId}`, { method: 'DELETE' });
 }
 
+export function updateRemoteRecord(serverId: string, input: DilemmaRecord) {
+  return apiRequest<RemoteRecord>(`/records/${serverId}`, {
+    method: 'PATCH',
+    body: {
+      title: input.title,
+      category: categoryMap[input.category],
+      emotions: input.emotions.map((emotion) => emotionMap[emotion]),
+      emotionIntensity: input.emotionIntensity,
+      decisionDifficulty: input.decisionDifficulty,
+      timeCost: timeCostMap[input.timeCost],
+      thoughts: input.thoughts,
+      finalDecision: input.finalDecision,
+      worthIt: worthItMap[input.worthIt],
+    },
+  });
+}
+
 export async function findRemoteRecordByClientId(clientId: string) {
   const pageSize = 200;
 

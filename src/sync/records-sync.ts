@@ -13,6 +13,7 @@ import {
   findRemoteRecordByClientId,
   isRemoteConflict,
   isRemoteMissing,
+  updateRemoteRecord,
 } from '../api/records';
 import { DilemmaRecord } from '../types/record';
 
@@ -62,6 +63,35 @@ const syncDelete = async (db: SQLiteDatabase, record: DilemmaRecord) => {
   return true;
 };
 
+const syncUpdate = async (db: SQLiteDatabase, record: DilemmaRecord) => {
+  if (!record.serverId) {
+    return syncCreate(db, record);
+  }
+
+  try {
+    const remote = await updateRemoteRecord(record.serverId, record);
+    await markRecordSynced(db, record.ownerUserId, record.id, remote.id);
+    return true;
+  } catch (error) {
+    if (!isRemoteMissing(error)) {
+      return false;
+    }
+  }
+
+  try {
+    const remote = await findRemoteRecordByClientId(record.clientId);
+    if (!remote || remote.syncStatus === 'DELETED') {
+      return false;
+    }
+
+    const updated = await updateRemoteRecord(remote.id, record);
+    await markRecordSynced(db, record.ownerUserId, record.id, updated.id);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const runSync = async (db: SQLiteDatabase, ownerUserId: string): Promise<SyncResult> => {
   await claimLegacyRecords(db, ownerUserId);
   const records = await getPendingRecords(db, ownerUserId);
@@ -69,10 +99,15 @@ const runSync = async (db: SQLiteDatabase, ownerUserId: string): Promise<SyncRes
   let failed = 0;
 
   for (const record of records) {
-    const succeeded =
-      record.syncStatus === 'pending_delete'
-        ? await syncDelete(db, record)
-        : await syncCreate(db, record);
+    let succeeded = false;
+
+    if (record.syncStatus === 'pending_delete') {
+      succeeded = await syncDelete(db, record);
+    } else if (record.syncStatus === 'pending_update') {
+      succeeded = await syncUpdate(db, record);
+    } else {
+      succeeded = await syncCreate(db, record);
+    }
 
     if (succeeded) {
       synced += 1;
