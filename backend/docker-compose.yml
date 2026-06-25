@@ -12,5 +12,22 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: neihao-records-postgres-test
+    environment:
+      POSTGRES_USER: neihao_test
+      POSTGRES_PASSWORD: neihao_test_password
+      POSTGRES_DB: neihao_records_test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neihao_test -d neihao_records_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
 volumes:
   postgres_data:

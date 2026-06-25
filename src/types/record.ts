@@ -7,6 +7,7 @@ export type Category = (typeof CATEGORIES)[number];
 export type Emotion = (typeof EMOTIONS)[number];
 export type TimeCost = (typeof TIME_COSTS)[number];
 export type WorthIt = (typeof WORTH_OPTIONS)[number];
+export type LocalSyncStatus = 'pending_create' | 'synced' | 'pending_delete';
 
 export interface RecordInput {
   title: string;
@@ -22,7 +23,12 @@ export interface RecordInput {
 
 export interface DilemmaRecord extends RecordInput {
   id: number;
+  ownerUserId: string;
+  clientId: string;
+  serverId: string | null;
+  syncStatus: LocalSyncStatus;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface RecordFilters {

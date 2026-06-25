@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSQLiteContext } from 'expo-sqlite';
+import { useAuth } from '../auth/AuthProvider';
 import { Chip } from '../components/Chip';
 import { Screen } from '../components/Screen';
 import { createRecord } from '../database/database';
@@ -16,6 +17,7 @@ import {
   WorthIt,
 } from '../types/record';
 import { RootStackParamList } from '../types/navigation';
+import { syncRecordById } from '../sync/records-sync';
 import { colors } from '../theme';
 
 const levels = Array.from({ length: 10 }, (_, index) => index + 1);
@@ -32,6 +34,7 @@ function Field({ label, children, hint }: { label: string; children: React.React
 
 export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Record'>) {
   const db = useSQLiteContext();
+  const { session } = useAuth();
   const scrollViewRef = useRef<ScrollView>(null);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<Category>('工作');
@@ -62,7 +65,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
     }
     try {
       setSaving(true);
-      await createRecord(db, {
+      const localRecord = await createRecord(db, session!.user.id, {
         title,
         category,
         emotions,
@@ -73,10 +76,28 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
         finalDecision,
         worthIt,
       });
-      navigation.goBack();
+
+      if (!localRecord) {
+        throw new Error('Local record was not created.');
+      }
+
+      let synced = false;
+      try {
+        synced = await syncRecordById(db, session!.user.id, localRecord.id);
+      } catch {
+        synced = false;
+      }
+
+      setSaving(false);
+      if (synced) {
+        navigation.goBack();
+      } else {
+        Alert.alert('已保存到本机', '暂时无法同步到服务器，联网后会自动重试。', [
+          { text: '知道了', onPress: () => navigation.goBack() },
+        ]);
+      }
     } catch {
       Alert.alert('保存失败', '记录暂时没有保存，请稍后再试。');
-    } finally {
       setSaving(false);
     }
   };

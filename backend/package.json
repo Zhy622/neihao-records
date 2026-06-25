@@ -10,6 +10,11 @@
     "start:dev": "nest start --watch",
     "lint": "eslint \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit",
+    "contract:generate": "npm run build && node dist/generate-openapi.js",
+    "contract:check": "npm run build && node dist/generate-openapi.js --check",
+    "test:e2e:db:up": "docker compose up -d --wait postgres-test",
+    "test:e2e:db:down": "docker compose stop postgres-test",
+    "test:e2e": "npm run test:e2e:db:up && jest --config ./test/jest-e2e.json --runInBand",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
@@ -20,6 +25,7 @@
     "@nestjs/core": "^11.0.0",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/swagger": "^11.4.4",
     "@prisma/client": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
@@ -29,11 +35,17 @@
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "^11.1.27",
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.0.0",
+    "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.0.0",
+    "jest": "^30.4.2",
     "prisma": "^6.0.0",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.11",
     "typescript": "^5.8.0"
   }
 }

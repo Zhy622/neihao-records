@@ -1,0 +1,12 @@
+env: load .env
+env: export EXPO_PUBLIC_API_URL
+Starting project at D:\记录APP
+Starting Metro Bundler
+
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+| (node:32668) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:32668) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+Android Bundled 16286ms index.ts (1012 modules)

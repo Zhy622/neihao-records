@@ -1,20 +1,42 @@
-export type AuthUser = {
-  id: string;
-  email: string;
-  displayName: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
+import { ApiProperty } from '@nestjs/swagger';
 
-export type AuthTokens = {
-  accessToken: string;
-  refreshToken: string;
-};
+export class AuthUser {
+  @ApiProperty({ format: 'uuid' })
+  id!: string;
 
-export type AuthResponse = {
-  user: AuthUser;
-  tokens: AuthTokens;
-};
+  @ApiProperty({ format: 'email', example: 'user@example.com' })
+  email!: string;
+
+  @ApiProperty({ nullable: true, example: 'Lin' })
+  displayName!: string | null;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  createdAt!: Date;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  updatedAt!: Date;
+}
+
+export class AuthTokens {
+  @ApiProperty({ description: 'Short-lived JWT used as a Bearer access token.' })
+  accessToken!: string;
+
+  @ApiProperty({ description: 'Rotating JWT used only with the refresh endpoint.' })
+  refreshToken!: string;
+}
+
+export class AuthResponse {
+  @ApiProperty({ type: AuthUser })
+  user!: AuthUser;
+
+  @ApiProperty({ type: AuthTokens })
+  tokens!: AuthTokens;
+}
+
+export class LogoutResponse {
+  @ApiProperty({ example: 'Logged out.' })
+  message!: string;
+}
 
 export type AccessTokenPayload = {
   sub: string;
@@ -24,4 +46,11 @@ export type AccessTokenPayload = {
 export type RefreshTokenPayload = {
   sub: string;
   jti: string;
+};
+
+export type AuthenticatedRequest = {
+  headers: {
+    authorization?: string;
+  };
+  user?: AccessTokenPayload;
 };

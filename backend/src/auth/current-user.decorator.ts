@@ -1,0 +1,10 @@
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { AccessTokenPayload, AuthenticatedRequest } from './auth.types';
+
+export const CurrentUser = createParamDecorator(
+  (_data: unknown, context: ExecutionContext): AccessTokenPayload => {
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+
+    return request.user as AccessTokenPayload;
+  },
+);

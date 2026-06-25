@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
+import { useAuth } from '../auth/AuthProvider';
 import { Chip } from '../components/Chip';
 import { RecordCard } from '../components/RecordCard';
 import { Screen } from '../components/Screen';
-import { deleteRecord } from '../database/database';
 import { useRecords } from '../hooks/useRecords';
+import { deleteAndSyncRecord } from '../sync/records-sync';
 import { CATEGORIES, Category } from '../types/record';
 import { colors } from '../theme';
 
 export function HistoryScreen() {
   const db = useSQLiteContext();
+  const { session } = useAuth();
   const [category, setCategory] = useState<Category | undefined>();
   const [search, setSearch] = useState('');
   const { records, refresh } = useRecords({ category, search });
@@ -18,7 +20,17 @@ export function HistoryScreen() {
   const confirmDelete = (id: number) => {
     Alert.alert('删除这条记录？', '删除后无法恢复。', [
       { text: '取消', style: 'cancel' },
-      { text: '删除', style: 'destructive', onPress: async () => { await deleteRecord(db, id); await refresh(); } },
+      {
+        text: '删除',
+        style: 'destructive',
+        onPress: async () => {
+          const synced = await deleteAndSyncRecord(db, session!.user.id, id);
+          await refresh();
+          if (!synced) {
+            Alert.alert('已从本机移除', '服务器删除会在联网后自动重试。');
+          }
+        },
+      },
     ]);
   };
 

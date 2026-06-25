@@ -1,5 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AdviceScreen } from '../screens/AdviceScreen';
+import { AccountScreen } from '../screens/AccountScreen';
 import { HistoryScreen } from '../screens/HistoryScreen';
 import { HomeScreen } from '../screens/HomeScreen';
 import { StatsScreen } from '../screens/StatsScreen';
@@ -23,6 +24,7 @@ export function AppTabs() {
       <Tab.Screen name="History" component={HistoryScreen} options={{ title: '历史' }} />
       <Tab.Screen name="Stats" component={StatsScreen} options={{ title: '统计' }} />
       <Tab.Screen name="Advice" component={AdviceScreen} options={{ title: '习惯建议' }} />
+      <Tab.Screen name="Account" component={AccountScreen} options={{ title: '账号' }} />
     </Tab.Navigator>
   );
 }

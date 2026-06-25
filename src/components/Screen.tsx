@@ -3,6 +3,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleProp,
   StyleSheet,
   ViewStyle,
 } from 'react-native';
@@ -10,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../theme';
 
 interface ScreenProps {
-  contentStyle?: ViewStyle;
+  contentStyle?: StyleProp<ViewStyle>;
   keyboardAvoiding?: boolean;
   scrollViewRef?: Ref<ScrollView>;
 }
@@ -26,6 +27,8 @@ export function Screen({
       ref={scrollViewRef}
       style={styles.scroll}
       contentContainerStyle={[styles.content, contentStyle]}
+      automaticallyAdjustKeyboardInsets={keyboardAvoiding}
+      contentInsetAdjustmentBehavior="automatic"
       keyboardDismissMode="on-drag"
       keyboardShouldPersistTaps="handled"
     >
@@ -35,9 +38,9 @@ export function Screen({
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {keyboardAvoiding && Platform.OS === 'ios' ? (
+      {keyboardAvoiding ? (
         <KeyboardAvoidingView
-          behavior="padding"
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardAvoiding}
         >
           {content}

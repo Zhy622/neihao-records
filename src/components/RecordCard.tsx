@@ -15,11 +15,14 @@ export function RecordCard({ record, onDelete }: { record: DilemmaRecord; onDele
       {record.thoughts ? <Text style={styles.thoughts} numberOfLines={2}>{record.thoughts}</Text> : null}
       <View style={styles.row}>
         <Text style={styles.date}>{new Date(record.createdAt).toLocaleString('zh-CN')}</Text>
-        {onDelete ? (
-          <Pressable onPress={onDelete} hitSlop={10}>
-            <Text style={styles.delete}>删除</Text>
-          </Pressable>
-        ) : null}
+        <View style={styles.actions}>
+          {record.syncStatus !== 'synced' ? <Text style={styles.pending}>待同步</Text> : null}
+          {onDelete ? (
+            <Pressable onPress={onDelete} hitSlop={10}>
+              <Text style={styles.delete}>删除</Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
     </View>
   );
@@ -40,5 +43,7 @@ const styles = StyleSheet.create({
   meta: { color: colors.muted, fontSize: 13 },
   thoughts: { color: colors.text, lineHeight: 20 },
   date: { color: colors.muted, fontSize: 12 },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  pending: { color: colors.primary, fontSize: 12 },
   delete: { color: colors.danger, fontSize: 13 },
 });
