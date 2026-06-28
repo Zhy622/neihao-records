@@ -3,7 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuth } from '../auth/AuthProvider';
 import { getRecords } from '../database/database';
-import { syncPendingRecords } from '../sync/records-sync';
+import { syncRecords } from '../sync/records-sync';
 import { DilemmaRecord, RecordFilters } from '../types/record';
 
 export function useRecords(filters: RecordFilters = {}) {
@@ -23,7 +23,7 @@ export function useRecords(filters: RecordFilters = {}) {
     }
 
     try {
-      await syncPendingRecords(db, userId);
+      await syncRecords(db, userId);
     } catch {
       // Local records remain available while a background sync attempt fails.
     }

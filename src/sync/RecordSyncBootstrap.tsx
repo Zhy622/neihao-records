@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuth } from '../auth/AuthProvider';
-import { syncPendingRecords } from './records-sync';
+import { syncRecords } from './records-sync';
 
 export function RecordSyncBootstrap() {
   const db = useSQLiteContext();
@@ -10,7 +10,7 @@ export function RecordSyncBootstrap() {
 
   useEffect(() => {
     if (userId) {
-      void syncPendingRecords(db, userId).catch(() => undefined);
+      void syncRecords(db, userId).catch(() => undefined);
     }
   }, [db, userId]);
 

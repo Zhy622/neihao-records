@@ -1,9 +1,13 @@
 import { apiRequest, ApiError } from './client';
 import {
+  CATEGORIES,
   Category,
   DilemmaRecord,
   Emotion,
+  EMOTIONS,
+  TIME_COSTS,
   TimeCost,
+  WORTH_OPTIONS,
   WorthIt,
 } from '../types/record';
 
@@ -33,8 +37,21 @@ type ApiWorthIt = 'WORTH_IT' | 'NOT_WORTH_IT' | 'UNCLEAR';
 
 export interface RemoteRecord {
   id: string;
+  userId: string;
   clientId: string | null;
+  title: string;
+  category: ApiCategory;
+  emotions: ApiEmotion[];
+  emotionIntensity: number;
+  decisionDifficulty: number;
+  timeCost: ApiTimeCost;
+  thoughts: string;
+  finalDecision: string;
+  worthIt: ApiWorthIt;
   syncStatus: 'ACTIVE' | 'DELETED';
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
 }
 
 interface RemoteRecordsPage {
@@ -76,6 +93,40 @@ const worthItMap: Record<WorthIt, ApiWorthIt> = {
   值得: 'WORTH_IT',
   不值得: 'NOT_WORTH_IT',
   说不清: 'UNCLEAR',
+};
+
+const localCategoryMap: Record<ApiCategory, Category> = {
+  WORK: CATEGORIES[0],
+  STUDY: CATEGORIES[1],
+  RELATIONSHIP: CATEGORIES[2],
+  CONSUMPTION: CATEGORIES[3],
+  CHOICE: CATEGORIES[4],
+  EMOTION: CATEGORIES[5],
+  OTHER: CATEGORIES[6],
+};
+
+const localEmotionMap: Record<ApiEmotion, Emotion> = {
+  ANXIETY: EMOTIONS[0],
+  OVERTHINKING: EMOTIONS[1],
+  FEAR: EMOTIONS[2],
+  GRIEVANCE: EMOTIONS[3],
+  ANGER: EMOTIONS[4],
+  AVOIDANCE: EMOTIONS[5],
+  BLANK: EMOTIONS[6],
+};
+
+const localTimeCostMap: Record<ApiTimeCost, TimeCost> = {
+  WITHIN_5_MINUTES: TIME_COSTS[0],
+  WITHIN_30_MINUTES: TIME_COSTS[1],
+  WITHIN_1_HOUR: TIME_COSTS[2],
+  HALF_DAY: TIME_COSTS[3],
+  OVER_1_DAY: TIME_COSTS[4],
+};
+
+const localWorthItMap: Record<ApiWorthIt, WorthIt> = {
+  WORTH_IT: WORTH_OPTIONS[0],
+  NOT_WORTH_IT: WORTH_OPTIONS[1],
+  UNCLEAR: WORTH_OPTIONS[2],
 };
 
 export function createRemoteRecord(record: DilemmaRecord) {
@@ -136,6 +187,38 @@ export async function findRemoteRecordByClientId(clientId: string) {
     }
   }
 }
+
+export async function fetchRemoteRecords() {
+  const pageSize = 200;
+  const records: RemoteRecord[] = [];
+
+  for (let offset = 0; ; offset += pageSize) {
+    const page = await apiRequest<RemoteRecordsPage>(
+      `/records?limit=${pageSize}&offset=${offset}`,
+    );
+    records.push(...page.records);
+
+    if (offset + page.records.length >= page.total) {
+      return records;
+    }
+  }
+}
+
+export const toLocalRecordSnapshot = (record: RemoteRecord) => ({
+  clientId: record.clientId ?? record.id,
+  serverId: record.id,
+  title: record.title,
+  category: localCategoryMap[record.category],
+  emotions: record.emotions.map((emotion) => localEmotionMap[emotion]),
+  emotionIntensity: record.emotionIntensity,
+  decisionDifficulty: record.decisionDifficulty,
+  timeCost: localTimeCostMap[record.timeCost],
+  thoughts: record.thoughts,
+  finalDecision: record.finalDecision,
+  worthIt: localWorthItMap[record.worthIt],
+  createdAt: record.createdAt,
+  updatedAt: record.updatedAt,
+});
 
 export const isRemoteConflict = (error: unknown) =>
   error instanceof ApiError && error.status === 409;

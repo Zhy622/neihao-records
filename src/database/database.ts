@@ -11,6 +11,12 @@ import {
 
 type RecordRow = Omit<DilemmaRecord, 'emotions'> & { emotions: string };
 type TableColumn = { name: string };
+export type RemoteRecordSnapshot = RecordInput & {
+  clientId: string;
+  serverId: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
 const mapRow = (row: RecordRow): DilemmaRecord => ({
   ...row,
@@ -240,6 +246,82 @@ export async function deleteLocalRecord(
   id: number,
 ) {
   return db.runAsync('DELETE FROM records WHERE id = ? AND ownerUserId = ?', id, ownerUserId);
+}
+
+export async function upsertRemoteRecord(
+  db: SQLiteDatabase,
+  ownerUserId: string,
+  record: RemoteRecordSnapshot,
+) {
+  const existing = await db.getFirstAsync<Pick<RecordRow, 'id' | 'syncStatus'>>(
+    'SELECT id, syncStatus FROM records WHERE ownerUserId = ? AND (serverId = ? OR clientId = ?) LIMIT 1',
+    ownerUserId,
+    record.serverId,
+    record.clientId,
+  );
+
+  if (existing) {
+    if (existing.syncStatus !== 'synced') {
+      return;
+    }
+
+    await db.runAsync(
+      `UPDATE records
+       SET clientId = ?,
+           serverId = ?,
+           syncStatus = 'synced',
+           title = ?,
+           category = ?,
+           emotions = ?,
+           emotionIntensity = ?,
+           decisionDifficulty = ?,
+           timeCost = ?,
+           thoughts = ?,
+           finalDecision = ?,
+           worthIt = ?,
+           createdAt = ?,
+           updatedAt = ?
+       WHERE id = ? AND ownerUserId = ?`,
+      record.clientId,
+      record.serverId,
+      record.title,
+      record.category,
+      JSON.stringify(record.emotions),
+      record.emotionIntensity,
+      record.decisionDifficulty,
+      record.timeCost,
+      record.thoughts,
+      record.finalDecision,
+      record.worthIt,
+      record.createdAt,
+      record.updatedAt,
+      existing.id,
+      ownerUserId,
+    );
+    return;
+  }
+
+  await db.runAsync(
+    `INSERT INTO records (
+      ownerUserId, clientId, serverId, syncStatus,
+      title, category, emotions, emotionIntensity, decisionDifficulty,
+      timeCost, thoughts, finalDecision, worthIt, createdAt, updatedAt
+    ) VALUES (?, ?, ?, 'synced', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ownerUserId,
+    record.clientId,
+    record.serverId,
+    record.title,
+    record.category,
+    JSON.stringify(record.emotions),
+    record.emotionIntensity,
+    record.decisionDifficulty,
+    record.timeCost,
+    record.thoughts,
+    record.finalDecision,
+    record.worthIt,
+    record.createdAt,
+    record.updatedAt,
+  );
 }
 
 const getDateRangeStart = (dateRange: DateRange) => {

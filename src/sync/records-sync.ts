@@ -6,13 +6,16 @@ import {
   getRecord,
   markRecordPendingDelete,
   markRecordSynced,
+  upsertRemoteRecord,
 } from '../database/database';
 import {
   createRemoteRecord,
   deleteRemoteRecord,
+  fetchRemoteRecords,
   findRemoteRecordByClientId,
   isRemoteConflict,
   isRemoteMissing,
+  toLocalRecordSnapshot,
   updateRemoteRecord,
 } from '../api/records';
 import { DilemmaRecord } from '../types/record';
@@ -141,6 +144,23 @@ export function syncPendingRecords(db: SQLiteDatabase, ownerUserId: string) {
   databaseSyncs.set(ownerUserId, sync);
 
   return sync;
+}
+
+export async function syncRecords(db: SQLiteDatabase, ownerUserId: string) {
+  const result = await syncPendingRecords(db, ownerUserId);
+  const remoteRecords = await fetchRemoteRecords();
+
+  await db.withTransactionAsync(async () => {
+    for (const remoteRecord of remoteRecords) {
+      await upsertRemoteRecord(
+        db,
+        ownerUserId,
+        toLocalRecordSnapshot(remoteRecord),
+      );
+    }
+  });
+
+  return result;
 }
 
 export async function syncRecordById(

@@ -1,7 +1,7 @@
-import { useMemo, useRef, useState } from 'react';
+import { RefObject, useMemo, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Keyboard, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuth } from '../auth/AuthProvider';
@@ -64,6 +64,11 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
     setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 300);
   };
 
+  const openSelectionSheet = (sheetRef: RefObject<BottomSheetModal | null>) => {
+    Keyboard.dismiss();
+    setTimeout(() => sheetRef.current?.present(), 120);
+  };
+
   const save = async () => {
     if (!title.trim()) {
       Alert.alert('还差一点', '请写下这次纠结的事情。');
@@ -114,15 +119,15 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
         <TextInput value={title} onChangeText={setTitle} placeholder="例如：要不要接下这个任务" placeholderTextColor={colors.muted} style={styles.input} />
       </Field>
       <Field label="分类">
-        <HapticPressable style={styles.selector} onPress={() => categorySheetRef.current?.present()}>
+        <HapticPressable style={styles.selector} onPress={() => openSelectionSheet(categorySheetRef)}>
           <Text style={styles.selectorText}>{category}</Text>
-          <Ionicons name="chevron-up-outline" size={18} color={colors.primary} />
+          <Ionicons name="chevron-down-outline" size={18} color={colors.primary} />
         </HapticPressable>
       </Field>
       <Field label="当时的感受" hint="可以多选">
-        <HapticPressable style={styles.selector} onPress={() => emotionSheetRef.current?.present()}>
+        <HapticPressable style={styles.selector} onPress={() => openSelectionSheet(emotionSheetRef)}>
           <Text style={styles.selectorText}>{emotions.length ? emotions.join('、') : '选择感受'}</Text>
-          <Ionicons name="chevron-up-outline" size={18} color={colors.primary} />
+          <Ionicons name="chevron-down-outline" size={18} color={colors.primary} />
         </HapticPressable>
       </Field>
       <Field label={`情绪强度 · ${emotionIntensity}/10`}><View style={styles.chips}>{levels.map((level) => <Chip key={level} label={String(level)} selected={emotionIntensity === level} onPress={() => setEmotionIntensity(level)} />)}</View></Field>
