@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuth } from '../auth/AuthProvider';
@@ -10,6 +10,9 @@ export function useRecords(filters: RecordFilters = {}) {
   const db = useSQLiteContext();
   const { session } = useAuth();
   const [records, setRecords] = useState<DilemmaRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const hasLoadedRef = useRef(false);
   const category = filters.category;
   const emotion = filters.emotion;
   const dateRange = filters.dateRange;
@@ -19,17 +22,33 @@ export function useRecords(filters: RecordFilters = {}) {
   const refresh = useCallback(async () => {
     if (!userId) {
       setRecords([]);
+      hasLoadedRef.current = false;
+      setIsLoading(false);
+      setIsRefreshing(false);
       return;
     }
 
-    try {
-      await syncRecords(db, userId);
-    } catch {
-      // Local records remain available while a background sync attempt fails.
+    const isInitialLoad = !hasLoadedRef.current;
+    if (isInitialLoad) {
+      setIsLoading(true);
+    } else {
+      setIsRefreshing(true);
     }
-    setRecords(await getRecords(db, userId, { category, emotion, dateRange, search }));
+
+    try {
+      try {
+        await syncRecords(db, userId);
+      } catch {
+        // Local records remain available while a background sync attempt fails.
+      }
+      setRecords(await getRecords(db, userId, { category, emotion, dateRange, search }));
+      hasLoadedRef.current = true;
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
   }, [db, category, emotion, dateRange, search, userId]);
 
   useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
-  return { records, refresh };
+  return { records, refresh, isLoading, isRefreshing };
 }
