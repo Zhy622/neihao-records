@@ -6,6 +6,12 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/6a64316a-8024-464e-83ca-f98b4e893746"
+    },
     "plugins": [
       "expo-sqlite",
       "expo-secure-store",

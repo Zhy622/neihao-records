@@ -20,6 +20,7 @@
     "expo-secure-store": "~56.0.4",
     "expo-sqlite": "~56.0.5",
     "expo-status-bar": "~56.0.4",
+    "expo-updates": "~56.0.19",
     "nativewind": "^5.0.0-preview.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
