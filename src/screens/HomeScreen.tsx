@@ -9,12 +9,14 @@ import { Screen } from '../components/Screen';
 import { SoftCard } from '../components/SoftCard';
 import { StatCard } from '../components/StatCard';
 import { useRecords } from '../hooks/useRecords';
+import { useAuth } from '../auth/AuthProvider';
 import { RootStackParamList } from '../types/navigation';
 import { average, getTodayRecords, mostCommon } from '../utils/stats';
 import { colors, fonts } from '../theme';
 
 export function HomeScreen({ navigation }: { navigation: NativeStackNavigationProp<RootStackParamList> }) {
   const { records } = useRecords();
+  const { session, signOut } = useAuth();
   const todayRecords = getTodayRecords(records);
   const recentRecords = records.slice(0, 3);
   const pendingCount = records.filter((record) => record.syncStatus !== 'synced').length;
@@ -27,7 +29,18 @@ export function HomeScreen({ navigation }: { navigation: NativeStackNavigationPr
   return (
     <Screen>
       <LinearGradient colors={['#FFFEFC', '#F1EEF9', '#EEF5EF']} style={styles.header}>
-        <Text style={styles.eyebrow}>内耗记录本</Text>
+        <View style={styles.headerTop}>
+          <Text style={styles.eyebrow}>{session?.user.displayName || '未设置'}</Text>
+          <HapticPressable
+            accessibilityRole="button"
+            accessibilityLabel="进入人物观照"
+            style={({ pressed }) => [styles.peopleEntry, pressed && styles.pressed]}
+            onPress={() => navigation.navigate('PeopleObservation')}
+          >
+            <Ionicons name="people-outline" size={21} color={colors.primary} />
+            <Text style={styles.peopleEntryText}>人物观照</Text>
+          </HapticPressable>
+        </View>
         <Text style={styles.title}>今天，也留一点空间给自己。</Text>
         <Text style={styles.subtitle}>记录不是为了责怪，而是为了看清反复出现的模式。</Text>
       </LinearGradient>
@@ -53,7 +66,17 @@ export function HomeScreen({ navigation }: { navigation: NativeStackNavigationPr
 
 const styles = StyleSheet.create({
   header: { gap: 9, padding: 22, borderRadius: 28, borderWidth: 1, borderColor: colors.border },
+  headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   eyebrow: { color: colors.primary, fontFamily: fonts.bold, letterSpacing: 1 },
+  peopleEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 2,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  peopleEntryText: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 14 },
   title: { color: colors.text, fontFamily: fonts.bold, fontSize: 28, lineHeight: 38 },
   subtitle: { color: colors.muted, fontFamily: fonts.regular, fontSize: 15, lineHeight: 23 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },

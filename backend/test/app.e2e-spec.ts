@@ -62,6 +62,8 @@ describe('Backend API (e2e)', () => {
         '/api/auth/logout': expect.any(Object),
         '/api/records': expect.any(Object),
         '/api/records/{id}': expect.any(Object),
+        '/api/people-observations': expect.any(Object),
+        '/api/people-observations/{id}': expect.any(Object),
       }),
     );
     expect(response.body.components.securitySchemes['access-token']).toEqual(
@@ -240,5 +242,110 @@ describe('Backend API (e2e)', () => {
       .set(otherHeader)
       .expect(200);
     expect(otherRecords.body.total).toBe(0);
+  });
+
+  it('validates, isolates, updates, filters, and soft-deletes people observations', async () => {
+    const owner = await register('people-owner@example.com');
+    const otherUser = await register('people-other@example.com');
+    const ownerHeader = { Authorization: `Bearer ${owner.tokens.accessToken}` };
+    const otherHeader = { Authorization: `Bearer ${otherUser.tokens.accessToken}` };
+    const clientId = 'e2e-client-people-observation-1';
+    const validObservation = {
+      clientId,
+      alias: 'A colleague',
+      emotions: ['ENVY', 'DEFIANT'],
+      triggerScene: 'Saw a public achievement.',
+      contemptPoints: 'Sometimes talks too loudly.',
+      inferiorityOrEnvyPoints: 'Gets opportunities quickly.',
+      otherStrengths: 'Clear self-promotion and fast execution.',
+      myStrengths: 'Careful analysis and steady follow-through.',
+      personDefinition: 'A mirror for the ability I want to practice.',
+      learningAction: 'Make one small public update this week.',
+    };
+
+    await request(app.getHttpServer())
+      .post('/api/people-observations')
+      .set(ownerHeader)
+      .send({ ...validObservation, emotions: ['UNKNOWN'], unexpected: true })
+      .expect(400);
+
+    const created = await request(app.getHttpServer())
+      .post('/api/people-observations')
+      .set(ownerHeader)
+      .send(validObservation)
+      .expect(201);
+
+    expect(created.body).toEqual(
+      expect.objectContaining({
+        userId: owner.user.id,
+        clientId,
+        alias: validObservation.alias,
+        syncStatus: 'ACTIVE',
+        deletedAt: null,
+      }),
+    );
+
+    await request(app.getHttpServer())
+      .post('/api/people-observations')
+      .set(ownerHeader)
+      .send(validObservation)
+      .expect(409);
+
+    await request(app.getHttpServer())
+      .get(`/api/people-observations/${created.body.id}`)
+      .set(otherHeader)
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .patch(`/api/people-observations/${created.body.id}`)
+      .set(ownerHeader)
+      .send({ alias: 'Updated mirror', emotions: ['ADMIRATION'] })
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.alias).toBe('Updated mirror');
+        expect(body.emotions).toEqual(['ADMIRATION']);
+      });
+
+    const filtered = await request(app.getHttpServer())
+      .get('/api/people-observations?emotion=ADMIRATION&search=mirror&limit=10&offset=0')
+      .set(ownerHeader)
+      .expect(200);
+
+    expect(filtered.body).toEqual(
+      expect.objectContaining({ total: 1, limit: 10, offset: 0 }),
+    );
+
+    await request(app.getHttpServer())
+      .delete(`/api/people-observations/${created.body.id}`)
+      .set(ownerHeader)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.syncStatus).toBe('DELETED');
+        expect(body.deletedAt).toEqual(expect.any(String));
+      });
+
+    await request(app.getHttpServer())
+      .get(`/api/people-observations/${created.body.id}`)
+      .set(ownerHeader)
+      .expect(404);
+
+    const active = await request(app.getHttpServer())
+      .get('/api/people-observations')
+      .set(ownerHeader)
+      .expect(200);
+    expect(active.body.total).toBe(0);
+
+    const withDeleted = await request(app.getHttpServer())
+      .get('/api/people-observations?includeDeleted=true')
+      .set(ownerHeader)
+      .expect(200);
+    expect(withDeleted.body.total).toBe(1);
+    expect(withDeleted.body.peopleObservations[0].syncStatus).toBe('DELETED');
+
+    const otherObservations = await request(app.getHttpServer())
+      .get('/api/people-observations?includeDeleted=true')
+      .set(otherHeader)
+      .expect(200);
+    expect(otherObservations.body.total).toBe(0);
   });
 });

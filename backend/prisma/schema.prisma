@@ -46,15 +46,26 @@ enum RecordSyncStatus {
   DELETED
 }
 
+enum PeopleObservationEmotion {
+  CONTEMPT
+  INFERIORITY
+  JEALOUSY
+  DEFIANT
+  ENVY
+  ADMIRATION
+  OTHER
+}
+
 model User {
-  id           String         @id @default(uuid())
-  email        String         @unique
-  passwordHash String
-  displayName  String?
-  records      Record[]
-  refreshTokens RefreshToken[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id                 String              @id @default(uuid())
+  email              String              @unique
+  passwordHash       String
+  displayName        String?
+  records            Record[]
+  peopleObservations PeopleObservation[]
+  refreshTokens      RefreshToken[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 
   @@map("users")
 }
@@ -82,6 +93,30 @@ model Record {
   @@index([userId, category])
   @@unique([userId, clientId])
   @@map("records")
+}
+
+model PeopleObservation {
+  id                       String                     @id @default(uuid())
+  userId                   String
+  user                     User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId                 String?
+  alias                    String
+  emotions                 PeopleObservationEmotion[]
+  triggerScene             String                     @default("")
+  contemptPoints           String                     @default("")
+  inferiorityOrEnvyPoints  String                     @default("")
+  otherStrengths           String                     @default("")
+  myStrengths              String                     @default("")
+  personDefinition         String                     @default("")
+  learningAction           String                     @default("")
+  syncStatus               RecordSyncStatus           @default(ACTIVE)
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  deletedAt                DateTime?
+
+  @@index([userId, createdAt])
+  @@unique([userId, clientId])
+  @@map("people_observations")
 }
 
 model RefreshToken {

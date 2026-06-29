@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "内耗记录本",
+    "name": "雕虫小记",
     "slug": "neihao-records",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
     "runtimeVersion": {
       "policy": "appVersion"
@@ -22,10 +22,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#FFFEFC",
+        "foregroundImage": "./assets/logo.png"
       },
       "package": "com.BadZhy.neihaorecords",
       "softwareKeyboardLayoutMode": "resize",

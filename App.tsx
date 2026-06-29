@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
@@ -17,10 +18,13 @@ import { AuthLoadingScreen } from './src/screens/AuthLoadingScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { RecordDetailScreen } from './src/screens/RecordDetailScreen';
 import { RecordScreen } from './src/screens/RecordScreen';
+import { PeopleObservationScreen } from './src/screens/PeopleObservationScreen';
+import { PeopleObservationHistoryScreen } from './src/screens/PeopleObservationHistoryScreen';
 import { RecordSyncBootstrap } from './src/sync/RecordSyncBootstrap';
 import { initializeDatabase } from './src/database/database';
 import { RootStackParamList } from './src/types/navigation';
 import { colors } from './src/theme';
+import { HapticPressable } from './src/components/HapticPressable';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -52,6 +56,29 @@ function RootNavigation() {
             <Stack.Screen name="Main" component={AppTabs} options={{ headerShown: false }} />
             <Stack.Screen name="Record" component={RecordScreen} options={{ title: '记录一次纠结' }} />
             <Stack.Screen name="RecordDetail" component={RecordDetailScreen} options={{ title: '记录详情' }} />
+            <Stack.Screen
+              name="PeopleObservation"
+              component={PeopleObservationScreen}
+              options={({ navigation }) => ({
+                title: '人物观照',
+                headerTitleAlign: 'center',
+                headerRight: () => (
+                  <HapticPressable
+                    accessibilityRole="button"
+                    accessibilityLabel="查看人物观照历史"
+                    style={{ padding: 8, borderRadius: 18 }}
+                    onPress={() => navigation.navigate('PeopleObservationHistory')}
+                  >
+                    <Ionicons name="time-outline" size={22} color={colors.primary} />
+                  </HapticPressable>
+                ),
+              })}
+            />
+            <Stack.Screen
+              name="PeopleObservationHistory"
+              component={PeopleObservationHistoryScreen}
+              options={{ title: '人物观照历史', headerTitleAlign: 'center' }}
+            />
           </>
         ) : (
           <Stack.Screen name="Auth" component={AuthScreen} options={{ headerShown: false }} />

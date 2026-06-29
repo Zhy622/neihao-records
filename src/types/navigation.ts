@@ -3,6 +3,8 @@ export type RootStackParamList = {
   Main: undefined;
   Record: undefined;
   RecordDetail: { id: number };
+  PeopleObservation: undefined;
+  PeopleObservationHistory: undefined;
 };
 
 export type MainTabsParamList = {

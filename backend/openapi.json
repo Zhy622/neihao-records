@@ -580,6 +580,387 @@
         ]
       }
     },
+    "/api/people-observations": {
+      "get": {
+        "operationId": "PeopleObservationsController_list",
+        "parameters": [
+          {
+            "name": "emotion",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PeopleObservationEmotion"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "updatedSince",
+            "required": false,
+            "in": "query",
+            "description": "Only return observations updated after this time.",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeDeleted",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "false",
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeopleObservationsPageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List the current user people observations",
+        "tags": [
+          "people-observations"
+        ]
+      },
+      "post": {
+        "operationId": "PeopleObservationsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePeopleObservationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeopleObservationResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Create a people observation for the current user",
+        "tags": [
+          "people-observations"
+        ]
+      }
+    },
+    "/api/people-observations/{id}": {
+      "get": {
+        "operationId": "PeopleObservationsController_getOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeopleObservationResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get one active people observation owned by the current user",
+        "tags": [
+          "people-observations"
+        ]
+      },
+      "patch": {
+        "operationId": "PeopleObservationsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePeopleObservationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeopleObservationResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Update an active people observation owned by the current user",
+        "tags": [
+          "people-observations"
+        ]
+      },
+      "delete": {
+        "operationId": "PeopleObservationsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeopleObservationResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Soft-delete a people observation owned by the current user",
+        "tags": [
+          "people-observations"
+        ]
+      }
+    },
     "/api/health": {
       "get": {
         "operationId": "HealthController_getHealth",
@@ -1118,6 +1499,237 @@
                 "$ref": "#/components/schemas/WorthIt"
               }
             ]
+          }
+        }
+      },
+      "PeopleObservationEmotion": {
+        "type": "string",
+        "enum": [
+          "CONTEMPT",
+          "INFERIORITY",
+          "JEALOUSY",
+          "DEFIANT",
+          "ENVY",
+          "ADMIRATION",
+          "OTHER"
+        ]
+      },
+      "PeopleObservationResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clientId": {
+            "type": "object",
+            "nullable": true
+          },
+          "alias": {
+            "type": "string"
+          },
+          "emotions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PeopleObservationEmotion"
+            }
+          },
+          "triggerScene": {
+            "type": "string"
+          },
+          "contemptPoints": {
+            "type": "string"
+          },
+          "inferiorityOrEnvyPoints": {
+            "type": "string"
+          },
+          "otherStrengths": {
+            "type": "string"
+          },
+          "myStrengths": {
+            "type": "string"
+          },
+          "personDefinition": {
+            "type": "string"
+          },
+          "learningAction": {
+            "type": "string"
+          },
+          "syncStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RecordSyncStatus"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "clientId",
+          "alias",
+          "emotions",
+          "triggerScene",
+          "contemptPoints",
+          "inferiorityOrEnvyPoints",
+          "otherStrengths",
+          "myStrengths",
+          "personDefinition",
+          "learningAction",
+          "syncStatus",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "PeopleObservationsPageResponseDto": {
+        "type": "object",
+        "properties": {
+          "peopleObservations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PeopleObservationResponseDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 200
+          },
+          "offset": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "peopleObservations",
+          "total",
+          "limit",
+          "offset"
+        ]
+      },
+      "CreatePeopleObservationDto": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Stable client-generated ID."
+          },
+          "alias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "A colleague"
+          },
+          "emotions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PeopleObservationEmotion"
+            }
+          },
+          "triggerScene": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "contemptPoints": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "inferiorityOrEnvyPoints": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "otherStrengths": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "myStrengths": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "personDefinition": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "learningAction": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Original local creation time."
+          }
+        },
+        "required": [
+          "alias",
+          "emotions"
+        ]
+      },
+      "UpdatePeopleObservationDto": {
+        "type": "object",
+        "properties": {
+          "alias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "emotions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PeopleObservationEmotion"
+            }
+          },
+          "triggerScene": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "contemptPoints": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "inferiorityOrEnvyPoints": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "otherStrengths": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "myStrengths": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "personDefinition": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "learningAction": {
+            "type": "string",
+            "maxLength": 5000
           }
         }
       },
