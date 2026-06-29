@@ -9,7 +9,8 @@ import { Chip } from '../components/Chip';
 import { HapticPressable } from '../components/HapticPressable';
 import { Screen } from '../components/Screen';
 import { SoftCard } from '../components/SoftCard';
-import { createPeopleObservation } from '../database/database';
+import { createPeopleObservation, getPeopleObservation } from '../database/database';
+import { upsertPeopleObservationCache } from '../cache/people-observations-cache';
 import { syncPeopleObservationById } from '../sync/people-observations-sync';
 import {
   PEOPLE_OBSERVATION_EMOTIONS,
@@ -155,6 +156,10 @@ export function PeopleObservationScreen({
         synced = false;
       }
 
+      upsertPeopleObservationCache(
+        session!.user.id,
+        (await getPeopleObservation(db, session!.user.id, localObservation.id)) ?? localObservation,
+      );
       setSaving(false);
       if (synced) {
         navigation.goBack();

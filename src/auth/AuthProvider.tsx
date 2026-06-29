@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { login, logout, register } from '../api/auth';
 import { ApiError, refreshAuthSession } from '../api/client';
+import { clearPeopleObservationCache } from '../cache/people-observations-cache';
 import { AuthSession, LoginInput, RegisterInput } from '../types/auth';
 import {
   getCurrentSession,
@@ -81,6 +82,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const signOut = useCallback(async () => {
     await logout(getCurrentSession());
+    clearPeopleObservationCache();
   }, []);
 
   const value = useMemo(

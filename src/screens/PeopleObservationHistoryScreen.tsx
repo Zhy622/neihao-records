@@ -11,33 +11,44 @@ import { RootStackParamList } from '../types/navigation';
 import { PeopleObservation } from '../types/people-observation';
 import { colors, fonts } from '../theme';
 
-function PeopleObservationCard({ observation }: { observation: PeopleObservation }) {
+function PeopleObservationCard({
+  observation,
+  onOpen,
+}: {
+  observation: PeopleObservation;
+  onOpen: () => void;
+}) {
   return (
-    <SoftCard colors={['#FFFEFC', '#F3F0FA']} style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.titleRow}>
-          <View style={styles.iconWrap}>
-            <Ionicons name="people-outline" size={18} color={colors.primary} />
+    <HapticPressable feedback="selection" onPress={onOpen}>
+      <SoftCard colors={['#FFFEFC', '#F3F0FA']} style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={styles.titleRow}>
+            <View style={styles.iconWrap}>
+              <Ionicons name="people-outline" size={18} color={colors.primary} />
+            </View>
+            <Text numberOfLines={1} ellipsizeMode="tail" style={styles.alias}>
+              {observation.alias}
+            </Text>
           </View>
-          <Text numberOfLines={1} ellipsizeMode="tail" style={styles.alias}>
-            {observation.alias}
-          </Text>
+          <View style={styles.cardActions}>
+            <SyncBadge status={observation.syncStatus} />
+            <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+          </View>
         </View>
-        <SyncBadge status={observation.syncStatus} />
-      </View>
 
-      <Text style={styles.emotions} numberOfLines={1}>
-        {observation.emotions.length ? observation.emotions.join('、') : '未选择情绪'}
-      </Text>
+        <Text style={styles.emotions} numberOfLines={1}>
+          {observation.emotions.length ? observation.emotions.join('、') : '未选择情绪'}
+        </Text>
 
-      {observation.triggerScene ? (
-        <Text style={styles.bodyText} numberOfLines={2}>{observation.triggerScene}</Text>
-      ) : null}
+        {observation.triggerScene ? (
+          <Text style={styles.bodyText} numberOfLines={2}>{observation.triggerScene}</Text>
+        ) : null}
 
-      <View style={styles.cardFooter}>
-        <Text style={styles.date}>{new Date(observation.createdAt).toLocaleString('zh-CN')}</Text>
-      </View>
-    </SoftCard>
+        <View style={styles.cardFooter}>
+          <Text style={styles.date}>{new Date(observation.createdAt).toLocaleString('zh-CN')}</Text>
+        </View>
+      </SoftCard>
+    </HapticPressable>
   );
 }
 
@@ -63,7 +74,11 @@ export function PeopleObservationHistoryScreen({
           ) : null}
           <View style={styles.list}>
             {peopleObservations.map((observation) => (
-              <PeopleObservationCard key={observation.id} observation={observation} />
+              <PeopleObservationCard
+                key={observation.id}
+                observation={observation}
+                onOpen={() => navigation.navigate('PeopleObservationDetail', { id: observation.id })}
+              />
             ))}
           </View>
         </>
@@ -75,13 +90,15 @@ export function PeopleObservationHistoryScreen({
         />
       )}
 
-      <HapticPressable
-        style={({ pressed }) => [styles.button, pressed && styles.pressed]}
-        onPress={() => navigation.navigate('PeopleObservation')}
-      >
-        <Ionicons name="add-circle-outline" size={20} color={colors.white} />
-        <Text style={styles.buttonText}>新增人物观照</Text>
-      </HapticPressable>
+      {!isLoading && !peopleObservations.length ? (
+        <HapticPressable
+          style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+          onPress={() => navigation.navigate('PeopleObservation')}
+        >
+          <Ionicons name="add-circle-outline" size={20} color={colors.white} />
+          <Text style={styles.buttonText}>新增人物观照</Text>
+        </HapticPressable>
+      ) : null}
     </Screen>
   );
 }
@@ -95,6 +112,7 @@ const styles = StyleSheet.create({
   list: { gap: 12 },
   card: { gap: 9, padding: 16 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  cardActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   titleRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
   iconWrap: {
     alignItems: 'center',

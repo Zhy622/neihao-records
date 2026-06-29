@@ -20,6 +20,7 @@ import { RecordDetailScreen } from './src/screens/RecordDetailScreen';
 import { RecordScreen } from './src/screens/RecordScreen';
 import { PeopleObservationScreen } from './src/screens/PeopleObservationScreen';
 import { PeopleObservationHistoryScreen } from './src/screens/PeopleObservationHistoryScreen';
+import { PeopleObservationDetailScreen } from './src/screens/PeopleObservationDetailScreen';
 import { RecordSyncBootstrap } from './src/sync/RecordSyncBootstrap';
 import { initializeDatabase } from './src/database/database';
 import { RootStackParamList } from './src/types/navigation';
@@ -65,11 +66,11 @@ function RootNavigation() {
                 headerRight: () => (
                   <HapticPressable
                     accessibilityRole="button"
-                    accessibilityLabel="查看人物观照历史"
+                    accessibilityLabel="查看人物观照列表"
                     style={{ padding: 8, borderRadius: 18 }}
                     onPress={() => navigation.navigate('PeopleObservationHistory')}
                   >
-                    <Ionicons name="time-outline" size={22} color={colors.primary} />
+                    <Ionicons name="list-outline" size={22} color={colors.primary} />
                   </HapticPressable>
                 ),
               })}
@@ -77,7 +78,12 @@ function RootNavigation() {
             <Stack.Screen
               name="PeopleObservationHistory"
               component={PeopleObservationHistoryScreen}
-              options={{ title: '人物观照历史', headerTitleAlign: 'center' }}
+              options={{ title: '人物观照列表', headerTitleAlign: 'center' }}
+            />
+            <Stack.Screen
+              name="PeopleObservationDetail"
+              component={PeopleObservationDetailScreen}
+              options={{ title: '观照详情', headerTitleAlign: 'center' }}
             />
           </>
         ) : (

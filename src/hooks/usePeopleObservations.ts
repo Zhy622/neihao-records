@@ -5,6 +5,11 @@ import { useAuth } from '../auth/AuthProvider';
 import { getPeopleObservations } from '../database/database';
 import { syncPeopleObservations } from '../sync/people-observations-sync';
 import {
+  filterCachedPeopleObservations,
+  getCachedPeopleObservations,
+  setCachedPeopleObservations,
+} from '../cache/people-observations-cache';
+import {
   PeopleObservation,
   PeopleObservationFilters,
 } from '../types/people-observation';
@@ -28,20 +33,25 @@ export function usePeopleObservations(filters: PeopleObservationFilters = {}) {
       return;
     }
 
-    const isInitialLoad = !hasLoadedRef.current;
-    if (isInitialLoad) {
-      setIsLoading(true);
-    } else {
-      setIsRefreshing(true);
+    const cached = getCachedPeopleObservations(userId);
+    if (cached) {
+      setPeopleObservations(filterCachedPeopleObservations(cached, { search }));
+      hasLoadedRef.current = true;
+      setIsLoading(false);
+      setIsRefreshing(false);
+      return;
     }
 
     try {
+      setIsLoading(true);
       try {
         await syncPeopleObservations(db, userId);
       } catch {
         // Local observations remain available while a background sync attempt fails.
       }
-      setPeopleObservations(await getPeopleObservations(db, userId, { search }));
+      const observations = await getPeopleObservations(db, userId);
+      setCachedPeopleObservations(userId, observations);
+      setPeopleObservations(filterCachedPeopleObservations(observations, { search }));
       hasLoadedRef.current = true;
     } finally {
       setIsLoading(false);

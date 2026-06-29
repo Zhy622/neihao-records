@@ -5,6 +5,7 @@ export type RootStackParamList = {
   RecordDetail: { id: number };
   PeopleObservation: undefined;
   PeopleObservationHistory: undefined;
+  PeopleObservationDetail: { id: number };
 };
 
 export type MainTabsParamList = {
