@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "雕虫小记",
+    "name": "未济",
     "slug": "neihao-records",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo.png",
+    "icon": "./assets/weiji-icon.png",
     "userInterfaceStyle": "light",
     "runtimeVersion": {
       "policy": "appVersion"
@@ -23,7 +23,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FFFEFC",
-        "foregroundImage": "./assets/logo.png"
+        "foregroundImage": "./assets/weiji-adaptive-foreground.png"
       },
       "package": "com.BadZhy.neihaorecords",
       "softwareKeyboardLayoutMode": "resize",
