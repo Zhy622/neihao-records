@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "未济",
+    "name": "内耗记录本",
     "slug": "neihao-records",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -23,7 +23,9 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FFFEFC",
-        "foregroundImage": "./assets/weiji-adaptive-foreground.png"
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "com.BadZhy.neihaorecords",
       "softwareKeyboardLayoutMode": "resize",
