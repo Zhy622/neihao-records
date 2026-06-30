@@ -1,11 +1,12 @@
 import { useCallback, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuth } from '../auth/AuthProvider';
 import { Chip } from '../components/Chip';
+import { useAppAlert } from '../components/AppAlert';
 import { HapticPressable } from '../components/HapticPressable';
 import { Screen } from '../components/Screen';
 import { deleteAndSyncRecord, syncRecordById } from '../sync/records-sync';
@@ -50,6 +51,7 @@ export function RecordDetailScreen({
 }: NativeStackScreenProps<RootStackParamList, 'RecordDetail'>) {
   const db = useSQLiteContext();
   const { session } = useAuth();
+  const { alert } = useAppAlert();
   const scrollViewRef = useRef<ScrollView>(null);
   const [record, setRecord] = useState<DilemmaRecord | null>(null);
   const [editing, setEditing] = useState(false);
@@ -113,7 +115,7 @@ export function RecordDetailScreen({
     }
 
     if (!title.trim()) {
-      Alert.alert('还差一点', '请写下这次纠结的事情。');
+      alert('还差一点', '请写下这次纠结的事情。');
       return;
     }
 
@@ -140,10 +142,10 @@ export function RecordDetailScreen({
       setEditing(false);
 
       if (!synced) {
-        Alert.alert('已保存到本机', '暂时无法同步到服务器，联网后会自动重试。');
+        alert('已保存到本机', '暂时无法同步到服务器，联网后会自动重试。');
       }
     } catch {
-      Alert.alert('保存失败', '这次修改暂时没有保存，请稍后再试。');
+      alert('保存失败', '这次修改暂时没有保存，请稍后再试。');
     } finally {
       setSaving(false);
     }
@@ -154,7 +156,7 @@ export function RecordDetailScreen({
       return;
     }
 
-    Alert.alert('删除这条记录？', '删除后无法恢复。', [
+    alert('删除这条记录？', '删除后无法恢复。', [
       { text: '取消', style: 'cancel' },
       {
         text: '删除',
@@ -164,11 +166,11 @@ export function RecordDetailScreen({
             setDeleting(true);
             const synced = await deleteAndSyncRecord(db, session.user.id, record.id);
             if (!synced) {
-              Alert.alert('已从本机移除', '服务器删除会在联网后自动重试。');
+              alert('已从本机移除', '服务器删除会在联网后自动重试。');
             }
             navigation.goBack();
           } catch {
-            Alert.alert('删除失败', '这条记录暂时没有删除，请稍后再试。');
+            alert('删除失败', '这条记录暂时没有删除，请稍后再试。');
             setDeleting(false);
           }
         },

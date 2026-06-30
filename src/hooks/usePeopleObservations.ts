@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { getPeopleObservations } from '../database/database';
 import { syncPeopleObservations } from '../sync/people-observations-sync';
 import {
+  consumePendingPeopleObservationAnimationIds,
   filterCachedPeopleObservations,
   getCachedPeopleObservations,
   setCachedPeopleObservations,
@@ -18,6 +19,7 @@ export function usePeopleObservations(filters: PeopleObservationFilters = {}) {
   const db = useSQLiteContext();
   const { session } = useAuth();
   const [peopleObservations, setPeopleObservations] = useState<PeopleObservation[]>([]);
+  const [animatedObservationIds, setAnimatedObservationIds] = useState<Set<number>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const hasLoadedRef = useRef(false);
@@ -27,6 +29,7 @@ export function usePeopleObservations(filters: PeopleObservationFilters = {}) {
   const refresh = useCallback(async () => {
     if (!userId) {
       setPeopleObservations([]);
+      setAnimatedObservationIds(new Set());
       hasLoadedRef.current = false;
       setIsLoading(false);
       setIsRefreshing(false);
@@ -35,7 +38,11 @@ export function usePeopleObservations(filters: PeopleObservationFilters = {}) {
 
     const cached = getCachedPeopleObservations(userId);
     if (cached) {
-      setPeopleObservations(filterCachedPeopleObservations(cached, { search }));
+      const filteredObservations = filterCachedPeopleObservations(cached, { search });
+      setPeopleObservations(filteredObservations);
+      setAnimatedObservationIds(
+        consumePendingPeopleObservationAnimationIds(userId, filteredObservations),
+      );
       hasLoadedRef.current = true;
       setIsLoading(false);
       setIsRefreshing(false);
@@ -51,7 +58,11 @@ export function usePeopleObservations(filters: PeopleObservationFilters = {}) {
       }
       const observations = await getPeopleObservations(db, userId);
       setCachedPeopleObservations(userId, observations);
-      setPeopleObservations(filterCachedPeopleObservations(observations, { search }));
+      const filteredObservations = filterCachedPeopleObservations(observations, { search });
+      setPeopleObservations(filteredObservations);
+      setAnimatedObservationIds(
+        consumePendingPeopleObservationAnimationIds(userId, filteredObservations),
+      );
       hasLoadedRef.current = true;
     } finally {
       setIsLoading(false);
@@ -60,5 +71,5 @@ export function usePeopleObservations(filters: PeopleObservationFilters = {}) {
   }, [db, search, userId]);
 
   useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
-  return { peopleObservations, refresh, isLoading, isRefreshing };
+  return { peopleObservations, animatedObservationIds, refresh, isLoading, isRefreshing };
 }

@@ -1,12 +1,13 @@
 import { useMemo, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuth } from '../auth/AuthProvider';
 import { Chip } from '../components/Chip';
+import { useAppAlert } from '../components/AppAlert';
 import { EmptyState } from '../components/EmptyState';
 import { HapticPressable } from '../components/HapticPressable';
 import { RecordCard } from '../components/RecordCard';
@@ -30,6 +31,7 @@ export function HistoryScreen() {
   const filterSnapPoints = useMemo(() => ['64%'], []);
   const db = useSQLiteContext();
   const { session } = useAuth();
+  const { alert } = useAppAlert();
   const [category, setCategory] = useState<Category | undefined>();
   const [emotion, setEmotion] = useState<Emotion | undefined>();
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -38,7 +40,7 @@ export function HistoryScreen() {
   const activeFilters = [dateRange, category, emotion].filter(Boolean).length;
 
   const confirmDelete = (id: number) => {
-    Alert.alert('删除这条记录？', '删除后无法恢复。', [
+    alert('删除这条记录？', '删除后无法恢复。', [
       { text: '取消', style: 'cancel' },
       {
         text: '删除',
@@ -47,7 +49,7 @@ export function HistoryScreen() {
           const synced = await deleteAndSyncRecord(db, session!.user.id, id);
           await refresh();
           if (!synced) {
-            Alert.alert('已从本机移除', '服务器删除会在联网后自动重试。');
+            alert('已从本机移除', '服务器删除会在联网后自动重试。');
           }
         },
       },

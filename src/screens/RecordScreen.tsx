@@ -1,11 +1,12 @@
 import { RefObject, useMemo, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { Alert, Keyboard, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuth } from '../auth/AuthProvider';
 import { Chip } from '../components/Chip';
+import { useAppAlert } from '../components/AppAlert';
 import { HapticPressable } from '../components/HapticPressable';
 import { Screen } from '../components/Screen';
 import { createRecord } from '../database/database';
@@ -38,6 +39,7 @@ function Field({ label, children, hint }: { label: string; children: React.React
 export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Record'>) {
   const db = useSQLiteContext();
   const { session } = useAuth();
+  const { alert } = useAppAlert();
   const scrollViewRef = useRef<ScrollView>(null);
   const categorySheetRef = useRef<BottomSheetModal>(null);
   const emotionSheetRef = useRef<BottomSheetModal>(null);
@@ -71,7 +73,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
 
   const save = async () => {
     if (!title.trim()) {
-      Alert.alert('还差一点', '请写下这次纠结的事情。');
+      alert('还差一点', '请写下这次纠结的事情。');
       return;
     }
     try {
@@ -103,12 +105,12 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
       if (synced) {
         navigation.goBack();
       } else {
-        Alert.alert('已保存到本机', '暂时无法同步到服务器，联网后会自动重试。', [
+        alert('已保存到本机', '暂时无法同步到服务器，联网后会自动重试。', [
           { text: '知道了', onPress: () => navigation.goBack() },
         ]);
       }
     } catch {
-      Alert.alert('保存失败', '记录暂时没有保存，请稍后再试。');
+      alert('保存失败', '记录暂时没有保存，请稍后再试。');
       setSaving(false);
     }
   };

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { EmptyState } from '../components/EmptyState';
 import { HapticPressable } from '../components/HapticPressable';
 import { Screen } from '../components/Screen';
@@ -12,15 +13,18 @@ import { PeopleObservation } from '../types/people-observation';
 import { colors, fonts } from '../theme';
 
 function PeopleObservationCard({
+  animate,
   observation,
   onOpen,
 }: {
+  animate: boolean;
   observation: PeopleObservation;
   onOpen: () => void;
 }) {
   return (
-    <HapticPressable feedback="selection" onPress={onOpen}>
-      <SoftCard colors={['#FFFEFC', '#F3F0FA']} style={styles.card}>
+    <Animated.View entering={animate ? FadeInUp.duration(260).springify().damping(18) : undefined}>
+      <HapticPressable feedback="selection" onPress={onOpen}>
+        <SoftCard colors={['#FFFEFC', '#F3F0FA']} style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={styles.titleRow}>
             <View style={styles.iconWrap}>
@@ -47,15 +51,16 @@ function PeopleObservationCard({
         <View style={styles.cardFooter}>
           <Text style={styles.date}>{new Date(observation.createdAt).toLocaleString('zh-CN')}</Text>
         </View>
-      </SoftCard>
-    </HapticPressable>
+        </SoftCard>
+      </HapticPressable>
+    </Animated.View>
   );
 }
 
 export function PeopleObservationHistoryScreen({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, 'PeopleObservationHistory'>) {
-  const { peopleObservations, isLoading, isRefreshing } = usePeopleObservations();
+  const { peopleObservations, animatedObservationIds, isLoading, isRefreshing } = usePeopleObservations();
 
   return (
     <Screen contentStyle={styles.content}>
@@ -76,6 +81,7 @@ export function PeopleObservationHistoryScreen({
             {peopleObservations.map((observation) => (
               <PeopleObservationCard
                 key={observation.id}
+                animate={animatedObservationIds.has(observation.id)}
                 observation={observation}
                 onOpen={() => navigation.navigate('PeopleObservationDetail', { id: observation.id })}
               />

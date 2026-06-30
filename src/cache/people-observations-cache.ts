@@ -4,6 +4,7 @@ import {
 } from '../types/people-observation';
 
 const observationCache = new Map<string, PeopleObservation[]>();
+const observationAnimationIds = new Map<string, Set<number>>();
 
 const sortByCreatedAtDesc = (items: PeopleObservation[]) =>
   [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id);
@@ -16,7 +17,15 @@ export function setCachedPeopleObservations(
   ownerUserId: string,
   observations: PeopleObservation[],
 ) {
+  const hadCache = observationCache.has(ownerUserId);
   observationCache.set(ownerUserId, sortByCreatedAtDesc(observations));
+
+  if (!hadCache && observations.length) {
+    observationAnimationIds.set(
+      ownerUserId,
+      new Set(observations.map((observation) => observation.id)),
+    );
+  }
 }
 
 export function filterCachedPeopleObservations(
@@ -43,7 +52,11 @@ export function filterCachedPeopleObservations(
   );
 }
 
-export function upsertPeopleObservationCache(ownerUserId: string, observation: PeopleObservation) {
+export function upsertPeopleObservationCache(
+  ownerUserId: string,
+  observation: PeopleObservation,
+  options: { animate?: boolean } = {},
+) {
   const current = observationCache.get(ownerUserId);
   if (!current) {
     return;
@@ -56,6 +69,12 @@ export function upsertPeopleObservationCache(ownerUserId: string, observation: P
       ...current.filter((item) => item.id !== observation.id),
     ]),
   );
+
+  if (options.animate !== false) {
+    const currentAnimationIds = observationAnimationIds.get(ownerUserId) ?? new Set<number>();
+    currentAnimationIds.add(observation.id);
+    observationAnimationIds.set(ownerUserId, currentAnimationIds);
+  }
 }
 
 export function removePeopleObservationCache(ownerUserId: string, id: number) {
@@ -65,8 +84,36 @@ export function removePeopleObservationCache(ownerUserId: string, id: number) {
   }
 
   observationCache.set(ownerUserId, current.filter((item) => item.id !== id));
+  observationAnimationIds.get(ownerUserId)?.delete(id);
+}
+
+export function consumePendingPeopleObservationAnimationIds(
+  ownerUserId: string,
+  observations: PeopleObservation[],
+) {
+  const pendingIds = observationAnimationIds.get(ownerUserId);
+  if (!pendingIds?.size) {
+    return new Set<number>();
+  }
+
+  const visibleIds = new Set(observations.map((observation) => observation.id));
+  const consumedIds = new Set<number>();
+
+  pendingIds.forEach((id) => {
+    if (visibleIds.has(id)) {
+      consumedIds.add(id);
+      pendingIds.delete(id);
+    }
+  });
+
+  if (!pendingIds.size) {
+    observationAnimationIds.delete(ownerUserId);
+  }
+
+  return consumedIds;
 }
 
 export function clearPeopleObservationCache() {
   observationCache.clear();
+  observationAnimationIds.clear();
 }

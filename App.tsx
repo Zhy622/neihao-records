@@ -26,6 +26,7 @@ import { initializeDatabase } from './src/database/database';
 import { RootStackParamList } from './src/types/navigation';
 import { colors } from './src/theme';
 import { HapticPressable } from './src/components/HapticPressable';
+import { AppAlertProvider } from './src/components/AppAlert';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -117,7 +118,9 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <BottomSheetModalProvider>
         <AuthProvider>
-          <RootNavigation />
+          <AppAlertProvider>
+            <RootNavigation />
+          </AppAlertProvider>
         </AuthProvider>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
