@@ -60,6 +60,6 @@ export function calculateStats(records: DilemmaRecord[]) {
           b.decisionDifficulty -
           (a.emotionIntensity + a.decisionDifficulty),
       )
-      .slice(0, 5),
+      .slice(0, 3),
   };
 }

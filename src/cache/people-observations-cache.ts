@@ -44,7 +44,11 @@ export function filterCachedPeopleObservations(
 }
 
 export function upsertPeopleObservationCache(ownerUserId: string, observation: PeopleObservation) {
-  const current = observationCache.get(ownerUserId) ?? [];
+  const current = observationCache.get(ownerUserId);
+  if (!current) {
+    return;
+  }
+
   observationCache.set(
     ownerUserId,
     sortByCreatedAtDesc([

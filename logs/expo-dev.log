@@ -1,3 +1,7 @@
+
+> neihao-records@1.0.0 start
+> expo start --lan --port 8081 --clear
+
 env: load .env
 env: export EXPO_PUBLIC_API_URL
 Starting project at D:\记录APP
@@ -6,63 +10,27 @@ Starting Metro Bundler
 warning: Bundler cache is empty, rebuilding (this may take a minute)
 Waiting on http://localhost:8081
 Logs for your project will appear below.
-| (node:34760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (node:2912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 | (Use `node --trace-warnings ...` to show where the warning was created)
-| (node:34760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (node:2912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 | (Use `node --trace-warnings ...` to show where the warning was created)
-| (node:34760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (node:2912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 | (Use `node --trace-warnings ...` to show where the warning was created)
-| (node:34760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (node:2912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 | (Use `node --trace-warnings ...` to show where the warning was created)
-| (node:34760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (node:2912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 | (Use `node --trace-warnings ...` to show where the warning was created)
-| (node:34760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (node:2912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 | (Use `node --trace-warnings ...` to show where the warning was created)
-| (node:34760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (node:2912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 | (Use `node --trace-warnings ...` to show where the warning was created)
-| (node:34760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (node:2912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 | (Use `node --trace-warnings ...` to show where the warning was created)
-| (node:34760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (node:2912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 | (Use `node --trace-warnings ...` to show where the warning was created)
-| (node:34760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (node:2912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 | (Use `node --trace-warnings ...` to show where the warning was created)
-| (node:34760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (node:2912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 | (Use `node --trace-warnings ...` to show where the warning was created)
-Android Bundled 45871ms index.ts (1974 modules)
-Android Bundled 58ms index.ts (1 module)
-Android Bundled 68ms index.ts (1 module)
-Android Bundled 60ms index.ts (1 module)
-Android Bundled 53ms index.ts (1 module)
-Android Bundled 58ms index.ts (1 module)
-Android Bundled 64ms index.ts (1 module)
-Android Bundled 57ms index.ts (1 module)
-Android Bundled 52ms index.ts (1 module)
-Android Bundled 107ms index.ts (1 module)
-Android Bundled 700ms index.ts (1 module)
-Android Bundled 738ms index.ts (1 module)
-Android Bundled 731ms index.ts (1 module)
-Android Bundled 776ms index.ts (1 module)
-Android Bundled 65ms index.ts (1 module)
-Android Bundled 95ms index.ts (1 module)
-Android Bundled 52ms index.ts (1 module)
-Android Bundled 85ms index.ts (1 module)
-Android Bundled 55ms index.ts (1 module)
-Android Bundled 94ms index.ts (1 module)
-Android Bundled 617ms index.ts (1 module)
-Android Bundled 55ms index.ts (1 module)
-Android Bundled 61ms index.ts (1 module)
-Android Bundled 64ms index.ts (1 module)
-Android Bundled 57ms index.ts (1 module)
-Android Bundled 54ms index.ts (1 module)
-Android Bundled 58ms index.ts (1 module)
-Android Bundled 54ms index.ts (1 module)
-Android Bundled 568ms index.ts (1 module)
-Android Bundled 54ms index.ts (1 module)
-Android Bundled 62ms index.ts (1 module)
-Android Bundled 56ms index.ts (1 module)
-Android Bundled 76ms index.ts (1 module)
-Android Bundled 53ms index.ts (1 module)
-Android Bundled 52ms index.ts (1 module)
-Android Bundled 54ms index.ts (1 module)
-Android Bundled 56ms index.ts (1 module)
-Android Bundled 517ms index.ts (1 module)
+Android Bundled 24792ms index.ts (1981 modules)
+Android Bundled 59ms index.ts (1 module)
