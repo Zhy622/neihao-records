@@ -1,10 +1,19 @@
 import { useCallback, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSQLiteContext } from 'expo-sqlite';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import Svg, {
+  Circle,
+  Defs,
+  LinearGradient as SvgLinearGradient,
+  Line,
+  Polygon,
+  Stop,
+} from 'react-native-svg';
 import { useAuth } from '../auth/AuthProvider';
 import { createRecordInsight, RecordInsightResponse } from '../api/ai';
 import { Chip } from '../components/Chip';
@@ -29,6 +38,8 @@ import { RootStackParamList } from '../types/navigation';
 import { colors, fonts } from '../theme';
 
 const levels = Array.from({ length: 10 }, (_, index) => index + 1);
+const aiGradientColors = ['#6F8DFF', '#8B7CF6', '#B56BDF'] as const;
+const aiTextColors = ['#6F8DFF', '#7F85FA', '#9278F0', '#A36FE8', '#B56BDF'];
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -54,6 +65,46 @@ function AiInsightLine({ label, value }: { label: string; value: string }) {
       <Text style={styles.aiInsightLabel}>{label}</Text>
       <Text style={styles.aiInsightText}>{value}</Text>
     </View>
+  );
+}
+
+function AiGradientIcon({ size = 30 }: { size?: number }) {
+  return (
+    <View style={[styles.aiHexIcon, { height: size, width: size }]}>
+      <Svg height={size} viewBox="0 0 100 100" width={size} style={StyleSheet.absoluteFill}>
+        <Defs>
+          <SvgLinearGradient id="aiHexGradient" x1="5%" y1="5%" x2="95%" y2="95%">
+            <Stop offset="0%" stopColor="#6F8DFF" />
+            <Stop offset="52%" stopColor="#8B7CF6" />
+            <Stop offset="100%" stopColor="#B56BDF" />
+          </SvgLinearGradient>
+        </Defs>
+        <Polygon points="50,4 90,27 90,73 50,96 10,73 10,27" fill="url(#aiHexGradient)" />
+        <Polygon
+          points="50,12 82,31 82,69 50,88 18,69 18,31"
+          fill="none"
+          stroke="rgba(218,224,255,0.38)"
+          strokeWidth="3"
+        />
+        <Line x1="27" y1="34" x2="42" y2="34" stroke="rgba(221,226,255,0.58)" strokeWidth="3" strokeLinecap="round" />
+        <Line x1="58" y1="66" x2="73" y2="66" stroke="rgba(221,226,255,0.58)" strokeWidth="3" strokeLinecap="round" />
+        <Circle cx="25" cy="34" r="3" fill="rgba(221,226,255,0.76)" />
+        <Circle cx="75" cy="66" r="3" fill="rgba(221,226,255,0.76)" />
+      </Svg>
+      <Text style={[styles.aiIconText, { fontSize: size > 30 ? 13 : 10 }]}>AI</Text>
+    </View>
+  );
+}
+
+function AiGradientText({ children }: { children: string }) {
+  return (
+    <Text style={styles.aiGradientText}>
+      {Array.from(children).map((char, index) => (
+        <Text key={`${char}-${index}`} style={{ color: aiTextColors[index % aiTextColors.length] }}>
+          {char}
+        </Text>
+      ))}
+    </Text>
   );
 }
 
@@ -323,9 +374,17 @@ export function RecordDetailScreen({
             ]}
             onPress={() => void generateAiInsight()}
           >
-            <Ionicons name="sparkles-outline" size={18} color={colors.primary} />
-            <Text style={styles.aiActionText}>{aiLoading ? 'AI复盘中…' : 'AI复盘'}</Text>
-            {aiLoading ? <ActivityIndicator color={colors.primary} size="small" /> : null}
+            <AiGradientIcon size={28} />
+            <View style={styles.aiActionTextWrap}>
+              <AiGradientText>{aiLoading ? 'AI复盘中…' : 'AI复盘'}</AiGradientText>
+              <LinearGradient
+                colors={aiGradientColors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.aiActionUnderline}
+              />
+            </View>
+            {aiLoading ? <ActivityIndicator color="#8B82F4" size="small" /> : null}
           </HapticPressable>
         </View>
       ) : null}
@@ -334,9 +393,7 @@ export function RecordDetailScreen({
         <Animated.View entering={FadeInUp.duration(260).springify().damping(18)}>
           <SoftCard colors={['#FFFEFC', '#EEF5EF']} style={styles.aiResultCard}>
             <View style={styles.aiResultHeader}>
-              <View style={styles.aiIconBadge}>
-                <Ionicons name="sparkles-outline" size={18} color={colors.primary} />
-              </View>
+              <AiGradientIcon size={34} />
               <View style={styles.aiHeaderText}>
                 <Text style={styles.aiResultTitle}>AI复盘</Text>
                 <Text style={styles.aiResultMeta}>
@@ -377,24 +434,22 @@ const styles = StyleSheet.create({
   aiActionWrap: { alignItems: 'center', paddingTop: 2 },
   aiAction: {
     alignItems: 'center',
-    borderBottomColor: colors.primary,
-    borderBottomWidth: 1,
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
     paddingHorizontal: 8,
-    paddingVertical: 7,
+    paddingVertical: 6,
   },
-  aiActionText: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 15 },
+  aiActionTextWrap: { gap: 3 },
+  aiActionUnderline: { borderRadius: 99, height: 2, opacity: 0.86 },
+  aiGradientText: { fontFamily: fonts.bold, fontSize: 15, lineHeight: 20 },
   aiResultCard: { gap: 14, marginTop: 2 },
   aiResultHeader: { alignItems: 'center', flexDirection: 'row', gap: 10 },
-  aiIconBadge: {
+  aiHexIcon: {
     alignItems: 'center',
-    backgroundColor: colors.primarySoft,
-    borderRadius: 16,
-    height: 32,
+    backgroundColor: 'transparent',
     justifyContent: 'center',
-    width: 32,
   },
+  aiIconText: { color: colors.white, fontFamily: fonts.bold, letterSpacing: 0.2 },
   aiHeaderText: { flex: 1, gap: 2 },
   aiResultTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 18 },
   aiResultMeta: { color: colors.muted, fontFamily: fonts.regular, fontSize: 12 },
