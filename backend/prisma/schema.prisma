@@ -66,6 +66,7 @@ model User {
   refreshTokens      RefreshToken[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
+  aiInsights         AiInsight[]
 
   @@map("users")
 }
@@ -88,6 +89,7 @@ model Record {
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
   deletedAt          DateTime?
+  aiInsights         AiInsight[]
 
   @@index([userId, createdAt])
   @@index([userId, category])
@@ -130,4 +132,23 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+model AiInsight {
+  id            String   @id @default(uuid())
+  userId        String
+  recordId      String?
+  type          String
+  provider      String
+  model         String
+  promptVersion String
+  resultJson    Json
+  createdAt     DateTime @default(now())
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  record        Record?  @relation(fields: [recordId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([recordId])
+  @@map("ai_insights")
 }

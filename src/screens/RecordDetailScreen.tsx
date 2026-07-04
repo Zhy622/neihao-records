@@ -1,14 +1,17 @@
 import { useCallback, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSQLiteContext } from 'expo-sqlite';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useAuth } from '../auth/AuthProvider';
+import { createRecordInsight, RecordInsightResponse } from '../api/ai';
 import { Chip } from '../components/Chip';
 import { useAppAlert } from '../components/AppAlert';
 import { HapticPressable } from '../components/HapticPressable';
 import { Screen } from '../components/Screen';
+import { SoftCard } from '../components/SoftCard';
 import { deleteAndSyncRecord, syncRecordById } from '../sync/records-sync';
 import { getRecord, updateRecord } from '../database/database';
 import {
@@ -45,6 +48,15 @@ function DetailLine({ label, value }: { label: string; value: string }) {
   );
 }
 
+function AiInsightLine({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.aiInsightLine}>
+      <Text style={styles.aiInsightLabel}>{label}</Text>
+      <Text style={styles.aiInsightText}>{value}</Text>
+    </View>
+  );
+}
+
 export function RecordDetailScreen({
   navigation,
   route,
@@ -66,6 +78,8 @@ export function RecordDetailScreen({
   const [worthIt, setWorthIt] = useState<WorthIt>('说不清');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiInsight, setAiInsight] = useState<RecordInsightResponse | null>(null);
 
   const applyRecord = useCallback((nextRecord: DilemmaRecord | null) => {
     setRecord(nextRecord);
@@ -178,6 +192,36 @@ export function RecordDetailScreen({
     ]);
   };
 
+  const generateAiInsight = async () => {
+    if (!session || !record || aiLoading) {
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      let targetRecord = record;
+
+      if (!targetRecord.serverId || targetRecord.syncStatus !== 'synced') {
+        const synced = await syncRecordById(db, session.user.id, targetRecord.id);
+        targetRecord = (await getRecord(db, session.user.id, targetRecord.id)) ?? targetRecord;
+        applyRecord(targetRecord);
+
+        if (!synced || !targetRecord.serverId || targetRecord.syncStatus !== 'synced') {
+          alert('暂时无法复盘', '请先联网同步这条记录后再试。');
+          return;
+        }
+      }
+
+      const insight = await createRecordInsight(targetRecord.serverId);
+      setAiInsight(insight);
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 160);
+    } catch {
+      alert('AI复盘失败', '暂时无法生成复盘，请稍后再试。');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   if (!record) {
     return (
       <Screen>
@@ -267,6 +311,46 @@ export function RecordDetailScreen({
           </>
         )}
       </View>
+
+      {!editing ? (
+        <View style={styles.aiActionWrap}>
+          <HapticPressable
+            disabled={aiLoading || deleting}
+            feedback="selection"
+            style={({ pressed }) => [
+              styles.aiAction,
+              (pressed || aiLoading || deleting) && styles.pressed,
+            ]}
+            onPress={() => void generateAiInsight()}
+          >
+            <Ionicons name="sparkles-outline" size={18} color={colors.primary} />
+            <Text style={styles.aiActionText}>{aiLoading ? 'AI复盘中…' : 'AI复盘'}</Text>
+            {aiLoading ? <ActivityIndicator color={colors.primary} size="small" /> : null}
+          </HapticPressable>
+        </View>
+      ) : null}
+
+      {aiInsight ? (
+        <Animated.View entering={FadeInUp.duration(260).springify().damping(18)}>
+          <SoftCard colors={['#FFFEFC', '#EEF5EF']} style={styles.aiResultCard}>
+            <View style={styles.aiResultHeader}>
+              <View style={styles.aiIconBadge}>
+                <Ionicons name="sparkles-outline" size={18} color={colors.primary} />
+              </View>
+              <View style={styles.aiHeaderText}>
+                <Text style={styles.aiResultTitle}>AI复盘</Text>
+                <Text style={styles.aiResultMeta}>
+                  {aiInsight.provider} · {aiInsight.model}
+                </Text>
+              </View>
+            </View>
+            <AiInsightLine label="概要" value={aiInsight.result.summary} />
+            <AiInsightLine label="核心拉扯" value={aiInsight.result.coreConflict} />
+            <AiInsightLine label="温和提问" value={aiInsight.result.gentleQuestion} />
+            <AiInsightLine label="下一步行动" value={aiInsight.result.nextAction} />
+          </SoftCard>
+        </Animated.View>
+      ) : null}
     </Screen>
   );
 }
@@ -290,6 +374,33 @@ const styles = StyleSheet.create({
   noteBlock: { gap: 8, padding: 16, borderRadius: 14, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   note: { color: colors.text, fontFamily: fonts.regular, lineHeight: 22 },
   actions: { flexDirection: 'row', gap: 10 },
+  aiActionWrap: { alignItems: 'center', paddingTop: 2 },
+  aiAction: {
+    alignItems: 'center',
+    borderBottomColor: colors.primary,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 7,
+  },
+  aiActionText: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 15 },
+  aiResultCard: { gap: 14, marginTop: 2 },
+  aiResultHeader: { alignItems: 'center', flexDirection: 'row', gap: 10 },
+  aiIconBadge: {
+    alignItems: 'center',
+    backgroundColor: colors.primarySoft,
+    borderRadius: 16,
+    height: 32,
+    justifyContent: 'center',
+    width: 32,
+  },
+  aiHeaderText: { flex: 1, gap: 2 },
+  aiResultTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 18 },
+  aiResultMeta: { color: colors.muted, fontFamily: fonts.regular, fontSize: 12 },
+  aiInsightLine: { gap: 6 },
+  aiInsightLabel: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 14 },
+  aiInsightText: { color: colors.text, fontFamily: fonts.regular, fontSize: 15, lineHeight: 23 },
   primaryButton: { flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, padding: 16, borderRadius: 20, backgroundColor: colors.primary },
   primaryButtonText: { color: colors.white, fontFamily: fonts.bold, fontSize: 16 },
   secondaryButton: { flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, padding: 16, borderRadius: 20, backgroundColor: colors.primarySoft },
