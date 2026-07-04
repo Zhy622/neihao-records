@@ -58,6 +58,33 @@ export class AiService {
         if (!process.env.ZHIPU_API_KEY) {
             throw new InternalServerErrorException('ZHIPU_API_KEY is not configured');
         }
+        
+         // 2. 查缓存：有没有已经生成过的 AI 复盘
+        const existingInsight = await this.prisma.aiInsight.findFirst({
+            where: {
+            userId,
+            recordId,
+            type: 'record_reflection',
+            promptVersion: 'record_reflection_v1',
+            },
+            orderBy: {
+            createdAt: 'desc',
+            },
+        });
+
+        if (existingInsight) {
+            return {
+            id: existingInsight.id,
+            recordId,
+            type: existingInsight.type,
+            provider: existingInsight.provider,
+            model: existingInsight.model,
+            promptVersion: existingInsight.promptVersion,
+            result: existingInsight.resultJson as RecordInsightResult,
+            createdAt: existingInsight.createdAt.toISOString(),
+            };
+        }
+        
         try {
             const completion = await this.openai.chat.completions.create({
                 model: process.env.ZHIPU_MODEL ?? 'glm-4-flash',
