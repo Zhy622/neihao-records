@@ -74,23 +74,25 @@ export function usePeopleObservations(filters: PeopleObservationFilters = {}) {
     }
 
     try {
+      const refreshLimit = isInitialLoad ? PAGE_SIZE : loadedLimitRef.current;
+
       try {
         const result = await syncPeopleObservations(db, userId, {
           filters: { search },
-          limit: PAGE_SIZE,
+          limit: refreshLimit,
           offset: 0,
         });
         remoteTotalRef.current = result.remoteTotal ?? remoteTotalRef.current;
       } catch {
         // Local observations remain available while a background sync attempt fails.
       }
-      loadedLimitRef.current = PAGE_SIZE;
       const observations = await getPeopleObservations(
         db,
         userId,
         { search },
-        { limit: loadedLimitRef.current },
+        { limit: refreshLimit },
       );
+      loadedLimitRef.current = refreshLimit;
       setCachedPeopleObservations(userId, observations);
       setPeopleObservations(observations);
       setAnimatedObservationIds(

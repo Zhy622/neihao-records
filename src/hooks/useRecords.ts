@@ -62,23 +62,25 @@ export function useRecords(filters: RecordFilters = {}, options: UseRecordsOptio
     }
 
     try {
+      const refreshLimit = isInitialLoad ? pageSize : loadedLimitRef.current;
+
       try {
         const result = await syncRecords(db, userId, {
           filters: { category, emotion, dateRange, search },
-          limit: pageSize,
+          limit: refreshLimit,
           offset: 0,
         });
         remoteTotalRef.current = result.remoteTotal ?? remoteTotalRef.current;
       } catch {
         // Local records remain available while a background sync attempt fails.
       }
-      loadedLimitRef.current = pageSize;
       const nextRecords = await getRecords(
         db,
         userId,
         { category, emotion, dateRange, search },
-        { limit: loadedLimitRef.current },
+        { limit: refreshLimit },
       );
+      loadedLimitRef.current = refreshLimit;
       setRecords(nextRecords);
       setHasMore(
         remoteTotalRef.current === null
