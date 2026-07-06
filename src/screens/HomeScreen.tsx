@@ -15,7 +15,7 @@ import { average, getTodayRecords, mostCommon } from '../utils/stats';
 import { colors, fonts } from '../theme';
 
 export function HomeScreen({ navigation }: { navigation: NativeStackNavigationProp<RootStackParamList> }) {
-  const { records } = useRecords();
+  const { records } = useRecords({}, { pageSize: 200 });
   const { session, signOut } = useAuth();
   const todayRecords = getTodayRecords(records);
   const recentRecords = records.slice(0, 3);

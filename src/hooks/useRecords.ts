@@ -8,7 +8,11 @@ import { DilemmaRecord, RecordFilters } from '../types/record';
 
 const PAGE_SIZE = 10;
 
-export function useRecords(filters: RecordFilters = {}) {
+interface UseRecordsOptions {
+  pageSize?: number;
+}
+
+export function useRecords(filters: RecordFilters = {}, options: UseRecordsOptions = {}) {
   const db = useSQLiteContext();
   const { session } = useAuth();
   const [records, setRecords] = useState<DilemmaRecord[]>([]);
@@ -24,15 +28,16 @@ export function useRecords(filters: RecordFilters = {}) {
   const emotion = filters.emotion;
   const dateRange = filters.dateRange;
   const search = filters.search;
+  const pageSize = options.pageSize ?? PAGE_SIZE;
   const userId = session?.user.id;
-  const filterKey = `${category ?? ''}|${emotion ?? ''}|${dateRange ?? ''}|${search ?? ''}`;
+  const filterKey = `${category ?? ''}|${emotion ?? ''}|${dateRange ?? ''}|${search ?? ''}|${pageSize}`;
 
   const refresh = useCallback(async () => {
     if (!userId) {
       setRecords([]);
       setHasMore(false);
       hasLoadedRef.current = false;
-      loadedLimitRef.current = PAGE_SIZE;
+      loadedLimitRef.current = pageSize;
       remoteTotalRef.current = null;
       filterKeyRef.current = '';
       setIsLoading(false);
@@ -44,7 +49,7 @@ export function useRecords(filters: RecordFilters = {}) {
     if (filterKeyRef.current !== filterKey) {
       filterKeyRef.current = filterKey;
       hasLoadedRef.current = false;
-      loadedLimitRef.current = PAGE_SIZE;
+      loadedLimitRef.current = pageSize;
       remoteTotalRef.current = null;
       setRecords([]);
     }
@@ -60,14 +65,14 @@ export function useRecords(filters: RecordFilters = {}) {
       try {
         const result = await syncRecords(db, userId, {
           filters: { category, emotion, dateRange, search },
-          limit: PAGE_SIZE,
+          limit: pageSize,
           offset: 0,
         });
         remoteTotalRef.current = result.remoteTotal ?? remoteTotalRef.current;
       } catch {
         // Local records remain available while a background sync attempt fails.
       }
-      loadedLimitRef.current = PAGE_SIZE;
+      loadedLimitRef.current = pageSize;
       const nextRecords = await getRecords(
         db,
         userId,
@@ -85,7 +90,7 @@ export function useRecords(filters: RecordFilters = {}) {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [db, category, emotion, dateRange, filterKey, search, userId]);
+  }, [db, category, emotion, dateRange, filterKey, pageSize, search, userId]);
 
   const loadMore = useCallback(async () => {
     if (!userId || isLoading || isRefreshing || isLoadingMore || !hasMore) {
@@ -99,7 +104,7 @@ export function useRecords(filters: RecordFilters = {}) {
       try {
         const result = await syncRecords(db, userId, {
           filters: { category, emotion, dateRange, search },
-          limit: PAGE_SIZE,
+          limit: pageSize,
           offset,
         });
         remoteTotalRef.current = result.remoteTotal ?? remoteTotalRef.current;
@@ -107,7 +112,7 @@ export function useRecords(filters: RecordFilters = {}) {
         // Local records remain available while a background sync attempt fails.
       }
 
-      loadedLimitRef.current = offset + PAGE_SIZE;
+      loadedLimitRef.current = offset + pageSize;
       const nextRecords = await getRecords(
         db,
         userId,
@@ -132,6 +137,7 @@ export function useRecords(filters: RecordFilters = {}) {
     isLoading,
     isLoadingMore,
     isRefreshing,
+    pageSize,
     search,
     userId,
   ]);

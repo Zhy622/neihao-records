@@ -22,7 +22,7 @@ function InsightLine({ label, value }: { label: string; value: string }) {
 
 export function StatsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { records } = useRecords();
+  const { records } = useRecords({}, { pageSize: 200 });
   const stats = calculateStats(records);
   const unclearWorthRatio = stats.total ? Math.round((stats.unclearWorthCount / stats.total) * 100) : 0;
   const categoryPattern = stats.categoryCounts.length
