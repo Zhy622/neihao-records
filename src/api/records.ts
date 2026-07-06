@@ -9,6 +9,8 @@ import {
   TimeCost,
   WORTH_OPTIONS,
   WorthIt,
+  DateRange,
+  RecordFilters,
 } from '../types/record';
 
 type ApiCategory =
@@ -54,11 +56,18 @@ export interface RemoteRecord {
   deletedAt: string | null;
 }
 
-interface RemoteRecordsPage {
+export interface RemoteRecordsPage {
   records: RemoteRecord[];
   total: number;
   limit: number;
   offset: number;
+}
+
+export interface RemoteRecordsPageOptions {
+  includeDeleted?: boolean;
+  limit?: number;
+  offset?: number;
+  filters?: RecordFilters;
 }
 
 const categoryMap: Record<Category, ApiCategory> = {
@@ -188,14 +197,61 @@ export async function findRemoteRecordByClientId(clientId: string) {
   }
 }
 
+const getDateRangeStart = (dateRange: DateRange) => {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+
+  if (dateRange === 'week') {
+    start.setDate(start.getDate() - 6);
+  }
+
+  if (dateRange === 'month') {
+    start.setDate(start.getDate() - 29);
+  }
+
+  return start.toISOString();
+};
+
+const buildRecordsQuery = ({
+  includeDeleted,
+  limit = 10,
+  offset = 0,
+  filters = {},
+}: RemoteRecordsPageOptions = {}) => {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+
+  if (includeDeleted) {
+    params.set('includeDeleted', 'true');
+  }
+  if (filters.category) {
+    params.set('category', categoryMap[filters.category]);
+  }
+  if (filters.emotion) {
+    params.set('emotion', emotionMap[filters.emotion]);
+  }
+  if (filters.dateRange) {
+    params.set('createdSince', getDateRangeStart(filters.dateRange));
+  }
+  if (filters.search?.trim()) {
+    params.set('search', filters.search.trim());
+  }
+
+  return params.toString();
+};
+
+export function fetchRemoteRecordsPage(options: RemoteRecordsPageOptions = {}) {
+  return apiRequest<RemoteRecordsPage>(`/records?${buildRecordsQuery(options)}`);
+}
+
 export async function fetchRemoteRecords() {
   const pageSize = 200;
   const records: RemoteRecord[] = [];
 
   for (let offset = 0; ; offset += pageSize) {
-    const page = await apiRequest<RemoteRecordsPage>(
-      `/records?limit=${pageSize}&offset=${offset}`,
-    );
+    const page = await fetchRemoteRecordsPage({ limit: pageSize, offset });
     records.push(...page.records);
 
     if (offset + page.records.length >= page.total) {

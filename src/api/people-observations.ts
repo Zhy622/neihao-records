@@ -3,6 +3,7 @@ import {
   PEOPLE_OBSERVATION_EMOTIONS,
   PeopleObservation,
   PeopleObservationEmotion,
+  PeopleObservationFilters,
 } from '../types/people-observation';
 
 type ApiPeopleObservationEmotion =
@@ -33,11 +34,18 @@ export interface RemotePeopleObservation {
   deletedAt: string | null;
 }
 
-interface RemotePeopleObservationsPage {
+export interface RemotePeopleObservationsPage {
   peopleObservations: RemotePeopleObservation[];
   total: number;
   limit: number;
   offset: number;
+}
+
+export interface RemotePeopleObservationsPageOptions {
+  includeDeleted?: boolean;
+  limit?: number;
+  offset?: number;
+  filters?: PeopleObservationFilters;
 }
 
 const emotionMap: Record<PeopleObservationEmotion, ApiPeopleObservationEmotion> = {
@@ -119,14 +127,41 @@ export async function findRemotePeopleObservationByClientId(clientId: string) {
   }
 }
 
+const buildPeopleObservationsQuery = ({
+  includeDeleted,
+  limit = 10,
+  offset = 0,
+  filters = {},
+}: RemotePeopleObservationsPageOptions = {}) => {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+
+  if (includeDeleted) {
+    params.set('includeDeleted', 'true');
+  }
+  if (filters.search?.trim()) {
+    params.set('search', filters.search.trim());
+  }
+
+  return params.toString();
+};
+
+export function fetchRemotePeopleObservationsPage(
+  options: RemotePeopleObservationsPageOptions = {},
+) {
+  return apiRequest<RemotePeopleObservationsPage>(
+    `/people-observations?${buildPeopleObservationsQuery(options)}`,
+  );
+}
+
 export async function fetchRemotePeopleObservations() {
   const pageSize = 200;
   const peopleObservations: RemotePeopleObservation[] = [];
 
   for (let offset = 0; ; offset += pageSize) {
-    const page = await apiRequest<RemotePeopleObservationsPage>(
-      `/people-observations?limit=${pageSize}&offset=${offset}`,
-    );
+    const page = await fetchRemotePeopleObservationsPage({ limit: pageSize, offset });
     peopleObservations.push(...page.peopleObservations);
 
     if (offset + page.peopleObservations.length >= page.total) {

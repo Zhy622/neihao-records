@@ -24,7 +24,7 @@ export class PeopleObservationsService {
     userId: string,
     query: PeopleObservationQueryDto,
   ): Promise<PeopleObservationsPage> {
-    const limit = query.limit ?? 100;
+    const limit = query.limit ?? 10;
     const offset = query.offset ?? 0;
     const where = this.buildListWhere(userId, query);
     const [peopleObservations, total] = await this.prisma.$transaction([

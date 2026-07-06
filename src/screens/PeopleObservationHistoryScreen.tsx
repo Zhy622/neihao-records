@@ -60,7 +60,15 @@ function PeopleObservationCard({
 export function PeopleObservationHistoryScreen({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, 'PeopleObservationHistory'>) {
-  const { peopleObservations, animatedObservationIds, isLoading, isRefreshing } = usePeopleObservations();
+  const {
+    peopleObservations,
+    animatedObservationIds,
+    loadMore,
+    isLoading,
+    isRefreshing,
+    isLoadingMore,
+    hasMore,
+  } = usePeopleObservations();
 
   return (
     <Screen contentStyle={styles.content}>
@@ -86,6 +94,16 @@ export function PeopleObservationHistoryScreen({
                 onOpen={() => navigation.navigate('PeopleObservationDetail', { id: observation.id })}
               />
             ))}
+            {hasMore ? (
+              <HapticPressable
+                disabled={isLoadingMore}
+                style={({ pressed }) => [styles.loadMoreButton, (pressed || isLoadingMore) && styles.pressed]}
+                onPress={() => void loadMore()}
+              >
+                {isLoadingMore ? <ActivityIndicator color={colors.primary} size="small" /> : null}
+                <Text style={styles.loadMoreText}>{isLoadingMore ? '加载中...' : '加载更多'}</Text>
+              </HapticPressable>
+            ) : null}
           </View>
         </>
       ) : (
@@ -116,6 +134,17 @@ const styles = StyleSheet.create({
   refreshing: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   refreshingText: { color: colors.muted, fontFamily: fonts.medium, fontSize: 13 },
   list: { gap: 12 },
+  loadMoreButton: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: colors.primarySoft,
+    borderRadius: 18,
+    flexDirection: 'row',
+    gap: 8,
+    minHeight: 44,
+    paddingHorizontal: 18,
+  },
+  loadMoreText: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 14 },
   card: { gap: 9, padding: 16 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   cardActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },

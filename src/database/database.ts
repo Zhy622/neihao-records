@@ -605,6 +605,7 @@ export async function getRecords(
   db: SQLiteDatabase,
   ownerUserId: string,
   filters: RecordFilters = {},
+  pagination: { limit?: number; offset?: number } = {},
 ) {
   const clauses = ["ownerUserId = ?", "syncStatus != 'pending_delete'"];
   const params: Array<string | number> = [ownerUserId];
@@ -627,9 +628,18 @@ export async function getRecords(
     params.push(search, search);
   }
 
+  const paginationSql =
+    pagination.limit === undefined
+      ? ''
+      : ` LIMIT ? OFFSET ?`;
+  const paginationParams =
+    pagination.limit === undefined
+      ? []
+      : [pagination.limit, pagination.offset ?? 0];
   const rows = await db.getAllAsync<RecordRow>(
-    `SELECT * FROM records WHERE ${clauses.join(' AND ')} ORDER BY createdAt DESC`,
+    `SELECT * FROM records WHERE ${clauses.join(' AND ')} ORDER BY createdAt DESC${paginationSql}`,
     ...params,
+    ...paginationParams,
   );
   return rows.map(mapRow);
 }
@@ -638,6 +648,7 @@ export async function getPeopleObservations(
   db: SQLiteDatabase,
   ownerUserId: string,
   filters: PeopleObservationFilters = {},
+  pagination: { limit?: number; offset?: number } = {},
 ) {
   const clauses = ["ownerUserId = ?", "syncStatus != 'pending_delete'"];
   const params: Array<string | number> = [ownerUserId];
@@ -650,9 +661,18 @@ export async function getPeopleObservations(
     params.push(search, search, search, search, search, search);
   }
 
+  const paginationSql =
+    pagination.limit === undefined
+      ? ''
+      : ` LIMIT ? OFFSET ?`;
+  const paginationParams =
+    pagination.limit === undefined
+      ? []
+      : [pagination.limit, pagination.offset ?? 0];
   const rows = await db.getAllAsync<PeopleObservationRow>(
-    `SELECT * FROM people_observations WHERE ${clauses.join(' AND ')} ORDER BY createdAt DESC`,
+    `SELECT * FROM people_observations WHERE ${clauses.join(' AND ')} ORDER BY createdAt DESC${paginationSql}`,
     ...params,
+    ...paginationParams,
   );
   return rows.map(mapPeopleObservationRow);
 }

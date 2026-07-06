@@ -17,7 +17,7 @@ export class RecordsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(userId: string, query: RecordQueryDto): Promise<RecordsPage> {
-    const limit = query.limit ?? 100;
+    const limit = query.limit ?? 10;
     const offset = query.offset ?? 0;
     const where = this.buildListWhere(userId, query);
     const [records, total] = await this.prisma.$transaction([
@@ -113,8 +113,12 @@ export class RecordsService {
         ? {}
         : { syncStatus: RecordSyncStatus.ACTIVE }),
       ...(query.category ? { category: query.category } : {}),
+      ...(query.emotion ? { emotions: { has: query.emotion } } : {}),
       ...(query.updatedSince
         ? { updatedAt: { gt: new Date(query.updatedSince) } }
+        : {}),
+      ...(query.createdSince
+        ? { createdAt: { gte: new Date(query.createdSince) } }
         : {}),
       ...(search
         ? {

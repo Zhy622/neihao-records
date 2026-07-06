@@ -36,7 +36,14 @@ export function HistoryScreen() {
   const [emotion, setEmotion] = useState<Emotion | undefined>();
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [search, setSearch] = useState('');
-  const { records, refresh, isLoading } = useRecords({ category, emotion, dateRange, search });
+  const {
+    records,
+    refresh,
+    loadMore,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+  } = useRecords({ category, emotion, dateRange, search });
   const activeFilters = [dateRange, category, emotion].filter(Boolean).length;
 
   const confirmDelete = (id: number) => {
@@ -103,6 +110,16 @@ export function HistoryScreen() {
             description="换一个时间、分类或关键词再看看。"
           />
         )}
+        {!isLoading && records.length > 0 && hasMore ? (
+          <HapticPressable
+            disabled={isLoadingMore}
+            style={({ pressed }) => [styles.loadMoreButton, (pressed || isLoadingMore) && styles.pressed]}
+            onPress={() => void loadMore()}
+          >
+            {isLoadingMore ? <ActivityIndicator color={colors.primary} size="small" /> : null}
+            <Text style={styles.loadMoreText}>{isLoadingMore ? '加载中...' : '加载更多'}</Text>
+          </HapticPressable>
+        ) : null}
       </View>
 
       <BottomSheetModal
@@ -201,6 +218,17 @@ const styles = StyleSheet.create({
   list: { gap: 12 },
   loading: { alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 34 },
   loadingText: { color: colors.muted, fontFamily: fonts.medium, fontSize: 14 },
+  loadMoreButton: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: colors.primarySoft,
+    borderRadius: 18,
+    flexDirection: 'row',
+    gap: 8,
+    minHeight: 44,
+    paddingHorizontal: 18,
+  },
+  loadMoreText: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 14 },
   sheetBackground: { borderRadius: 28, backgroundColor: '#FFFEFC' },
   sheetIndicator: { backgroundColor: '#D6D0C8' },
   sheetContent: { padding: 20, paddingBottom: 34, gap: 14 },

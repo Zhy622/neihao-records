@@ -11,17 +11,23 @@ import {
 import {
   createRemotePeopleObservation,
   deleteRemotePeopleObservation,
-  fetchRemotePeopleObservations,
+  fetchRemotePeopleObservationsPage,
   findRemotePeopleObservationByClientId,
   isRemoteConflict,
   isRemoteMissing,
   toLocalPeopleObservationSnapshot,
   updateRemotePeopleObservation,
 } from '../api/people-observations';
-import { PeopleObservation } from '../types/people-observation';
+import { PeopleObservation, PeopleObservationFilters } from '../types/people-observation';
 import { SyncResult } from './records-sync';
 
 const activeSyncs = new WeakMap<SQLiteDatabase, Map<string, Promise<SyncResult>>>();
+
+interface SyncPeopleObservationsOptions {
+  filters?: PeopleObservationFilters;
+  limit?: number;
+  offset?: number;
+}
 
 const syncCreate = async (db: SQLiteDatabase, observation: PeopleObservation) => {
   try {
@@ -142,12 +148,20 @@ export function syncPendingPeopleObservations(db: SQLiteDatabase, ownerUserId: s
   return sync;
 }
 
-export async function syncPeopleObservations(db: SQLiteDatabase, ownerUserId: string) {
+export async function syncPeopleObservations(
+  db: SQLiteDatabase,
+  ownerUserId: string,
+  options: SyncPeopleObservationsOptions = {},
+) {
   const result = await syncPendingPeopleObservations(db, ownerUserId);
-  const remoteObservations = await fetchRemotePeopleObservations();
+  const page = await fetchRemotePeopleObservationsPage({
+    filters: options.filters,
+    limit: options.limit ?? 10,
+    offset: options.offset ?? 0,
+  });
 
   await db.withTransactionAsync(async () => {
-    for (const remoteObservation of remoteObservations) {
+    for (const remoteObservation of page.peopleObservations) {
       await upsertRemotePeopleObservation(
         db,
         ownerUserId,
@@ -156,7 +170,7 @@ export async function syncPeopleObservations(db: SQLiteDatabase, ownerUserId: st
     }
   });
 
-  return result;
+  return { ...result, remoteTotal: page.total };
 }
 
 export async function syncPeopleObservationById(

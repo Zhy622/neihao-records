@@ -11,18 +11,25 @@ import {
 import {
   createRemoteRecord,
   deleteRemoteRecord,
-  fetchRemoteRecords,
+  fetchRemoteRecordsPage,
   findRemoteRecordByClientId,
   isRemoteConflict,
   isRemoteMissing,
   toLocalRecordSnapshot,
   updateRemoteRecord,
 } from '../api/records';
-import { DilemmaRecord } from '../types/record';
+import { DilemmaRecord, RecordFilters } from '../types/record';
 
 export interface SyncResult {
   synced: number;
   failed: number;
+  remoteTotal?: number;
+}
+
+interface SyncRecordsOptions {
+  filters?: RecordFilters;
+  limit?: number;
+  offset?: number;
 }
 
 const activeSyncs = new WeakMap<SQLiteDatabase, Map<string, Promise<SyncResult>>>();
@@ -146,12 +153,20 @@ export function syncPendingRecords(db: SQLiteDatabase, ownerUserId: string) {
   return sync;
 }
 
-export async function syncRecords(db: SQLiteDatabase, ownerUserId: string) {
+export async function syncRecords(
+  db: SQLiteDatabase,
+  ownerUserId: string,
+  options: SyncRecordsOptions = {},
+) {
   const result = await syncPendingRecords(db, ownerUserId);
-  const remoteRecords = await fetchRemoteRecords();
+  const page = await fetchRemoteRecordsPage({
+    filters: options.filters,
+    limit: options.limit ?? 10,
+    offset: options.offset ?? 0,
+  });
 
   await db.withTransactionAsync(async () => {
-    for (const remoteRecord of remoteRecords) {
+    for (const remoteRecord of page.records) {
       await upsertRemoteRecord(
         db,
         ownerUserId,
@@ -160,7 +175,7 @@ export async function syncRecords(db: SQLiteDatabase, ownerUserId: string) {
     }
   });
 
-  return result;
+  return { ...result, remoteTotal: page.total };
 }
 
 export async function syncRecordById(

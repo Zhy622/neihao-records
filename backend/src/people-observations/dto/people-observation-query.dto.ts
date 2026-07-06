@@ -39,7 +39,7 @@ export class PeopleObservationQueryDto {
   @IsIn(['true', 'false'])
   includeDeleted?: string;
 
-  @ApiPropertyOptional({ minimum: 1, maximum: 200, default: 100 })
+  @ApiPropertyOptional({ minimum: 1, maximum: 200, default: 10 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
