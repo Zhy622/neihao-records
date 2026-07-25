@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { EmptyState } from '../components/EmptyState';
 import { HapticPressable } from '../components/HapticPressable';
@@ -57,9 +58,8 @@ function PeopleObservationCard({
   );
 }
 
-export function PeopleObservationHistoryScreen({
-  navigation,
-}: NativeStackScreenProps<RootStackParamList, 'PeopleObservationHistory'>) {
+export function PeopleObservationHistoryScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {
     peopleObservations,
     animatedObservationIds,
@@ -109,8 +109,8 @@ export function PeopleObservationHistoryScreen({
       ) : (
         <EmptyState
           icon="people-outline"
-          title="还没有人物观照"
-          description="之后这里会保存你写下的人物观照，帮助你回看：哪些人、哪些情绪、哪些能力反复照见了自己。"
+          title="还没有观照"
+          description="之后这里会保存你写下的观照，帮助你回看：哪些人、哪些情绪、哪些能力反复照见了自己。"
         />
       )}
 
@@ -120,7 +120,7 @@ export function PeopleObservationHistoryScreen({
           onPress={() => navigation.navigate('PeopleObservation')}
         >
           <Ionicons name="add-circle-outline" size={20} color={colors.white} />
-          <Text style={styles.buttonText}>新增人物观照</Text>
+          <Text style={styles.buttonText}>新增观照</Text>
         </HapticPressable>
       ) : null}
     </Screen>

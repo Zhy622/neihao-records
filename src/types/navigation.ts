@@ -2,7 +2,11 @@ export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
   Record: undefined;
+  History: undefined;
+  Stats: undefined;
   RecordDetail: { id: number };
+  NoteHistory: undefined;
+  NoteDetail: { id: number };
   PeopleObservation: undefined;
   PeopleObservationHistory: undefined;
   PeopleObservationDetail: { id: number };
@@ -10,7 +14,7 @@ export type RootStackParamList = {
 
 export type MainTabsParamList = {
   Home: undefined;
-  History: undefined;
-  Stats: undefined;
+  Notes: undefined;
+  Observation: undefined;
   Account: undefined;
 };

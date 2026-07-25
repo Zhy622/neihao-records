@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../theme';
 
 interface ScreenProps {
+  backgroundColor?: string;
   contentStyle?: StyleProp<ViewStyle>;
   keyboardAvoiding?: boolean;
   keyboardAvoidingMode?: 'header' | 'fullscreen';
@@ -20,6 +21,7 @@ interface ScreenProps {
 }
 
 export function Screen({
+  backgroundColor = colors.background,
   children,
   contentStyle,
   keyboardAvoiding = false,
@@ -36,7 +38,7 @@ export function Screen({
   const content = (
     <ScrollView
       ref={scrollViewRef}
-      style={styles.scroll}
+      style={[styles.scroll, { backgroundColor }]}
       contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }, contentStyle]}
       contentInsetAdjustmentBehavior="automatic"
       keyboardDismissMode="on-drag"
@@ -47,7 +49,10 @@ export function Screen({
   );
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView
+      style={[styles.safe, { backgroundColor }]}
+      edges={headerHeight ? [] : ['top']}
+    >
       {shouldAvoidKeyboard ? (
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

@@ -14,9 +14,21 @@ import {
   PeopleObservationFilters,
   PeopleObservationInput,
 } from '../types/people-observation';
+import {
+  Note,
+  NoteCategory,
+  NoteEmotion,
+  NoteInput,
+  NoteType,
+} from '../types/note';
 
 type RecordRow = Omit<DilemmaRecord, 'emotions'> & { emotions: string };
 type PeopleObservationRow = Omit<PeopleObservation, 'emotions'> & { emotions: string };
+type NoteRow = Omit<Note, 'emotions' | 'categories' | 'noteType'> & {
+  noteType: string;
+  emotions: string;
+  categories: string;
+};
 type TableColumn = { name: string };
 export type RemoteRecordSnapshot = RecordInput & {
   clientId: string;
@@ -39,6 +51,13 @@ const mapRow = (row: RecordRow): DilemmaRecord => ({
 const mapPeopleObservationRow = (row: PeopleObservationRow): PeopleObservation => ({
   ...row,
   emotions: JSON.parse(row.emotions) as PeopleObservationEmotion[],
+});
+
+const mapNoteRow = (row: NoteRow): Note => ({
+  ...row,
+  noteType: row.noteType as NoteType,
+  emotions: JSON.parse(row.emotions) as NoteEmotion[],
+  categories: JSON.parse(row.categories) as NoteCategory[],
 });
 
 const addSyncColumns = async (db: SQLiteDatabase) => {
@@ -130,6 +149,21 @@ export async function initializeDatabase(db: SQLiteDatabase) {
       updatedAt TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_people_observations_created_at ON people_observations(createdAt DESC);
+
+    CREATE TABLE IF NOT EXISTS notes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ownerUserId TEXT NOT NULL,
+      clientId TEXT NOT NULL,
+      serverId TEXT,
+      syncStatus TEXT NOT NULL DEFAULT 'pending_create',
+      content TEXT NOT NULL,
+      noteType TEXT NOT NULL,
+      emotions TEXT NOT NULL DEFAULT '[]',
+      categories TEXT NOT NULL DEFAULT '[]',
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_notes_created_at ON notes(createdAt DESC);
   `);
 
   await addSyncColumns(db);
@@ -141,6 +175,9 @@ export async function initializeDatabase(db: SQLiteDatabase) {
     CREATE UNIQUE INDEX IF NOT EXISTS idx_people_observations_client_id ON people_observations(clientId);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_people_observations_server_id ON people_observations(serverId);
     CREATE INDEX IF NOT EXISTS idx_people_observations_owner_sync ON people_observations(ownerUserId, syncStatus);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_notes_client_id ON notes(clientId);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_notes_server_id ON notes(serverId);
+    CREATE INDEX IF NOT EXISTS idx_notes_owner_sync ON notes(ownerUserId, syncStatus);
   `);
 }
 
@@ -222,6 +259,31 @@ export async function createPeopleObservation(
   return getPeopleObservation(db, ownerUserId, Number(result.lastInsertRowId));
 }
 
+export async function createNote(
+  db: SQLiteDatabase,
+  ownerUserId: string,
+  input: NoteInput,
+) {
+  const clientId = randomUUID();
+  const now = new Date().toISOString();
+  const result = await db.runAsync(
+    `INSERT INTO notes (
+      ownerUserId, clientId, serverId, syncStatus,
+      content, noteType, emotions, categories, createdAt, updatedAt
+    ) VALUES (?, ?, NULL, 'pending_create', ?, ?, ?, ?, ?, ?)`,
+    ownerUserId,
+    clientId,
+    input.content.trim(),
+    input.noteType,
+    JSON.stringify(input.emotions),
+    JSON.stringify(input.categories),
+    now,
+    now,
+  );
+
+  return getNote(db, ownerUserId, Number(result.lastInsertRowId));
+}
+
 export async function getRecord(
   db: SQLiteDatabase,
   ownerUserId: string,
@@ -248,6 +310,20 @@ export async function getPeopleObservation(
   );
 
   return row ? mapPeopleObservationRow(row) : null;
+}
+
+export async function getNote(
+  db: SQLiteDatabase,
+  ownerUserId: string,
+  id: number,
+): Promise<Note | null> {
+  const row = await db.getFirstAsync<NoteRow>(
+    'SELECT * FROM notes WHERE id = ? AND ownerUserId = ?',
+    id,
+    ownerUserId,
+  );
+
+  return row ? mapNoteRow(row) : null;
 }
 
 export async function getPendingRecords(db: SQLiteDatabase, ownerUserId: string) {
@@ -416,6 +492,52 @@ export async function updatePeopleObservation(
   );
 
   return getPeopleObservation(db, ownerUserId, id);
+}
+
+export async function updateNote(
+  db: SQLiteDatabase,
+  ownerUserId: string,
+  id: number,
+  input: NoteInput,
+) {
+  const current = await getNote(db, ownerUserId, id);
+
+  if (!current || current.syncStatus === 'pending_delete') {
+    return null;
+  }
+
+  const nextSyncStatus: LocalSyncStatus =
+    current.syncStatus === 'pending_create' ? 'pending_create' : 'pending_update';
+  const now = new Date().toISOString();
+
+  await db.runAsync(
+    `UPDATE notes
+     SET content = ?,
+         noteType = ?,
+         emotions = ?,
+         categories = ?,
+         syncStatus = ?,
+         updatedAt = ?
+     WHERE id = ? AND ownerUserId = ?`,
+    input.content.trim(),
+    input.noteType,
+    JSON.stringify(input.emotions),
+    JSON.stringify(input.categories),
+    nextSyncStatus,
+    now,
+    id,
+    ownerUserId,
+  );
+
+  return getNote(db, ownerUserId, id);
+}
+
+export async function deleteLocalNote(
+  db: SQLiteDatabase,
+  ownerUserId: string,
+  id: number,
+) {
+  return db.runAsync('DELETE FROM notes WHERE id = ? AND ownerUserId = ?', id, ownerUserId);
 }
 
 export async function deleteLocalRecord(
@@ -675,6 +797,27 @@ export async function getPeopleObservations(
     ...paginationParams,
   );
   return rows.map(mapPeopleObservationRow);
+}
+
+export async function getNotes(
+  db: SQLiteDatabase,
+  ownerUserId: string,
+  pagination: { limit?: number; offset?: number } = {},
+) {
+  const paginationSql =
+    pagination.limit === undefined
+      ? ''
+      : ` LIMIT ? OFFSET ?`;
+  const paginationParams =
+    pagination.limit === undefined
+      ? []
+      : [pagination.limit, pagination.offset ?? 0];
+  const rows = await db.getAllAsync<NoteRow>(
+    `SELECT * FROM notes WHERE ownerUserId = ? AND syncStatus != 'pending_delete' ORDER BY createdAt DESC${paginationSql}`,
+    ownerUserId,
+    ...paginationParams,
+  );
+  return rows.map(mapNoteRow);
 }
 
 export const isPendingDelete = (status: LocalSyncStatus) => status === 'pending_delete';

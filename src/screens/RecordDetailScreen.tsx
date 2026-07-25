@@ -50,11 +50,47 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function DetailLine({ label, value }: { label: string; value: string }) {
+function DetailCell({ label, value, muted = false }: { label: string; value: string; muted?: boolean }) {
   return (
-    <View style={styles.detailLine}>
+    <View style={styles.detailCell}>
       <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailValue}>{value}</Text>
+      <Text style={[styles.detailValue, muted && styles.mutedDetailValue]}>{value}</Text>
+    </View>
+  );
+}
+
+function IntensityCell({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <View style={styles.detailCell}>
+      <Text style={styles.detailLabel}>{label}</Text>
+      <View style={styles.intensityRow}>
+        <View style={styles.intensityTrack}>
+          <View style={[styles.intensityFill, { backgroundColor: color, width: `${value * 10}%` }]} />
+        </View>
+        <Text style={styles.intensityValue}>{value}/10</Text>
+      </View>
+    </View>
+  );
+}
+
+function DetailContentCard({
+  icon,
+  label,
+  value,
+  accentColor,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string;
+  accentColor: string;
+}) {
+  return (
+    <View style={[styles.detailContentCard, { borderLeftColor: accentColor }]}>
+      <View style={styles.contentCardHeading}>
+        <Ionicons name={icon} size={16} color={accentColor} />
+        <Text style={[styles.contentCardLabel, { color: accentColor }]}>{label}</Text>
+      </View>
+      <Text style={styles.note}>{value || '未填写'}</Text>
     </View>
   );
 }
@@ -282,11 +318,27 @@ export function RecordDetailScreen({
   }
 
   return (
-    <Screen keyboardAvoiding scrollViewRef={scrollViewRef} contentStyle={styles.content}>
+    <Screen
+      backgroundColor="#F7FAF8"
+      keyboardAvoiding
+      scrollViewRef={scrollViewRef}
+      contentStyle={styles.content}
+    >
       <View style={styles.header}>
-        <Text style={styles.date}>{new Date(record.createdAt).toLocaleString('zh-CN')}</Text>
+        <View style={styles.statusRow}>
+          <Text style={styles.date}>{new Date(record.createdAt).toLocaleString('zh-CN')}</Text>
+          <View style={[styles.syncStatus, record.syncStatus !== 'synced' && styles.pendingSyncStatus]}>
+            <Ionicons
+              name={record.syncStatus === 'synced' ? 'checkmark-circle' : 'cloud-offline-outline'}
+              size={12}
+              color={record.syncStatus === 'synced' ? '#466349' : '#665B7C'}
+            />
+            <Text style={[styles.syncStatusText, record.syncStatus !== 'synced' && styles.pendingSyncText]}>
+              {record.syncStatus === 'synced' ? '已同步' : '待同步'}
+            </Text>
+          </View>
+        </View>
         <Text style={styles.title}>{record.title}</Text>
-        <Text style={styles.syncStatus}>{record.syncStatus === 'synced' ? '已同步' : '待同步'}</Text>
       </View>
 
       {editing ? (
@@ -320,22 +372,38 @@ export function RecordDetailScreen({
           </Field>
         </View>
       ) : (
-        <View style={styles.details}>
-          <DetailLine label="分类" value={record.category} />
-          <DetailLine label="感受" value={record.emotions.length ? record.emotions.join('、') : '未填写'} />
-          <DetailLine label="情绪强度" value={`${record.emotionIntensity}/10`} />
-          <DetailLine label="决策难度" value={`${record.decisionDifficulty}/10`} />
-          <DetailLine label="耗费时间" value={record.timeCost} />
-          <DetailLine label="事后看" value={record.worthIt} />
-          <View style={styles.noteBlock}>
-            <Text style={styles.detailLabel}>当时反复出现的想法</Text>
-            <Text style={styles.note}>{record.thoughts || '未填写'}</Text>
+        <>
+          <View style={styles.detailGridCard}>
+            <View style={styles.detailGrid}>
+              <View style={styles.detailRow}>
+                <DetailCell label="分类" value={record.category} />
+                <DetailCell label="感受" value={record.emotions.length ? record.emotions.join('、') : '未填写'} muted={!record.emotions.length} />
+              </View>
+              <View style={styles.detailRow}>
+                <IntensityCell label="情绪强度" value={record.emotionIntensity} color="#466349" />
+                <IntensityCell label="决策难度" value={record.decisionDifficulty} color="#7D562D" />
+              </View>
+              <View style={styles.detailRow}>
+                <DetailCell label="耗费时间" value={record.timeCost} />
+                <DetailCell label="事后看" value={record.worthIt} />
+              </View>
+            </View>
           </View>
-          <View style={styles.noteBlock}>
-            <Text style={styles.detailLabel}>最后怎么决定</Text>
-            <Text style={styles.note}>{record.finalDecision || '未填写'}</Text>
+          <View style={styles.detailCards}>
+            <DetailContentCard
+              accentColor="#466349"
+              icon="bulb-outline"
+              label="当时反复出现的想法"
+              value={record.thoughts}
+            />
+            <DetailContentCard
+              accentColor="#7D562D"
+              icon="hammer-outline"
+              label="最后怎么决定"
+              value={record.finalDecision}
+            />
           </View>
-        </View>
+        </>
       )}
 
       <View style={styles.actions}>
@@ -351,12 +419,12 @@ export function RecordDetailScreen({
           </>
         ) : (
           <>
-            <HapticPressable disabled={deleting} style={({ pressed }) => [styles.secondaryButton, (pressed || deleting) && styles.pressed]} onPress={() => setEditing(true)}>
-              <Ionicons name="create-outline" size={18} color={colors.primary} />
-              <Text style={styles.secondaryButtonText}>编辑</Text>
+            <HapticPressable disabled={deleting} style={({ pressed }) => [styles.editButton, (pressed || deleting) && styles.pressed]} onPress={() => setEditing(true)}>
+              <Ionicons name="create-outline" size={18} color="#314D34" />
+              <Text style={styles.editButtonText}>编辑</Text>
             </HapticPressable>
             <HapticPressable disabled={deleting} style={({ pressed }) => [styles.deleteButton, (pressed || deleting) && styles.pressed]} onPress={confirmDelete}>
-              <Ionicons name="trash-outline" size={18} color={colors.white} />
+              <Ionicons name="trash-outline" size={18} color="#93000A" />
               <Text style={styles.deleteButtonText}>{deleting ? '删除中…' : '删除'}</Text>
             </HapticPressable>
           </>
@@ -413,24 +481,38 @@ export function RecordDetailScreen({
 }
 
 const styles = StyleSheet.create({
-  content: { paddingBottom: 120 },
-  header: { gap: 8 },
-  date: { color: colors.muted, fontFamily: fonts.regular, fontSize: 13 },
-  title: { color: colors.text, fontFamily: fonts.bold, fontSize: 26, lineHeight: 34 },
-  syncStatus: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 13 },
+  content: { paddingTop: 32, paddingBottom: 128, gap: 32 },
+  header: { gap: 16 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  date: { color: '#737971', fontFamily: fonts.regular, fontSize: 12, lineHeight: 18, letterSpacing: 0.6 },
+  title: { color: '#181C1C', fontFamily: fonts.medium, fontSize: 26, lineHeight: 42, letterSpacing: -0.65, paddingTop: 8 },
+  syncStatus: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(70, 99, 73, 0.2)', backgroundColor: 'rgba(70, 99, 73, 0.1)', paddingHorizontal: 13, paddingVertical: 5 },
+  pendingSyncStatus: { borderColor: '#D8D1E8', backgroundColor: '#F3F0FA' },
+  syncStatusText: { color: '#466349', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  pendingSyncText: { color: '#665B7C' },
   form: { gap: 16 },
   field: { gap: 9 },
   label: { color: colors.text, fontFamily: fonts.semibold, fontSize: 16 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   input: { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 20, paddingHorizontal: 15, paddingVertical: 13, fontFamily: fonts.regular, fontSize: 15 },
   multiline: { minHeight: 92, textAlignVertical: 'top' },
-  details: { gap: 12 },
-  detailLine: { flexDirection: 'row', justifyContent: 'space-between', gap: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
-  detailLabel: { color: colors.muted, fontFamily: fonts.regular, fontSize: 14 },
-  detailValue: { flex: 1, color: colors.text, fontFamily: fonts.semibold, fontSize: 15, textAlign: 'right' },
-  noteBlock: { gap: 8, padding: 16, borderRadius: 14, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-  note: { color: colors.text, fontFamily: fonts.regular, lineHeight: 22 },
-  actions: { flexDirection: 'row', gap: 10 },
+  detailGridCard: { padding: 21, borderRadius: 24, borderCurve: 'continuous', backgroundColor: '#FFFFFF', boxShadow: '0 8px 15px rgba(70, 99, 73, 0.04)' },
+  detailGrid: { gap: 16 },
+  detailRow: { flexDirection: 'row', gap: 24 },
+  detailCell: { flex: 1, gap: 4 },
+  detailLabel: { color: '#737971', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  detailValue: { color: '#181C1C', fontFamily: fonts.medium, fontSize: 16, lineHeight: 26 },
+  mutedDetailValue: { color: '#424841', fontFamily: fonts.regular },
+  intensityRow: { height: 20, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  intensityTrack: { flex: 1, height: 6, overflow: 'hidden', borderRadius: 999, backgroundColor: '#E0E3E1' },
+  intensityFill: { height: '100%', borderRadius: 999 },
+  intensityValue: { color: '#181C1C', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
+  detailCards: { gap: 16 },
+  detailContentCard: { gap: 12, paddingVertical: 24, paddingLeft: 24, paddingRight: 24, borderLeftWidth: 4, borderRadius: 24, borderCurve: 'continuous', backgroundColor: '#F1F4F2', boxShadow: '0 1px 1px rgba(0, 0, 0, 0.05)' },
+  contentCardHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  contentCardLabel: { fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  note: { color: '#424841', fontFamily: fonts.medium, fontSize: 16, lineHeight: 26 },
+  actions: { flexDirection: 'row', gap: 16 },
   aiActionWrap: { alignItems: 'center', paddingTop: 2 },
   aiAction: {
     alignItems: 'center',
@@ -442,7 +524,7 @@ const styles = StyleSheet.create({
   aiActionTextWrap: { gap: 3 },
   aiActionUnderline: { borderRadius: 99, height: 2, opacity: 0.86 },
   aiGradientText: { fontFamily: fonts.bold, fontSize: 15, lineHeight: 20 },
-  aiResultCard: { gap: 14, marginTop: 2 },
+  aiResultCard: { gap: 14, marginTop: 2, borderWidth: 0 },
   aiResultHeader: { alignItems: 'center', flexDirection: 'row', gap: 10 },
   aiHexIcon: {
     alignItems: 'center',
@@ -456,12 +538,14 @@ const styles = StyleSheet.create({
   aiInsightLine: { gap: 6 },
   aiInsightLabel: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 14 },
   aiInsightText: { color: colors.text, fontFamily: fonts.regular, fontSize: 15, lineHeight: 23 },
-  primaryButton: { flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, padding: 16, borderRadius: 20, backgroundColor: colors.primary },
+  primaryButton: { flex: 1, height: 56, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 24, backgroundColor: '#466349' },
   primaryButtonText: { color: colors.white, fontFamily: fonts.bold, fontSize: 16 },
-  secondaryButton: { flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, padding: 16, borderRadius: 20, backgroundColor: colors.primarySoft },
+  secondaryButton: { flex: 1, height: 56, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 24, backgroundColor: '#CAEBC9' },
   secondaryButtonText: { color: colors.primary, fontFamily: fonts.bold, fontSize: 16 },
-  deleteButton: { flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, padding: 16, borderRadius: 20, backgroundColor: colors.danger },
-  deleteButtonText: { color: colors.white, fontFamily: fonts.bold, fontSize: 16 },
+  editButton: { flex: 1, height: 56, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 24, backgroundColor: '#CAEBC9', boxShadow: '0 1px 1px rgba(0, 0, 0, 0.05)' },
+  editButtonText: { color: '#314D34', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  deleteButton: { flex: 1, height: 56, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 24, backgroundColor: '#FFDAD6', boxShadow: '0 1px 1px rgba(0, 0, 0, 0.05)' },
+  deleteButtonText: { color: '#93000A', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   pressed: { opacity: 0.75 },
   empty: { color: colors.muted, fontFamily: fonts.regular, textAlign: 'center', paddingVertical: 40 },
 });

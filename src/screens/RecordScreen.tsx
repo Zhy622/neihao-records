@@ -1,11 +1,19 @@
 import { RefObject, useMemo, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { Keyboard, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Keyboard,
+  ScrollView,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuth } from '../auth/AuthProvider';
-import { Chip } from '../components/Chip';
 import { useAppAlert } from '../components/AppAlert';
 import { HapticPressable } from '../components/HapticPressable';
 import { Screen } from '../components/Screen';
@@ -26,12 +34,67 @@ import { colors, fonts } from '../theme';
 
 const levels = Array.from({ length: 10 }, (_, index) => index + 1);
 
-function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
+function Field({
+  label,
+  children,
+  style,
+}: {
+  label: string;
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) {
   return (
-    <View style={styles.field}>
+    <View style={[styles.field, style]}>
       <Text style={styles.label}>{label}</Text>
-      {hint ? <Text style={styles.hint}>{hint}</Text> : null}
       {children}
+    </View>
+  );
+}
+
+function IntensityField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <View style={[styles.field, styles.intensityField]}>
+      <View style={styles.intensityHeader}>
+        <Text style={styles.label}>{label}</Text>
+        <View style={styles.intensityValue}>
+          <Text style={styles.intensityNumber}>{value}</Text>
+          <Text style={styles.intensitySuffix}>/10</Text>
+        </View>
+      </View>
+      <View style={styles.levels}>
+        {levels.map((level) => (
+          <HapticPressable
+            key={level}
+            accessibilityRole="button"
+            accessibilityLabel={`${label} ${level}`}
+            accessibilityState={{ selected: value === level }}
+            feedback="selection"
+            style={({ pressed }) => [
+              styles.level,
+              level < value && styles.completedLevel,
+              value === level && styles.selectedLevel,
+              pressed && styles.pressed,
+            ]}
+            onPress={() => onChange(level)}
+          >
+            <Text style={[
+              styles.levelText,
+              level < value && styles.completedLevelText,
+              value === level && styles.selectedLevelText,
+            ]}>
+              {level}
+            </Text>
+          </HapticPressable>
+        ))}
+      </View>
     </View>
   );
 }
@@ -116,29 +179,142 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
   };
 
   return (
-    <Screen keyboardAvoiding scrollViewRef={scrollViewRef} contentStyle={styles.content}>
-      <Field label="这次纠结的事情 *">
-        <TextInput value={title} onChangeText={setTitle} placeholder="例如：要不要接下这个任务" placeholderTextColor={colors.muted} style={styles.input} />
-      </Field>
-      <Field label="分类">
-        <HapticPressable style={styles.selector} onPress={() => openSelectionSheet(categorySheetRef)}>
-          <Text style={styles.selectorText}>{category}</Text>
-          <Ionicons name="chevron-down-outline" size={18} color={colors.primary} />
-        </HapticPressable>
-      </Field>
-      <Field label="当时的感受" hint="可以多选">
-        <HapticPressable style={styles.selector} onPress={() => openSelectionSheet(emotionSheetRef)}>
-          <Text style={styles.selectorText}>{emotions.length ? emotions.join('、') : '选择感受'}</Text>
-          <Ionicons name="chevron-down-outline" size={18} color={colors.primary} />
-        </HapticPressable>
-      </Field>
-      <Field label={`情绪强度 · ${emotionIntensity}/10`}><View style={styles.chips}>{levels.map((level) => <Chip key={level} label={String(level)} selected={emotionIntensity === level} onPress={() => setEmotionIntensity(level)} />)}</View></Field>
-      <Field label={`决策难度 · ${decisionDifficulty}/10`}><View style={styles.chips}>{levels.map((level) => <Chip key={level} label={String(level)} selected={decisionDifficulty === level} onPress={() => setDecisionDifficulty(level)} />)}</View></Field>
-      <Field label="耗费时间"><View style={styles.chips}>{TIME_COSTS.map((item) => <Chip key={item} label={item} selected={timeCost === item} onPress={() => setTimeCost(item)} />)}</View></Field>
-      <Field label="当时反复出现的想法"><TextInput value={thoughts} onChangeText={setThoughts} onFocus={revealBottomFields} placeholder="脑海里一直在想什么？" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline /></Field>
-      <Field label="最后怎么决定"><TextInput value={finalDecision} onChangeText={setFinalDecision} onFocus={revealBottomFields} placeholder="写下最终选择或暂时的处理方式" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline /></Field>
-      <Field label="事后看是否值得纠结"><View style={styles.chips}>{WORTH_OPTIONS.map((item) => <Chip key={item} label={item} selected={worthIt === item} onPress={() => setWorthIt(item)} />)}</View></Field>
-      <HapticPressable disabled={saving} style={({ pressed }) => [styles.save, (pressed || saving) && styles.pressed]} onPress={save}>
+    <Screen
+      backgroundColor="#F7FAF8"
+      keyboardAvoiding
+      scrollViewRef={scrollViewRef}
+      contentStyle={styles.content}
+    >
+      <View style={styles.form}>
+        <View style={styles.basicFields}>
+          <Field label="这次纠结的事情 *">
+            <TextInput
+              accessibilityLabel="这次纠结的事情"
+              value={title}
+              onChangeText={setTitle}
+              placeholder="例如：要不要接下这个任务"
+              placeholderTextColor="rgba(115, 121, 113, 0.5)"
+              style={styles.input}
+            />
+          </Field>
+          <Field label="分类">
+            <HapticPressable
+              accessibilityRole="button"
+              accessibilityLabel="选择分类"
+              style={styles.selector}
+              onPress={() => openSelectionSheet(categorySheetRef)}
+            >
+              <Text style={styles.selectorText}>{category}</Text>
+              <Ionicons name="chevron-down-outline" size={20} color="#466349" />
+            </HapticPressable>
+          </Field>
+          <Field label="当时的感受 (可多选)">
+            <HapticPressable
+              accessibilityRole="button"
+              accessibilityLabel="选择当时的感受"
+              style={styles.selector}
+              onPress={() => openSelectionSheet(emotionSheetRef)}
+            >
+              <Text
+                numberOfLines={1}
+                style={[styles.selectorText, !emotions.length && styles.placeholder]}
+              >
+                {emotions.length ? emotions.join('、') : '选择感受'}
+              </Text>
+              <Ionicons name="chevron-down-outline" size={20} color="#466349" />
+            </HapticPressable>
+          </Field>
+        </View>
+        <View style={styles.intensityFields}>
+          <IntensityField label="情绪强度" value={emotionIntensity} onChange={setEmotionIntensity} />
+          <IntensityField label="决策难度" value={decisionDifficulty} onChange={setDecisionDifficulty} />
+        </View>
+        <Field label="耗费时间" style={styles.timeField}>
+          <View style={styles.timeOptions}>
+            {TIME_COSTS.map((item) => {
+              const selected = timeCost === item;
+
+              return (
+                <HapticPressable
+                  key={item}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  feedback="selection"
+                  style={({ pressed }) => [
+                    styles.timeOption,
+                    selected && styles.selectedTimeOption,
+                    pressed && styles.pressed,
+                  ]}
+                  onPress={() => setTimeCost(item)}
+                >
+                  <Text style={[styles.timeOptionText, selected && styles.selectedTimeOptionText]}>
+                    {item}
+                  </Text>
+                </HapticPressable>
+              );
+            })}
+          </View>
+        </Field>
+        <View style={styles.reflections}>
+          <Field label="当时反复出现的想法" style={styles.reflectionField}>
+            <TextInput
+              accessibilityLabel="当时反复出现的想法"
+              value={thoughts}
+              onChangeText={setThoughts}
+              onFocus={revealBottomFields}
+              placeholder="脑海里一直在想什么？"
+              placeholderTextColor="rgba(115, 121, 113, 0.5)"
+              style={[styles.input, styles.multiline]}
+              multiline
+            />
+          </Field>
+          <Field label="最后怎么决定" style={styles.reflectionField}>
+            <TextInput
+              accessibilityLabel="最后怎么决定"
+              value={finalDecision}
+              onChangeText={setFinalDecision}
+              onFocus={revealBottomFields}
+              placeholder="写下最终选择或暂时的处理方式"
+              placeholderTextColor="rgba(115, 121, 113, 0.5)"
+              style={[styles.input, styles.multiline]}
+              multiline
+            />
+          </Field>
+        </View>
+        <Field label="事后看是否值得纠结" style={styles.worthField}>
+          <View style={styles.worthOptions}>
+            {WORTH_OPTIONS.map((item) => {
+              const selected = worthIt === item;
+
+              return (
+                <HapticPressable
+                  key={item}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  feedback="selection"
+                  style={({ pressed }) => [
+                    styles.worthOption,
+                    selected && styles.selectedWorthOption,
+                    pressed && styles.pressed,
+                  ]}
+                  onPress={() => setWorthIt(item)}
+                >
+                  <Text style={[styles.worthOptionText, selected && styles.selectedWorthOptionText]}>
+                    {item}
+                  </Text>
+                </HapticPressable>
+              );
+            })}
+          </View>
+        </Field>
+      </View>
+      <HapticPressable
+        accessibilityRole="button"
+        accessibilityLabel={saving ? '保存中' : '保存记录'}
+        disabled={saving}
+        style={({ pressed }) => [styles.save, (pressed || saving) && styles.pressed]}
+        onPress={save}
+      >
         <Ionicons name="checkmark-circle-outline" size={20} color={colors.white} />
         <Text style={styles.saveText}>{saving ? '保存中…' : '保存记录'}</Text>
       </HapticPressable>
@@ -151,17 +327,25 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
       >
         <BottomSheetScrollView contentContainerStyle={styles.sheetContent}>
           <Text style={styles.sheetTitle}>选择分类</Text>
-          <View style={styles.chips}>
+          <View style={styles.sheetChips}>
             {CATEGORIES.map((item) => (
-              <Chip
+              <HapticPressable
                 key={item}
-                label={item}
-                selected={category === item}
+                feedback="selection"
+                style={({ pressed }) => [
+                  styles.sheetChip,
+                  category === item && styles.selectedSheetChip,
+                  pressed && styles.pressed,
+                ]}
                 onPress={() => {
                   setCategory(item);
                   categorySheetRef.current?.dismiss();
                 }}
-              />
+              >
+                <Text style={[styles.sheetChipText, category === item && styles.selectedSheetChipText]}>
+                  {item}
+                </Text>
+              </HapticPressable>
             ))}
           </View>
         </BottomSheetScrollView>
@@ -175,8 +359,27 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
       >
         <BottomSheetScrollView contentContainerStyle={styles.sheetContent}>
           <Text style={styles.sheetTitle}>选择当时的感受</Text>
-          <View style={styles.chips}>
-            {EMOTIONS.map((item) => <Chip key={item} label={item} selected={emotions.includes(item)} onPress={() => toggleEmotion(item)} />)}
+          <View style={styles.sheetChips}>
+            {EMOTIONS.map((item) => {
+              const selected = emotions.includes(item);
+
+              return (
+                <HapticPressable
+                  key={item}
+                  feedback="selection"
+                  style={({ pressed }) => [
+                    styles.sheetChip,
+                    selected && styles.selectedSheetChip,
+                    pressed && styles.pressed,
+                  ]}
+                  onPress={() => toggleEmotion(item)}
+                >
+                  <Text style={[styles.sheetChipText, selected && styles.selectedSheetChipText]}>
+                    {item}
+                  </Text>
+                </HapticPressable>
+              );
+            })}
           </View>
         </BottomSheetScrollView>
       </BottomSheetModal>
@@ -185,20 +388,144 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
 }
 
 const styles = StyleSheet.create({
-  content: { paddingBottom: 120 },
-  field: { gap: 9 },
-  label: { color: colors.text, fontFamily: fonts.semibold, fontSize: 16 },
-  hint: { color: colors.muted, fontFamily: fonts.regular, fontSize: 13 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  input: { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 20, paddingHorizontal: 15, paddingVertical: 13, fontFamily: fonts.regular, fontSize: 15 },
-  selector: { minHeight: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingHorizontal: 15, borderRadius: 20, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
-  selectorText: { flex: 1, color: colors.text, fontFamily: fonts.medium, fontSize: 15 },
-  multiline: { minHeight: 92, textAlignVertical: 'top' },
-  save: { backgroundColor: colors.primary, borderRadius: 20, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, padding: 16, marginTop: 8 },
-  saveText: { color: colors.white, fontFamily: fonts.bold, fontSize: 16 },
-  sheetBackground: { borderRadius: 28, backgroundColor: '#FFFEFC' },
+  content: { paddingTop: 32, paddingBottom: 40, gap: 32 },
+  intro: { color: '#424841', fontFamily: fonts.medium, fontSize: 16, lineHeight: 26 },
+  form: { gap: 32 },
+  basicFields: { gap: 16 },
+  intensityFields: { gap: 16 },
+  field: {
+    gap: 8,
+    padding: 16,
+    borderRadius: 16,
+    borderCurve: 'continuous',
+    backgroundColor: '#FFFFFF',
+    // boxShadow: '0 1px 1px rgba(0, 0, 0, 0.05)',
+  },
+  label: {
+    color: '#062509',
+    fontFamily: fonts.medium,
+    fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: 0.14,
+  },
+  input: {
+    height: 50,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderCurve: 'continuous',
+    backgroundColor: '#F1F4F2',
+    color: '#181C1C',
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    lineHeight: 26,
+  },
+  selector: {
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderCurve: 'continuous',
+    backgroundColor: '#F1F4F2',
+  },
+  selectorText: { flex: 1, color: '#181C1C', fontFamily: fonts.regular, fontSize: 14, lineHeight: 26 },
+  placeholder: { color: 'rgba(115, 121, 113, 0.7)' },
+  intensityField: { gap: 16 },
+  intensityHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  intensityValue: { flexDirection: 'row', alignItems: 'baseline' },
+  intensityNumber: { color: '#466349', fontFamily: fonts.semibold, fontSize: 24, lineHeight: 32 },
+  intensitySuffix: {
+    color: '#737971',
+    fontFamily: fonts.medium,
+    fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: 0.14,
+  },
+  levels: { flexDirection: 'row', gap: 4 },
+  level: {
+    flex: 1,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    borderCurve: 'continuous',
+    backgroundColor: '#F1F4F2',
+  },
+  completedLevel: { backgroundColor: '#CAEBC9' },
+  selectedLevel: {
+    backgroundColor: '#466349',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+  },
+  levelText: { color: '#737971', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
+  completedLevelText: { color: '#314D34' },
+  selectedLevelText: { color: colors.white },
+  timeField: { gap: 16 },
+  timeOptions: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 10, rowGap: 10 },
+  timeOption: {
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    borderRadius: 18,
+    backgroundColor: '#F1F4F2',
+  },
+  selectedTimeOption: {
+    height: 38,
+    backgroundColor: '#FFCA98',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+  },
+  timeOptionText: { color: '#181C1C', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
+  selectedTimeOptionText: { color: '#3F250B' },
+  reflections: { gap: 16 },
+  reflectionField: { paddingBottom: 22 },
+  multiline: { height: 102, paddingTop: 12, paddingBottom: 12, textAlignVertical: 'top' },
+  worthField: { gap: 16 },
+  worthOptions: {
+    height: 52,
+    flexDirection: 'row',
+    padding: 4,
+    borderRadius: 12,
+    borderCurve: 'continuous',
+    backgroundColor: '#F1F4F2',
+  },
+  worthOption: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    borderCurve: 'continuous',
+  },
+  selectedWorthOption: { backgroundColor: '#FFFFFF', boxShadow: '0 1px 1px rgba(0, 0, 0, 0.05)' },
+  worthOptionText: { color: '#737971', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
+  selectedWorthOptionText: { color: '#466349' },
+  save: {
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    borderRadius: 32,
+    backgroundColor: '#466349',
+    boxShadow: '0 10px 15px -3px rgba(70, 99, 73, 0.2)',
+  },
+  saveText: { color: colors.white, fontFamily: fonts.bold, fontSize: 14, lineHeight: 20 },
+  sheetBackground: { borderRadius: 28, backgroundColor: '#FFFFFF' },
   sheetIndicator: { backgroundColor: '#D6D0C8' },
   sheetContent: { padding: 20, paddingBottom: 34, gap: 16 },
-  sheetTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 20 },
+  sheetTitle: { color: '#181C1C', fontFamily: fonts.bold, fontSize: 20 },
+  sheetChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  sheetChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#E3E1DA',
+    backgroundColor: '#FFFFFF',
+  },
+  selectedSheetChip: { backgroundColor: '#CAEBC9', borderColor: '#CAEBC9' },
+  sheetChipText: { color: '#737971', fontFamily: fonts.medium, fontSize: 14 },
+  selectedSheetChipText: { color: '#314D34', fontFamily: fonts.semibold },
   pressed: { opacity: 0.75 },
 });

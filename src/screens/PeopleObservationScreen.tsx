@@ -2,7 +2,8 @@ import { useMemo, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Keyboard, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuth } from '../auth/AuthProvider';
 import { Chip } from '../components/Chip';
@@ -81,9 +82,8 @@ function buildLearningAction({
   return `这周只学习一个具体动作：从“${source}”里挑一件最小的事，做一次 15 分钟练习。`;
 }
 
-export function PeopleObservationScreen({
-  navigation,
-}: NativeStackScreenProps<RootStackParamList, 'PeopleObservation'>) {
+export function PeopleObservationScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const db = useSQLiteContext();
   const { session } = useAuth();
   const { alert } = useAppAlert();
@@ -171,7 +171,7 @@ export function PeopleObservationScreen({
         ]);
       }
     } catch {
-      alert('保存失败', '人物观照暂时没有保存，请稍后再试。');
+      alert('保存失败', '观照暂时没有保存，请稍后再试。');
       setSaving(false);
     }
   };

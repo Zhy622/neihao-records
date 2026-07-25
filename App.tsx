@@ -16,15 +16,19 @@ import { AuthProvider, useAuth } from './src/auth/AuthProvider';
 import { AppTabs } from './src/navigation/AppTabs';
 import { AuthLoadingScreen } from './src/screens/AuthLoadingScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
+import { HistoryScreen } from './src/screens/HistoryScreen';
+import { NoteDetailScreen } from './src/screens/NoteDetailScreen';
+import { NoteHistoryScreen } from './src/screens/NoteHistoryScreen';
 import { RecordDetailScreen } from './src/screens/RecordDetailScreen';
 import { RecordScreen } from './src/screens/RecordScreen';
 import { PeopleObservationScreen } from './src/screens/PeopleObservationScreen';
 import { PeopleObservationHistoryScreen } from './src/screens/PeopleObservationHistoryScreen';
 import { PeopleObservationDetailScreen } from './src/screens/PeopleObservationDetailScreen';
+import { StatsScreen } from './src/screens/StatsScreen';
 import { RecordSyncBootstrap } from './src/sync/RecordSyncBootstrap';
 import { initializeDatabase } from './src/database/database';
 import { RootStackParamList } from './src/types/navigation';
-import { colors } from './src/theme';
+import { colors, fonts } from './src/theme';
 import { HapticPressable } from './src/components/HapticPressable';
 import { AppAlertProvider } from './src/components/AppAlert';
 
@@ -50,25 +54,121 @@ function RootNavigation() {
           headerStyle: { backgroundColor: colors.background },
           headerShadowVisible: false,
           headerTintColor: colors.text,
+          headerTitleStyle: { fontSize: 17 },
           contentStyle: { backgroundColor: colors.background },
         }}
       >
         {session ? (
           <>
             <Stack.Screen name="Main" component={AppTabs} options={{ headerShown: false }} />
-            <Stack.Screen name="Record" component={RecordScreen} options={{ title: '记录一次纠结' }} />
-            <Stack.Screen name="RecordDetail" component={RecordDetailScreen} options={{ title: '记录详情' }} />
+            <Stack.Screen
+              name="Record"
+              component={RecordScreen}
+              options={({ navigation }) => ({
+                title: '记录一次纠结',
+                headerTitleAlign: 'center',
+                headerStyle: { height: 70, backgroundColor: '#F7FAF8' },
+                headerShadowVisible: false,
+                headerTintColor: '#466349',
+                headerTitleStyle: {
+                  color: '#466349',
+                  fontFamily: 'Inter_500Medium',
+                  fontSize: 18,
+                  letterSpacing: -0.6,
+                },
+                headerRight: () => (
+                  <HapticPressable
+                    accessibilityRole="button"
+                    accessibilityLabel="查看历史记录"
+                    style={{ padding: 4, borderRadius: 18 }}
+                    onPress={() => navigation.navigate('History')}
+                  >
+                    <Ionicons name="time-outline" size={20} color="#466349" />
+                  </HapticPressable>
+                ),
+              })}
+            />
+            <Stack.Screen
+              name="History"
+              component={HistoryScreen}
+              options={({ navigation }) => ({
+                title: '历史记录',
+                headerTitleAlign: 'center',
+                headerStyle: { height: 70, backgroundColor: '#F7FAF8' },
+                headerShadowVisible: false,
+                headerTintColor: '#466349',
+                headerTitleStyle: {
+                  color: '#466349',
+                  fontFamily: 'Inter_500Medium',
+                  fontSize: 18,
+                  letterSpacing: -0.6,
+                },
+                headerRight: () => (
+                  <HapticPressable
+                    accessibilityRole="button"
+                    accessibilityLabel="查看统计"
+                    style={{ padding: 4, borderRadius: 18 }}
+                    onPress={() => navigation.navigate('Stats')}
+                  >
+                    <Ionicons name="trending-up-outline" size={22} color="#424841" />
+                  </HapticPressable>
+                ),
+              })}
+            />
+            <Stack.Screen name="Stats" component={StatsScreen} options={{ title: '统计', headerTitleAlign: 'center' }} />
+            <Stack.Screen
+              name="RecordDetail"
+              component={RecordDetailScreen}
+              options={{
+                title: '记录详情',
+                headerTitleAlign: 'center',
+                headerStyle: { backgroundColor: '#F7FAF8' },
+                headerShadowVisible: false,
+                headerTintColor: '#466349',
+                headerTitleStyle: {
+                  color: '#466349',
+                  fontFamily: 'Inter_500Medium',
+                  fontSize: 18,
+                },
+              }}
+            />
+            <Stack.Screen
+              name="NoteHistory"
+              component={NoteHistoryScreen}
+              options={{
+                title: '随记记录',
+                headerTitleAlign: 'center',
+                headerBackButtonDisplayMode: 'minimal',
+                headerStyle: { backgroundColor: 'rgba(247, 250, 248, 0.96)' },
+                headerShadowVisible: false,
+                headerTintColor: '#466349',
+                headerTitleStyle: { color: '#466349', fontFamily: fonts.medium, fontSize: 18 },
+              }}
+            />
+            <Stack.Screen
+              name="NoteDetail"
+              component={NoteDetailScreen}
+              options={() => ({
+                title: '随记详情',
+                headerTitleAlign: 'center',
+                headerBackButtonDisplayMode: 'minimal',
+                headerStyle: { backgroundColor: 'rgba(247, 250, 248, 0.96)' },
+                headerShadowVisible: false,
+                headerTintColor: '#466349',
+                headerTitleStyle: { color: '#466349', fontFamily: fonts.medium, fontSize: 18 },
+              })}
+            />
             <Stack.Screen
               name="PeopleObservation"
               component={PeopleObservationScreen}
               options={({ navigation }) => ({
-                title: '人物观照',
+                title: '观照',
                 headerTitleAlign: 'center',
                 headerRight: () => (
                   <HapticPressable
                     accessibilityRole="button"
-                    accessibilityLabel="查看人物观照列表"
-                    style={{ padding: 8, borderRadius: 18 }}
+                    accessibilityLabel="查看观照列表"
+                    style={{ padding: 4, borderRadius: 18 }}
                     onPress={() => navigation.navigate('PeopleObservationHistory')}
                   >
                     <Ionicons name="list-outline" size={22} color={colors.primary} />
@@ -79,7 +179,7 @@ function RootNavigation() {
             <Stack.Screen
               name="PeopleObservationHistory"
               component={PeopleObservationHistoryScreen}
-              options={{ title: '人物观照列表', headerTitleAlign: 'center' }}
+              options={{ title: '观照列表', headerTitleAlign: 'center' }}
             />
             <Stack.Screen
               name="PeopleObservationDetail"
