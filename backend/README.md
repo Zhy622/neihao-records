@@ -1,4 +1,4 @@
-# 内耗记录本 Backend
+# 情绪笔录 Backend
 
 后端基础工程，使用 NestJS、Prisma 和 PostgreSQL。
 
