@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "内耗记录本",
+    "name": "情绪笔录",
     "slug": "neihao-records",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/weiji-icon.png",
+    "icon": "./assets/qxbl.jpg",
     "userInterfaceStyle": "light",
     "runtimeVersion": {
       "policy": "appVersion"
@@ -19,7 +19,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "允许内耗记录本访问照片，用于设置头像。",
+          "photosPermission": "允许情绪笔录访问照片，用于设置头像。",
           "microphonePermission": false
         }
       ]
