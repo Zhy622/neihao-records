@@ -117,10 +117,10 @@ export function AppTabs() {
           headerShown: true,
           headerTitleAlign: 'center',
           headerLeft: () => null,
-          headerStyle: { backgroundColor: colors.background },
+          headerStyle: { backgroundColor: 'rgba(247, 250, 248, 0.96)' },
           headerShadowVisible: false,
-          headerTintColor: colors.text,
-          headerTitleStyle: { fontSize: 17 },
+          headerTintColor: '#466349',
+          headerTitleStyle: { color: '#466349', fontFamily: fonts.medium, fontSize: 18 },
           headerRight: () => (
             <HapticPressable
               accessibilityRole="button"
@@ -128,7 +128,7 @@ export function AppTabs() {
               style={{ padding: 4, borderRadius: 18, marginRight: 12 }}
               onPress={() => navigation.getParent()?.navigate('PeopleObservationHistory')}
             >
-              <Ionicons name="list-outline" size={22} color={colors.primary} />
+              <Ionicons name="list-outline" size={22} color="#466349" />
             </HapticPressable>
           ),
         })}

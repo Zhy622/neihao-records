@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
@@ -9,19 +10,21 @@ import { JwtService } from '@nestjs/jwt';
 import { Prisma, RefreshToken, User } from '@prisma/client';
 import { createHash, randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
-import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { LoginDto, RegisterDto, UpdateAccountProfileDto } from './dto/auth.dto';
 import { hashPassword, verifyPassword } from './password-hash';
 import {
   AccessTokenPayload,
   AuthResponse,
   AuthTokens,
   AuthUser,
+  AccountProfileResponse,
   RefreshTokenPayload,
 } from './auth.types';
 
 const ACCESS_TOKEN_EXPIRES_IN = '15m';
 const REFRESH_TOKEN_EXPIRES_IN = '30d';
 const REFRESH_TOKEN_DAYS = 30;
+const MAX_AVATAR_BYTES = 1024 * 1024;
 
 @Injectable()
 export class AuthService {
@@ -108,6 +111,26 @@ export class AuthService {
     return { message: 'Logged out.' };
   }
 
+  async getProfile(userId: string): Promise<AccountProfileResponse> {
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    return this.toAccountProfile(user);
+  }
+
+  async updateProfile(userId: string, dto: UpdateAccountProfileDto): Promise<AccountProfileResponse> {
+    const avatar = this.parseAvatar(dto);
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        displayName: dto.displayName === undefined ? undefined : dto.displayName.trim() || null,
+        signature: dto.signature === undefined ? undefined : dto.signature.trim(),
+        avatarData: avatar ? new Uint8Array(avatar.data) : undefined,
+        avatarMimeType: avatar?.mimeType,
+      },
+    });
+
+    return this.toAccountProfile(user);
+  }
+
   private async buildAuthResponse(user: User): Promise<AuthResponse> {
     const tokens = await this.issueTokens(user);
 
@@ -164,6 +187,50 @@ export class AuthService {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
+  }
+
+  private toAccountProfile(user: User): AccountProfileResponse {
+    return {
+      displayName: user.displayName,
+      signature: user.signature,
+      avatarDataUrl: user.avatarData && user.avatarMimeType
+        ? `data:${user.avatarMimeType};base64,${Buffer.from(user.avatarData).toString('base64')}`
+        : null,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  private parseAvatar(dto: UpdateAccountProfileDto): { data: Buffer; mimeType: string } | undefined {
+    if (dto.avatarBase64 === undefined && dto.avatarMimeType === undefined) {
+      return undefined;
+    }
+    if (!dto.avatarBase64 || !dto.avatarMimeType) {
+      throw new BadRequestException('Avatar data and MIME type must be provided together.');
+    }
+
+    const base64 = dto.avatarBase64.replace(/\s/g, '');
+    if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64)) {
+      throw new BadRequestException('Avatar must be valid base64.');
+    }
+    const data = Buffer.from(base64, 'base64');
+    if (!data.length || data.length > MAX_AVATAR_BYTES || !this.matchesAvatarMimeType(data, dto.avatarMimeType)) {
+      throw new BadRequestException('Avatar must be a supported image smaller than 1 MB.');
+    }
+
+    return { data, mimeType: dto.avatarMimeType };
+  }
+
+  private matchesAvatarMimeType(data: Buffer, mimeType: string): boolean {
+    if (mimeType === 'image/jpeg') {
+      return data.length >= 3 && data[0] === 0xff && data[1] === 0xd8 && data[2] === 0xff;
+    }
+    if (mimeType === 'image/png') {
+      return data.length >= 8 && data.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+    }
+    if (mimeType === 'image/webp') {
+      return data.length >= 12 && data.subarray(0, 4).toString() === 'RIFF' && data.subarray(8, 12).toString() === 'WEBP';
+    }
+    return data.length >= 12 && data.subarray(4, 8).toString() === 'ftyp' && ['heic', 'heix', 'hevc', 'hevx', 'mif1'].includes(data.subarray(8, 12).toString());
   }
 
   private normalizeEmail(email: string): string {

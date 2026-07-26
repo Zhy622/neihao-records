@@ -29,6 +29,14 @@ type NoteRow = Omit<Note, 'emotions' | 'categories' | 'noteType'> & {
   emotions: string;
   categories: string;
 };
+export type AccountProfile = {
+  ownerUserId: string;
+  displayName: string;
+  signature: string;
+  avatarUri: string | null;
+  avatarMimeType: string | null;
+  updatedAt: string;
+};
 type TableColumn = { name: string };
 export type RemoteRecordSnapshot = RecordInput & {
   clientId: string;
@@ -80,6 +88,15 @@ const addSyncColumns = async (db: SQLiteDatabase) => {
   }
   if (!names.has('updatedAt')) {
     await db.execAsync('ALTER TABLE records ADD COLUMN updatedAt TEXT;');
+  }
+};
+
+const addAccountProfileColumns = async (db: SQLiteDatabase) => {
+  const columns = await db.getAllAsync<TableColumn>('PRAGMA table_info(account_profiles)');
+  const names = new Set(columns.map((column) => column.name));
+
+  if (!names.has('avatarMimeType')) {
+    await db.execAsync('ALTER TABLE account_profiles ADD COLUMN avatarMimeType TEXT;');
   }
 };
 
@@ -164,9 +181,19 @@ export async function initializeDatabase(db: SQLiteDatabase) {
       updatedAt TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_notes_created_at ON notes(createdAt DESC);
+
+    CREATE TABLE IF NOT EXISTS account_profiles (
+      ownerUserId TEXT PRIMARY KEY NOT NULL,
+      displayName TEXT NOT NULL DEFAULT '',
+      signature TEXT NOT NULL DEFAULT '',
+      avatarUri TEXT,
+      avatarMimeType TEXT,
+      updatedAt TEXT NOT NULL
+    );
   `);
 
   await addSyncColumns(db);
+  await addAccountProfileColumns(db);
   await backfillSyncMetadata(db);
   await db.execAsync(`
     CREATE UNIQUE INDEX IF NOT EXISTS idx_records_client_id ON records(clientId);
@@ -324,6 +351,40 @@ export async function getNote(
   );
 
   return row ? mapNoteRow(row) : null;
+}
+
+export function getAccountProfile(db: SQLiteDatabase, ownerUserId: string) {
+  return db.getFirstAsync<AccountProfile>(
+    'SELECT * FROM account_profiles WHERE ownerUserId = ?',
+    ownerUserId,
+  );
+}
+
+export async function upsertAccountProfile(
+  db: SQLiteDatabase,
+  ownerUserId: string,
+  profile: Pick<AccountProfile, 'displayName' | 'signature' | 'avatarUri' | 'avatarMimeType'> & {
+    updatedAt?: string;
+  },
+) {
+  const updatedAt = profile.updatedAt ?? new Date().toISOString();
+  await db.runAsync(
+    `INSERT INTO account_profiles (ownerUserId, displayName, signature, avatarUri, avatarMimeType, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(ownerUserId) DO UPDATE SET
+       displayName = excluded.displayName,
+       signature = excluded.signature,
+       avatarUri = excluded.avatarUri,
+       avatarMimeType = excluded.avatarMimeType,
+       updatedAt = excluded.updatedAt`,
+    ownerUserId,
+    profile.displayName.trim(),
+    profile.signature.trim(),
+    profile.avatarUri,
+    profile.avatarMimeType,
+    updatedAt,
+  );
+  return getAccountProfile(db, ownerUserId);
 }
 
 export async function getPendingRecords(db: SQLiteDatabase, ownerUserId: string) {

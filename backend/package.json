@@ -2,7 +2,7 @@
   "name": "neihao-records-backend",
   "version": "0.1.0",
   "private": true,
-  "description": "Backend API for 内耗记录本.",
+  "description": "Backend API for 情绪笔录.",
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",

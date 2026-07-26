@@ -15,7 +15,14 @@
     "plugins": [
       "expo-sqlite",
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "允许内耗记录本访问照片，用于设置头像。",
+          "microphonePermission": false
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": true

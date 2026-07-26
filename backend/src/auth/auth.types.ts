@@ -38,6 +38,20 @@ export class LogoutResponse {
   message!: string;
 }
 
+export class AccountProfileResponse {
+  @ApiProperty({ nullable: true, example: 'Lin' })
+  displayName!: string | null;
+
+  @ApiProperty({ example: '在记录中遇见更好的自己' })
+  signature!: string;
+
+  @ApiProperty({ nullable: true, example: 'data:image/jpeg;base64,/9j/4AAQSk...' })
+  avatarDataUrl!: string | null;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  updatedAt!: Date;
+}
+
 export type AccessTokenPayload = {
   sub: string;
   email: string;

@@ -179,12 +179,28 @@ function RootNavigation() {
             <Stack.Screen
               name="PeopleObservationHistory"
               component={PeopleObservationHistoryScreen}
-              options={{ title: '观照列表', headerTitleAlign: 'center' }}
+              options={{
+                title: '观照列表',
+                headerTitleAlign: 'center',
+                headerBackButtonDisplayMode: 'minimal',
+                headerStyle: { backgroundColor: 'rgba(247, 250, 248, 0.96)' },
+                headerShadowVisible: false,
+                headerTintColor: '#466349',
+                headerTitleStyle: { color: '#466349', fontFamily: fonts.medium, fontSize: 18 },
+              }}
             />
             <Stack.Screen
               name="PeopleObservationDetail"
               component={PeopleObservationDetailScreen}
-              options={{ title: '观照详情', headerTitleAlign: 'center' }}
+              options={{
+                title: '观照详情',
+                headerTitleAlign: 'center',
+                headerBackButtonDisplayMode: 'minimal',
+                headerStyle: { backgroundColor: 'rgba(247, 250, 248, 0.96)' },
+                headerShadowVisible: false,
+                headerTintColor: '#466349',
+                headerTitleStyle: { color: '#466349', fontFamily: fonts.medium, fontSize: 18 },
+              }}
             />
           </>
         ) : (

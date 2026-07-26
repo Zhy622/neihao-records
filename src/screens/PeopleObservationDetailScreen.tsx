@@ -5,7 +5,6 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuth } from '../auth/AuthProvider';
-import { Chip } from '../components/Chip';
 import { useAppAlert } from '../components/AppAlert';
 import { HapticPressable } from '../components/HapticPressable';
 import { Screen } from '../components/Screen';
@@ -23,29 +22,80 @@ import {
 import { RootStackParamList } from '../types/navigation';
 import { colors, fonts } from '../theme';
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+const emotionBackgrounds = ['#E6F2E6', '#FBEADF', '#F0ECF7', '#F3EEE5'];
+
+function Field({
+  icon,
+  label,
+  hint,
+  children,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
     <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
+      <View style={styles.labelRow}>
+        <Ionicons name={icon} size={17} color="#5D655E" />
+        <Text style={styles.label}>{label}</Text>
+      </View>
+      {hint ? <Text style={styles.hint}>{hint}</Text> : null}
       {children}
     </View>
   );
 }
 
-function DetailLine({ label, value }: { label: string; value: string }) {
+function ObservationDetailCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string;
+}) {
   return (
-    <View style={styles.detailLine}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailValue}>{value}</Text>
+    <View style={styles.observationCard}>
+      <View style={styles.cardLabelRow}>
+        <View style={styles.cardIcon}>
+          <Ionicons name={icon} size={15} color="#6E7B6F" />
+        </View>
+        <Text style={styles.cardLabel}>{label}</Text>
+      </View>
+      <Text selectable style={styles.cardValue}>{value || '未填写'}</Text>
     </View>
   );
 }
 
-function NoteBlock({ label, value }: { label: string; value: string }) {
+function ReflectionCard({
+  accent,
+  icon,
+  label,
+  subtitle,
+  value,
+}: {
+  accent: 'definition' | 'action';
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  subtitle: string;
+  value: string;
+}) {
   return (
-    <View style={styles.noteBlock}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.note}>{value || '未填写'}</Text>
+    <View style={[styles.reflectionCard, accent === 'definition' ? styles.definitionCard : styles.actionCard]}>
+      <View style={styles.reflectionHeader}>
+        <View style={styles.reflectionIcon}>
+          <Ionicons name={icon} size={18} color="#466349" />
+        </View>
+        <View style={styles.reflectionTitleWrap}>
+          <Text style={styles.reflectionLabel}>{label}</Text>
+          <Text style={styles.reflectionSubtitle}>{subtitle}</Text>
+        </View>
+      </View>
+      <View style={styles.reflectionContent}>
+        <Text selectable style={styles.reflectionText}>{value || '未填写'}</Text>
+      </View>
     </View>
   );
 }
@@ -259,69 +309,122 @@ export function PeopleObservationDetailScreen({
   });
 
   return (
-    <Screen keyboardAvoiding scrollViewRef={scrollViewRef} contentStyle={styles.content}>
+    <Screen backgroundColor="#F7FAF8" keyboardAvoiding keyboardAvoidingMode="fullscreen" scrollViewRef={scrollViewRef} contentStyle={styles.content}>
       <View style={styles.header}>
-        <Text style={styles.date}>{new Date(observation.createdAt).toLocaleString('zh-CN')}</Text>
-        <Text style={styles.title}>{observation.alias}</Text>
-        <Text style={styles.syncStatus}>{observation.syncStatus === 'synced' ? '已同步' : '待同步'}</Text>
+        <View style={styles.headerBody}>
+          <Text style={styles.title}>{observation.alias}</Text>
+          <View style={styles.metaRow}>
+            <Ionicons name="calendar-outline" size={13} color="#7B827B" />
+            <Text style={styles.date}>{new Date(observation.createdAt).toLocaleDateString('zh-CN')}</Text>
+          </View>
+        </View>
+        <View style={styles.syncStatus}>
+          <View style={[styles.syncDot, observation.syncStatus !== 'synced' && styles.pendingDot]} />
+          <Text style={styles.syncText}>{observation.syncStatus === 'synced' ? '已同步' : '待同步'}</Text>
+        </View>
       </View>
+
+      <View style={styles.headerDivider} />
 
       {editing ? (
         <View style={styles.form}>
-          <Field label="人物代号 *">
+          <Field
+            icon="person-outline"
+            label="人物代号 *"
+            hint="可以是昵称、角色名或只有你看得懂的代号。"
+          >
             <TextInput
               value={alias}
               onChangeText={setAlias}
+              onFocus={revealBottomFields}
               placeholder="例如：A 同事 / 那位朋友 / 高中同学"
               placeholderTextColor={colors.muted}
               style={styles.input}
             />
           </Field>
-          <Field label="我对 TA 的主要情绪">
+          <Field
+            icon="heart-outline"
+            label="我对 TA 的主要情绪"
+            hint="可以多选，复杂一点也没关系。"
+          >
             <View style={styles.chips}>
-              {PEOPLE_OBSERVATION_EMOTIONS.map((item) => (
-                <Chip
+              {PEOPLE_OBSERVATION_EMOTIONS.map((item, index) => (
+                <HapticPressable
                   key={item}
-                  label={item}
-                  selected={emotions.includes(item)}
+                  feedback="selection"
+                  style={({ pressed }) => [
+                    styles.chip,
+                    emotions.includes(item) && { backgroundColor: emotionBackgrounds[index % emotionBackgrounds.length] },
+                    pressed && styles.pressed,
+                  ]}
                   onPress={() => toggleEmotion(item)}
-                />
+                >
+                  <Text style={[styles.chipText, emotions.includes(item) && styles.selectedChipText]}>{item}</Text>
+                </HapticPressable>
               ))}
             </View>
           </Field>
-          <Field label="触发场景">
+          <Field icon="location-outline" label="触发场景">
             <TextInput value={triggerScene} onChangeText={setTriggerScene} placeholder="我是在什么情况下想到 TA 的？" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline />
           </Field>
-          <Field label="我轻蔑 TA 的点">
+          <Field icon="eye-off-outline" label="我轻蔑 TA 的点" hint="可以诚实一点写，先不急着评判自己。">
             <TextInput value={contemptPoints} onChangeText={setContemptPoints} onFocus={revealBottomFields} placeholder="我看不上的地方是什么？" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline />
           </Field>
-          <Field label="我自卑或羡慕 TA 的点">
+          <Field icon="sparkles-outline" label="我自卑或羡慕 TA 的点">
             <TextInput value={inferiorityOrEnvyPoints} onChangeText={setInferiorityOrEnvyPoints} onFocus={revealBottomFields} placeholder="TA 的什么地方让我不舒服、羡慕或不服气？" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline />
           </Field>
-          <Field label="TA 比我强的具体能力">
+          <Field icon="accessibility-outline" label="TA 比我强的具体能力">
             <TextInput value={otherStrengths} onChangeText={setOtherStrengths} onFocus={revealBottomFields} placeholder="例如：表达更直接、执行更快、更会争取资源" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline />
           </Field>
-          <Field label="我比 TA 强或不弱的地方">
+          <Field icon="shield-checkmark-outline" label="我比 TA 强或不弱的地方">
             <TextInput value={myStrengths} onChangeText={setMyStrengths} onFocus={revealBottomFields} placeholder="例如：更稳定、更细致、更愿意复盘" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline />
           </Field>
         </View>
       ) : (
         <View style={styles.details}>
-          <DetailLine label="主要情绪" value={observation.emotions.length ? observation.emotions.join('、') : '未填写'} />
-          <NoteBlock label="触发场景" value={observation.triggerScene} />
-          <NoteBlock label="我轻蔑 TA 的点" value={observation.contemptPoints} />
-          <NoteBlock label="我自卑或羡慕 TA 的点" value={observation.inferiorityOrEnvyPoints} />
-          <NoteBlock label="TA 比我强的具体能力" value={observation.otherStrengths} />
-          <NoteBlock label="我比 TA 强或不弱的地方" value={observation.myStrengths} />
-          <NoteBlock label="重新定义这个人" value={observation.personDefinition} />
-          <NoteBlock label="我可以学习的一个行动" value={observation.learningAction} />
+          <View style={styles.emotions}>
+            {observation.emotions.length ? observation.emotions.map((emotion, index) => (
+              <Text key={emotion} style={[styles.emotion, { backgroundColor: emotionBackgrounds[index % emotionBackgrounds.length] }]}>{emotion}</Text>
+            )) : <Text style={[styles.emotion, styles.emptyEmotion]}>未选择情绪</Text>}
+          </View>
+          <ObservationDetailCard icon="sparkles-outline" label="触发场景" value={observation.triggerScene} />
+          <ObservationDetailCard icon="eye-off-outline" label="我轻蔑 TA 的点" value={observation.contemptPoints} />
+          <ObservationDetailCard icon="heart-outline" label="我自卑或羡慕 TA 的点" value={observation.inferiorityOrEnvyPoints} />
+          <ObservationDetailCard icon="flash-outline" label="TA 比我强的具体能力" value={observation.otherStrengths} />
+          <ObservationDetailCard icon="leaf-outline" label="我比 TA 强或不弱的地方" value={observation.myStrengths} />
+          <ReflectionCard
+            accent="definition"
+            icon="bulb-outline"
+            label="重新定义这个人"
+            subtitle="REDEFINING PERSPECTIVE"
+            value={observation.personDefinition}
+          />
+          <ReflectionCard
+            accent="action"
+            icon="walk-outline"
+            label="我可以学习的一个行动"
+            subtitle="ACTIONABLE STEP"
+            value={observation.learningAction}
+          />
         </View>
       )}
 
       {editing ? (
         <View style={styles.preview}>
-          <NoteBlock label="重新定义这个人" value={personDefinition} />
-          <NoteBlock label="我可以学习的一个行动" value={learningAction} />
+          <ReflectionCard
+            accent="definition"
+            icon="bulb-outline"
+            label="重新定义这个人"
+            subtitle="REDEFINING PERSPECTIVE"
+            value={personDefinition}
+          />
+          <ReflectionCard
+            accent="action"
+            icon="walk-outline"
+            label="我可以学习的一个行动"
+            subtitle="ACTIONABLE STEP"
+            value={learningAction}
+          />
         </View>
       ) : null}
 
@@ -348,19 +451,19 @@ export function PeopleObservationDetailScreen({
           <>
             <HapticPressable
               disabled={deleting}
-              style={({ pressed }) => [styles.secondaryButton, (pressed || deleting) && styles.pressed]}
-              onPress={() => setEditing(true)}
-            >
-              <Ionicons name="create-outline" size={18} color={colors.primary} />
-              <Text style={styles.secondaryButtonText}>编辑</Text>
-            </HapticPressable>
-            <HapticPressable
-              disabled={deleting}
               style={({ pressed }) => [styles.deleteButton, (pressed || deleting) && styles.pressed]}
               onPress={confirmDelete}
             >
-              <Ionicons name="trash-outline" size={18} color={colors.white} />
+              <Ionicons name="trash-outline" size={18} color="#A85C57" />
               <Text style={styles.deleteButtonText}>{deleting ? '删除中...' : '删除'}</Text>
+            </HapticPressable>
+            <HapticPressable
+              disabled={deleting}
+              style={({ pressed }) => [styles.editButton, (pressed || deleting) && styles.pressed]}
+              onPress={() => setEditing(true)}
+            >
+              <Ionicons name="create-outline" size={18} color="#466349" />
+              <Text style={styles.editButtonText}>编辑</Text>
             </HapticPressable>
           </>
         )}
@@ -370,41 +473,59 @@ export function PeopleObservationDetailScreen({
 }
 
 const styles = StyleSheet.create({
-  content: { paddingBottom: 120 },
-  header: { gap: 8 },
-  date: { color: colors.muted, fontFamily: fonts.regular, fontSize: 13 },
-  title: { color: colors.text, fontFamily: fonts.bold, fontSize: 26, lineHeight: 34 },
-  syncStatus: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 13 },
-  form: { gap: 16 },
-  field: { gap: 9 },
-  label: { color: colors.text, fontFamily: fonts.semibold, fontSize: 16 },
+  content: { paddingTop: 24, paddingHorizontal: 20, paddingBottom: 120, gap: 18 },
+  header: { alignItems: 'center', flexDirection: 'row', gap: 12 },
+  avatar: { alignItems: 'center', backgroundColor: '#CDECCB', borderRadius: 24, height: 48, justifyContent: 'center', width: 48 },
+  headerBody: { flex: 1, gap: 5 },
+  date: { color: '#7B827B', fontFamily: fonts.regular, fontSize: 12 },
+  title: { color: '#181C1C', fontFamily: fonts.medium, fontSize: 24, lineHeight: 30 },
+  metaRow: { alignItems: 'center', flexDirection: 'row', gap: 5 },
+  syncStatus: { alignItems: 'center', flexDirection: 'row', gap: 5 },
+  syncDot: { backgroundColor: '#8daf8f', borderRadius: 4, height: 7, width: 7 },
+  pendingDot: { backgroundColor: '#B79A63' },
+  syncText: { color: '#658267', fontFamily: fonts.medium, fontSize: 12 },
+  headerDivider: { backgroundColor: '#E1E8E2', height: StyleSheet.hairlineWidth },
+  form: { gap: 32 },
+  field: { gap: 8 },
+  labelRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  label: { color: '#424841', fontFamily: fonts.medium, fontSize: 16 },
+  hint: { color: '#5D655E', fontFamily: fonts.regular, fontSize: 12, lineHeight: 18 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: { backgroundColor: '#FFFFFF', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 9 },
+  chipText: { color: '#5D655E', fontFamily: fonts.regular, fontSize: 13 },
+  selectedChipText: { color: '#526052', fontFamily: fonts.medium },
   input: {
     color: colors.text,
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 13,
+    minHeight: 56,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    borderCurve: 'continuous',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     fontFamily: fonts.regular,
-    fontSize: 15,
+    fontSize: 16,
   },
-  multiline: { minHeight: 92, textAlignVertical: 'top' },
+  multiline: { minHeight: 116, textAlignVertical: 'top' },
   details: { gap: 12 },
-  detailLine: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  detailLabel: { color: colors.muted, fontFamily: fonts.regular, fontSize: 14 },
-  detailValue: { flex: 1, color: colors.text, fontFamily: fonts.semibold, fontSize: 15, textAlign: 'right' },
-  noteBlock: { gap: 8, padding: 16, borderRadius: 14, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-  note: { color: colors.text, fontFamily: fonts.regular, lineHeight: 22 },
-  preview: { gap: 12 },
+  emotions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  emotion: { borderRadius: 999, color: '#526052', fontFamily: fonts.medium, fontSize: 13, paddingHorizontal: 13, paddingVertical: 7 },
+  emptyEmotion: { backgroundColor: '#EEF1EE' },
+  observationCard: { backgroundColor: '#FFFFFF', borderRadius: 20, gap: 13, padding: 18, boxShadow: '0 5px 18px rgba(70, 99, 73, 0.06)' },
+  cardLabelRow: { alignItems: 'center', flexDirection: 'row', gap: 8 },
+  cardIcon: { alignItems: 'center', backgroundColor: '#EEF4EE', borderRadius: 14, height: 28, justifyContent: 'center', width: 28 },
+  cardLabel: { color: '#7B827B', fontFamily: fonts.medium, fontSize: 13 },
+  cardValue: { color: '#252A26', fontFamily: fonts.regular, fontSize: 15, lineHeight: 23 },
+  reflectionCard: { borderRadius: 24, gap: 16, padding: 18 },
+  definitionCard: { backgroundColor: '#FCF3E8' },
+  actionCard: { backgroundColor: '#E7F1E8' },
+  reflectionHeader: { alignItems: 'center', flexDirection: 'row', gap: 11 },
+  reflectionIcon: { alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 15, height: 30, justifyContent: 'center', width: 30 },
+  reflectionTitleWrap: { gap: 2 },
+  reflectionLabel: { color: '#353b36', fontFamily: fonts.medium, fontSize: 16 },
+  reflectionSubtitle: { color: '#899588', fontFamily: fonts.medium, fontSize: 9, letterSpacing: 0.7 },
+  reflectionContent: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 15 },
+  reflectionText: { color: '#303630', fontFamily: fonts.regular, fontSize: 14, lineHeight: 22 },
+  preview: { gap: 24 },
   actions: { flexDirection: 'row', gap: 10 },
   primaryButton: {
     flex: 1,
@@ -412,22 +533,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 8,
-    padding: 16,
-    borderRadius: 20,
-    backgroundColor: colors.primary,
+    minHeight: 56,
+    borderRadius: 28,
+    backgroundColor: '#466349',
   },
-  primaryButtonText: { color: colors.white, fontFamily: fonts.bold, fontSize: 16 },
+  primaryButtonText: { color: colors.white, fontFamily: fonts.bold, fontSize: 14 },
   secondaryButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 8,
-    padding: 16,
-    borderRadius: 20,
-    backgroundColor: colors.primarySoft,
+    minHeight: 56,
+    borderRadius: 28,
+    backgroundColor: '#EDF3F0',
   },
-  secondaryButtonText: { color: colors.primary, fontFamily: fonts.bold, fontSize: 16 },
+  secondaryButtonText: { color: '#466349', fontFamily: fonts.semibold, fontSize: 14 },
   deleteButton: {
     flex: 1,
     alignItems: 'center',
@@ -436,9 +557,20 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 16,
     borderRadius: 20,
-    backgroundColor: colors.danger,
+    backgroundColor: '#FBE8E6',
   },
-  deleteButtonText: { color: colors.white, fontFamily: fonts.bold, fontSize: 16 },
+  deleteButtonText: { color: '#A85C57', fontFamily: fonts.semibold, fontSize: 15 },
+  editButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    padding: 16,
+    borderRadius: 20,
+    backgroundColor: '#CDECCB',
+  },
+  editButtonText: { color: '#466349', fontFamily: fonts.semibold, fontSize: 15 },
   pressed: { opacity: 0.75 },
   empty: { color: colors.muted, fontFamily: fonts.regular, textAlign: 'center', paddingVertical: 40 },
 });

@@ -60,6 +60,7 @@ describe('Backend API (e2e)', () => {
         '/api/auth/login': expect.any(Object),
         '/api/auth/refresh': expect.any(Object),
         '/api/auth/logout': expect.any(Object),
+        '/api/auth/profile': expect.any(Object),
         '/api/records': expect.any(Object),
         '/api/records/{id}': expect.any(Object),
         '/api/people-observations': expect.any(Object),
@@ -137,6 +138,55 @@ describe('Backend API (e2e)', () => {
       .get('/api/records')
       .set('Authorization', `Bearer ${auth.tokens.accessToken}`)
       .expect(200);
+  });
+
+  it('gets and updates only the current user profile', async () => {
+    const owner = await register('profile-owner@example.com');
+    const otherUser = await register('profile-other@example.com');
+    const ownerHeader = { Authorization: `Bearer ${owner.tokens.accessToken}` };
+    const otherHeader = { Authorization: `Bearer ${otherUser.tokens.accessToken}` };
+
+    await request(app.getHttpServer()).get('/api/auth/profile').expect(401);
+
+    await request(app.getHttpServer())
+      .get('/api/auth/profile')
+      .set(ownerHeader)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body).toEqual(expect.objectContaining({
+          displayName: 'E2E User',
+          signature: '',
+          avatarDataUrl: null,
+        }));
+      });
+
+    await request(app.getHttpServer())
+      .patch('/api/auth/profile')
+      .set(ownerHeader)
+      .send({
+        displayName: 'Profile owner',
+        signature: 'A short signature',
+        avatarMimeType: 'image/png',
+        avatarBase64: 'iVBORw0KGgo=',
+      })
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.displayName).toBe('Profile owner');
+        expect(body.signature).toBe('A short signature');
+        expect(body.avatarDataUrl).toBe('data:image/png;base64,iVBORw0KGgo=');
+      });
+
+    await request(app.getHttpServer())
+      .get('/api/auth/profile')
+      .set(otherHeader)
+      .expect(200)
+      .expect(({ body }) => expect(body.displayName).toBe('E2E User'));
+
+    await request(app.getHttpServer())
+      .patch('/api/auth/profile')
+      .set(ownerHeader)
+      .send({ avatarBase64: 'iVBORw0KGgo=' })
+      .expect(400);
   });
 
   it('validates, isolates, updates, filters, and soft-deletes records', async () => {

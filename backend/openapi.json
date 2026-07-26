@@ -199,6 +199,78 @@
         ]
       }
     },
+    "/api/auth/profile": {
+      "get": {
+        "operationId": "AuthController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountProfileResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get the current user profile",
+        "tags": [
+          "auth"
+        ]
+      },
+      "patch": {
+        "operationId": "AuthController_updateProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAccountProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountProfileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Update the current user profile and avatar",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/records": {
       "get": {
         "operationId": "RecordsController_list",
@@ -209,6 +281,14 @@
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/Category"
+            }
+          },
+          {
+            "name": "emotion",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Emotion"
             }
           },
           {
@@ -225,6 +305,16 @@
             "required": false,
             "in": "query",
             "description": "Only return records updated after this time.",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "createdSince",
+            "required": false,
+            "in": "query",
+            "description": "Only return records created after this time.",
             "schema": {
               "format": "date-time",
               "type": "string"
@@ -250,7 +340,7 @@
             "schema": {
               "minimum": 1,
               "maximum": 200,
-              "default": 100,
+              "default": 10,
               "type": "number"
             }
           },
@@ -631,7 +721,7 @@
             "schema": {
               "minimum": 1,
               "maximum": 200,
-              "default": 100,
+              "default": 10,
               "type": "number"
             }
           },
@@ -1004,6 +1094,52 @@
           "health"
         ]
       }
+    },
+    "/api/ai/records/{recordId}/insight": {
+      "post": {
+        "operationId": "AiController_createRecordInsightByRecordId",
+        "parameters": [
+          {
+            "name": "recordId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ai"
+        ]
+      }
+    },
+    "/api/ai/records/{recordId}/insights": {
+      "get": {
+        "operationId": "AiController_listRecordInsights",
+        "parameters": [
+          {
+            "name": "recordId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ai"
+        ]
+      }
     }
   },
   "info": {
@@ -1194,6 +1330,64 @@
         "required": [
           "message"
         ]
+      },
+      "AccountProfileResponse": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "object",
+            "nullable": true,
+            "example": "Lin"
+          },
+          "signature": {
+            "type": "string",
+            "example": "在记录中遇见更好的自己"
+          },
+          "avatarDataUrl": {
+            "type": "object",
+            "nullable": true,
+            "example": "data:image/jpeg;base64,/9j/4AAQSk..."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "displayName",
+          "signature",
+          "avatarDataUrl",
+          "updatedAt"
+        ]
+      },
+      "UpdateAccountProfileDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "maxLength": 60,
+            "example": "Lin"
+          },
+          "signature": {
+            "type": "string",
+            "maxLength": 120,
+            "example": "在记录中遇见更好的自己"
+          },
+          "avatarMimeType": {
+            "type": "string",
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp",
+              "image/heic"
+            ]
+          },
+          "avatarBase64": {
+            "type": "string",
+            "description": "Base64-encoded avatar image without a data URL prefix.",
+            "maxLength": 1400000
+          }
+        }
       },
       "Category": {
         "type": "string",

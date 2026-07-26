@@ -23,8 +23,6 @@ export function SoftCard({
 const styles = StyleSheet.create({
   card: {
     borderRadius: 24,
-    borderWidth: 1,
-    borderColor: colors.border,
     padding: 18,
     boxShadow: '0 6px 18px rgba(79, 88, 82, 0.06)',
   },

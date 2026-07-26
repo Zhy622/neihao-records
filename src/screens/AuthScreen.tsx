@@ -1,33 +1,20 @@
 import { useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { ApiError } from '../api/client';
 import { useAuth } from '../auth/AuthProvider';
+import { HapticPressable } from '../components/HapticPressable';
 import { Screen } from '../components/Screen';
-import { colors } from '../theme';
+import { fonts } from '../theme';
 
 type AuthMode = 'login' | 'register';
 
 const getSubmitError = (error: unknown, mode: AuthMode) => {
-  if (!(error instanceof ApiError)) {
-    return '操作失败，请稍后再试。';
-  }
-
-  if (error.status === 0) {
-    return error.message;
-  }
-
-  if (error.status === 409) {
-    return '这个邮箱已经注册，可以直接登录。';
-  }
-
-  if (error.status === 401 && mode === 'login') {
-    return '邮箱或密码不正确。';
-  }
-
-  if (error.status === 400) {
-    return '请检查邮箱格式和密码长度。';
-  }
-
+  if (!(error instanceof ApiError)) return '操作失败，请稍后再试。';
+  if (error.status === 0) return error.message;
+  if (error.status === 409) return '这个邮箱已经注册，可以直接登录。';
+  if (error.status === 401 && mode === 'login') return '账号或密码不正确。';
+  if (error.status === 400) return '请检查邮箱格式和密码长度。';
   return '服务器暂时无法处理请求，请稍后再试。';
 };
 
@@ -40,17 +27,22 @@ export function AuthScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const isCompact = height < 720;
 
   const switchMode = (nextMode: AuthMode) => {
     setMode(nextMode);
     setError(null);
     setConfirmPassword('');
+    setPasswordVisible(false);
+    setConfirmPasswordVisible(false);
   };
 
   const revealFormActions = () => {
-    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 250);
+    setTimeout(() => scrollViewRef.current?.scrollTo({ y: 180, animated: true }), 180);
   };
 
   const revealPasswordField = () => {
@@ -59,12 +51,10 @@ export function AuthScreen() {
 
   const submit = async () => {
     const normalizedEmail = email.trim().toLowerCase();
-
     if (!normalizedEmail || password.length < 8) {
       setError('请输入有效邮箱，密码至少 8 位。');
       return;
     }
-
     if (mode === 'register' && password !== confirmPassword) {
       setError('两次输入的密码不一致。');
       return;
@@ -73,15 +63,10 @@ export function AuthScreen() {
     try {
       setSubmitting(true);
       setError(null);
-
       if (mode === 'login') {
         await signIn({ email: normalizedEmail, password });
       } else {
-        await signUp({
-          email: normalizedEmail,
-          password,
-          displayName: displayName.trim() || undefined,
-        });
+        await signUp({ email: normalizedEmail, password, displayName: displayName.trim() || undefined });
       }
     } catch (submitError) {
       setError(getSubmitError(submitError, mode));
@@ -89,154 +74,167 @@ export function AuthScreen() {
     }
   };
 
+  const input = (
+    label: string,
+    icon: keyof typeof Ionicons.glyphMap,
+    props: React.ComponentProps<typeof TextInput>,
+    canReveal = false,
+    visible = false,
+    onToggleVisible?: () => void,
+  ) => (
+    <View style={styles.field}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.inputWrap}>
+        <Ionicons name={icon} size={18} color="#929B94" />
+        <TextInput {...props} placeholderTextColor="#B7BEB8" style={styles.input} />
+        {canReveal ? (
+          <HapticPressable
+            accessibilityLabel={visible ? '隐藏密码' : '显示密码'}
+            accessibilityRole="button"
+            feedback="selection"
+            hitSlop={8}
+            onPress={onToggleVisible}
+            style={styles.visibilityButton}
+          >
+            <Ionicons name={visible ? 'eye-off-outline' : 'eye-outline'} size={19} color="#B4BCB5" />
+          </HapticPressable>
+        ) : null}
+      </View>
+    </View>
+  );
+
   return (
     <Screen
+      backgroundColor="#F7FAF8"
       keyboardAvoiding
       keyboardAvoidingMode="fullscreen"
       scrollViewRef={scrollViewRef}
-      contentStyle={[styles.content, height < 720 && styles.compactContent]}
+      contentStyle={[styles.content, isCompact && styles.compactContent]}
     >
-      <View style={styles.brand}>
-        <Text style={styles.name}>内耗记录本</Text>
-        <Text style={styles.tagline}>把反复想的事留下来，慢慢看清自己的模式。</Text>
+      <View style={[styles.brand, isCompact && styles.compactBrand]}>
+        <Text style={styles.name}>情绪笔录</Text>
+        <Text style={styles.tagline}>记录自己，慢慢看清自己的模式。</Text>
       </View>
 
-      <View style={styles.segmentedControl}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ selected: mode === 'login' }}
-          onPress={() => switchMode('login')}
-          style={[styles.segment, mode === 'login' && styles.selectedSegment]}
-        >
-          <Text style={[styles.segmentText, mode === 'login' && styles.selectedSegmentText]}>登录</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ selected: mode === 'register' }}
-          onPress={() => switchMode('register')}
-          style={[styles.segment, mode === 'register' && styles.selectedSegment]}
-        >
-          <Text style={[styles.segmentText, mode === 'register' && styles.selectedSegmentText]}>注册</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.form}>
-        {mode === 'register' ? (
-          <View style={styles.field}>
-            <Text style={styles.label}>昵称（可选）</Text>
-            <TextInput
-              autoComplete="name"
-              maxLength={60}
-              onChangeText={setDisplayName}
-              placeholder="怎么称呼你"
-              placeholderTextColor={colors.muted}
-              style={styles.input}
-              value={displayName}
-            />
-          </View>
-        ) : null}
-
-        <View style={styles.field}>
-          <Text style={styles.label}>邮箱</Text>
-          <TextInput
-            autoCapitalize="none"
-            autoComplete="email"
-            autoCorrect={false}
-            keyboardType="email-address"
-            onChangeText={setEmail}
-            placeholder="name@example.com"
-            placeholderTextColor={colors.muted}
-            style={styles.input}
-            value={email}
-          />
+      <View style={[styles.authCard, isCompact && styles.compactCard]}>
+        <View style={styles.tabs}>
+          <HapticPressable
+            accessibilityRole="tab"
+            accessibilityState={{ selected: mode === 'login' }}
+            feedback="selection"
+            onPress={() => switchMode('login')}
+            style={styles.tab}
+          >
+            <Text style={[styles.tabText, mode === 'login' && styles.selectedTabText]}>登录</Text>
+            {mode === 'login' ? <View style={styles.tabIndicator} /> : null}
+          </HapticPressable>
+          <HapticPressable
+            accessibilityRole="tab"
+            accessibilityState={{ selected: mode === 'register' }}
+            feedback="selection"
+            onPress={() => switchMode('register')}
+            style={styles.tab}
+          >
+            <Text style={[styles.tabText, mode === 'register' && styles.selectedTabText]}>注册</Text>
+            {mode === 'register' ? <View style={styles.tabIndicator} /> : null}
+          </HapticPressable>
         </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>密码</Text>
-          <TextInput
-            autoCapitalize="none"
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-            onChangeText={setPassword}
-            onFocus={mode === 'register' ? revealPasswordField : undefined}
-            placeholder="至少 8 位"
-            placeholderTextColor={colors.muted}
-            secureTextEntry
-            style={styles.input}
-            value={password}
-          />
+        <View style={[styles.form, mode === 'register' && styles.registerForm]}>
+          {mode === 'register' ? input('昵称（可选）', 'person-outline', {
+            autoComplete: 'name',
+            maxLength: 60,
+            onChangeText: setDisplayName,
+            placeholder: '怎么称呼你？',
+            value: displayName,
+          }) : null}
+          {input('账号', 'person-outline', {
+            autoCapitalize: 'none',
+            autoComplete: 'email',
+            autoCorrect: false,
+            keyboardType: 'email-address',
+            onChangeText: setEmail,
+            placeholder: '请输入您的账号',
+            value: email,
+          })}
+          {input('密码', 'lock-closed-outline', {
+            autoCapitalize: 'none',
+            autoComplete: mode === 'login' ? 'current-password' : 'new-password',
+            onChangeText: setPassword,
+            onFocus: mode === 'register' ? revealPasswordField : undefined,
+            placeholder: '请输入您的密码',
+            secureTextEntry: !passwordVisible,
+            value: password,
+          }, true, passwordVisible, () => setPasswordVisible((visible) => !visible))}
+          {mode === 'register' ? input('确认密码', 'lock-closed-outline', {
+            autoCapitalize: 'none',
+            autoComplete: 'new-password',
+            onChangeText: setConfirmPassword,
+            onFocus: revealFormActions,
+            placeholder: '请再次输入密码',
+            secureTextEntry: !confirmPasswordVisible,
+            value: confirmPassword,
+          }, true, confirmPasswordVisible, () => setConfirmPasswordVisible((visible) => !visible)) : null}
+
+          {error ? <Text selectable style={styles.error}>{error}</Text> : null}
+
+          <HapticPressable
+            disabled={submitting}
+            onPress={() => void submit()}
+            style={({ pressed }) => [
+              styles.submit,
+              mode === 'register' && styles.registerSubmit,
+              (pressed || submitting) && styles.pressed,
+            ]}
+          >
+            <Text style={styles.submitText}>{submitting ? '请稍候…' : mode === 'login' ? '登录' : '创建账号'}</Text>
+            {!submitting ? <Ionicons name="arrow-forward" size={19} color="#FFFFFF" /> : null}
+          </HapticPressable>
         </View>
 
-        {mode === 'register' ? (
-          <View style={styles.field}>
-            <Text style={styles.label}>确认密码</Text>
-            <TextInput
-              autoCapitalize="none"
-              autoComplete="new-password"
-              onChangeText={setConfirmPassword}
-              onFocus={revealFormActions}
-              placeholder="再输入一次密码"
-              placeholderTextColor={colors.muted}
-              secureTextEntry
-              style={styles.input}
-              value={confirmPassword}
-            />
+        <View style={styles.cardFooter}>
+          <View style={styles.footerDivider} />
+          <View style={styles.footerPrompt}>
+            <Text style={styles.footerText}>{mode === 'login' ? '还没有账号？' : '已经有账号？'}</Text>
+            <HapticPressable feedback="selection" onPress={() => switchMode(mode === 'login' ? 'register' : 'login')}>
+              <Text style={styles.footerAction}>{mode === 'login' ? '去注册' : '去登录'}</Text>
+            </HapticPressable>
           </View>
-        ) : null}
-
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-
-        <Pressable
-          disabled={submitting}
-          onPress={() => void submit()}
-          style={({ pressed }) => [styles.submit, (pressed || submitting) && styles.pressed]}
-        >
-          <Text style={styles.submitText}>
-            {submitting ? '请稍候…' : mode === 'login' ? '登录' : '创建账号'}
-          </Text>
-        </Pressable>
+        </View>
       </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { flexGrow: 1, justifyContent: 'center', paddingTop: 36, paddingBottom: 120, gap: 28 },
-  compactContent: { justifyContent: 'flex-start', paddingTop: 28 },
-  brand: { gap: 10 },
-  name: { color: colors.text, fontSize: 34, fontWeight: '700' },
-  tagline: { color: colors.muted, fontSize: 16, lineHeight: 24, maxWidth: 360 },
-  segmentedControl: {
-    flexDirection: 'row',
-    padding: 4,
-    gap: 4,
-    borderRadius: 12,
-    backgroundColor: colors.primarySoft,
-  },
-  segment: { flex: 1, minHeight: 42, alignItems: 'center', justifyContent: 'center', borderRadius: 9 },
-  selectedSegment: { backgroundColor: colors.surface },
-  segmentText: { color: colors.muted, fontSize: 15, fontWeight: '600' },
-  selectedSegmentText: { color: colors.text },
-  form: { gap: 17 },
+  content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingTop: 48, paddingBottom: 32, gap: 38 },
+  compactContent: { justifyContent: 'flex-start', paddingTop: 28, gap: 24 },
+  brand: { alignItems: 'center', gap: 9 },
+  compactBrand: { gap: 5 },
+  name: { color: '#466349', fontFamily: fonts.semibold, fontSize: 25, letterSpacing: 0.3, lineHeight: 34 },
+  tagline: { color: '#343C35', fontFamily: fonts.regular, fontSize: 16, lineHeight: 24, textAlign: 'center' },
+  authCard: { backgroundColor: '#FFFFFF', borderRadius: 25, gap: 32, maxWidth: 390, paddingHorizontal: 24, paddingTop: 22, paddingBottom: 33, width: '100%' },
+  compactCard: { gap: 22, paddingTop: 16, paddingBottom: 24 },
+  tabs: { borderBottomColor: '#DFE5E0', borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row' },
+  tab: { alignItems: 'center', flex: 1, justifyContent: 'center', minHeight: 43, position: 'relative' },
+  tabText: { color: '#4D554E', fontFamily: fonts.medium, fontSize: 14 },
+  selectedTabText: { color: '#466349', fontFamily: fonts.semibold },
+  tabIndicator: { backgroundColor: '#55765B', bottom: -1, height: 2, position: 'absolute', width: 29 },
+  form: { gap: 23 },
+  registerForm: { gap: 17 },
   field: { gap: 8 },
-  label: { color: colors.text, fontSize: 14, fontWeight: '600' },
-  input: {
-    minHeight: 50,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    color: colors.text,
-    backgroundColor: colors.surface,
-    fontSize: 16,
-  },
-  error: { color: colors.danger, lineHeight: 21 },
-  submit: {
-    minHeight: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: colors.primary,
-  },
-  submitText: { color: colors.white, fontSize: 16, fontWeight: '700' },
-  pressed: { opacity: 0.75 },
+  label: { color: '#3F4740', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
+  inputWrap: { alignItems: 'center', backgroundColor: '#F1F3F1', borderRadius: 12, flexDirection: 'row', minHeight: 50, paddingHorizontal: 15 },
+  input: { color: '#29302A', flex: 1, fontFamily: fonts.regular, fontSize: 15, minHeight: 50, paddingHorizontal: 12, paddingVertical: 0 },
+  visibilityButton: { alignItems: 'center', height: 38, justifyContent: 'center', width: 28 },
+  error: { color: '#A45D5D', fontFamily: fonts.regular, fontSize: 13, lineHeight: 19, marginTop: -4 },
+  submit: { alignItems: 'center', backgroundColor: '#638569', borderRadius: 28, flexDirection: 'row', gap: 9, justifyContent: 'center', minHeight: 53, marginTop: 0 },
+  registerSubmit: { marginTop: 10 },
+  submitText: { color: '#FFFFFF', fontFamily: fonts.medium, fontSize: 14 },
+  cardFooter: { gap: 31 },
+  footerDivider: { backgroundColor: '#EEF1EE', height: StyleSheet.hairlineWidth },
+  footerPrompt: { alignItems: 'center', flexDirection: 'row', gap: 8, justifyContent: 'center' },
+  footerText: { color: '#333A34', fontFamily: fonts.regular, fontSize: 15 },
+  footerAction: { color: '#55765B', fontFamily: fonts.semibold, fontSize: 15 },
+  pressed: { opacity: 0.76 },
 });

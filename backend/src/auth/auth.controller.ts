@@ -1,6 +1,7 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiOkResponse,
@@ -10,8 +11,10 @@ import {
 } from '@nestjs/swagger';
 import { ApiErrorDto } from '../common/dto/api-error.dto';
 import { AuthService } from './auth.service';
-import { LoginDto, RefreshTokenDto, RegisterDto } from './dto/auth.dto';
-import { AuthResponse, LogoutResponse } from './auth.types';
+import { LoginDto, RefreshTokenDto, RegisterDto, UpdateAccountProfileDto } from './dto/auth.dto';
+import { AccessTokenPayload, AccountProfileResponse, AuthResponse, LogoutResponse } from './auth.types';
+import { CurrentUser } from './current-user.decorator';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -54,5 +57,27 @@ export class AuthController {
   @ApiBadRequestResponse({ type: ApiErrorDto })
   logout(@Body() dto: RefreshTokenDto): Promise<LogoutResponse> {
     return this.authService.logout(dto.refreshToken);
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Get the current user profile' })
+  @ApiOkResponse({ type: AccountProfileResponse })
+  getProfile(@CurrentUser() user: AccessTokenPayload): Promise<AccountProfileResponse> {
+    return this.authService.getProfile(user.sub);
+  }
+
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Update the current user profile and avatar' })
+  @ApiOkResponse({ type: AccountProfileResponse })
+  @ApiBadRequestResponse({ type: ApiErrorDto })
+  updateProfile(
+    @CurrentUser() user: AccessTokenPayload,
+    @Body() dto: UpdateAccountProfileDto,
+  ): Promise<AccountProfileResponse> {
+    return this.authService.updateProfile(user.sub, dto);
   }
 }

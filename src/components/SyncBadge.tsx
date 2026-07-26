@@ -9,12 +9,12 @@ const labels: Record<LocalSyncStatus, string> = {
   synced: '已同步',
 };
 
-export function SyncBadge({ status }: { status: LocalSyncStatus }) {
+export function SyncBadge({ status, compact = false }: { status: LocalSyncStatus; compact?: boolean }) {
   const synced = status === 'synced';
 
   return (
-    <View style={[styles.badge, synced ? styles.synced : styles.pending]}>
-      <Text style={[styles.text, synced ? styles.syncedText : styles.pendingText]}>
+    <View style={[styles.badge, compact && styles.compactBadge, synced ? styles.synced : styles.pending]}>
+      <Text style={[styles.text, compact && styles.compactText, synced ? styles.syncedText : styles.pendingText]}>
         {labels[status]}
       </Text>
     </View>
@@ -23,9 +23,11 @@ export function SyncBadge({ status }: { status: LocalSyncStatus }) {
 
 const styles = StyleSheet.create({
   badge: { borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4 },
+  compactBadge: { paddingHorizontal: 8, paddingVertical: 3 },
   synced: { backgroundColor: '#E5ECE6' },
   pending: { backgroundColor: '#F3F0FA' },
   text: { fontFamily: fonts.semibold, fontSize: 12 },
+  compactText: { fontFamily: fonts.medium, fontSize: 11 },
   syncedText: { color: colors.primary },
   pendingText: { color: '#776C91' },
 });
