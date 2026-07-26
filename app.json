@@ -30,9 +30,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FFFEFC",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/qxbl.jpg"
       },
       "package": "com.BadZhy.neihaorecords",
       "softwareKeyboardLayoutMode": "resize",
