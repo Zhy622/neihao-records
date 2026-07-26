@@ -4,7 +4,7 @@
     "slug": "neihao-records",
     "version": "1.1.0",
     "orientation": "portrait",
-    "icon": "./assets/qxbl.jpg",
+    "icon": "./assets/qxbl.png",
     "userInterfaceStyle": "light",
     "runtimeVersion": {
       "policy": "appVersion"
@@ -30,7 +30,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FFFEFC",
-        "foregroundImage": "./assets/qxbl.jpg"
+        "foregroundImage": "./assets/qxbl.png"
       },
       "package": "com.BadZhy.neihaorecords",
       "softwareKeyboardLayoutMode": "resize",

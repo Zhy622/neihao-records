@@ -9,6 +9,7 @@ import {
   Inter_700Bold,
   useFonts,
 } from '@expo-google-fonts/inter';
+import { Suspense } from 'react';
 import { SQLiteProvider } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -210,12 +211,12 @@ function RootNavigation() {
     </NavigationContainer>
   );
 
-  return session ? (
-    <SQLiteProvider databaseName="neihao-records.db" onInit={initializeDatabase}>
-      <RecordSyncBootstrap />
+  return (
+    <>
+      {session ? <RecordSyncBootstrap /> : null}
       {navigation}
-    </SQLiteProvider>
-  ) : navigation;
+    </>
+  );
 }
 
 export default function App() {
@@ -231,13 +232,17 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
       <BottomSheetModalProvider>
-        <AuthProvider>
-          <AppAlertProvider>
-            <RootNavigation />
-          </AppAlertProvider>
-        </AuthProvider>
+        <Suspense fallback={<AuthLoadingScreen />}>
+          <SQLiteProvider databaseName="neihao-records.db" onInit={initializeDatabase} useSuspense>
+            <AuthProvider>
+              <AppAlertProvider>
+                <RootNavigation />
+              </AppAlertProvider>
+            </AuthProvider>
+          </SQLiteProvider>
+        </Suspense>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );
