@@ -1,10 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInUp } from 'react-native-reanimated';
 import { StyleSheet, Text, View } from 'react-native';
 import { HapticPressable } from './HapticPressable';
-import { SyncBadge } from './SyncBadge';
 import { DilemmaRecord } from '../types/record';
-import { colors, fonts } from '../theme';
+import { fonts } from '../theme';
 
 export function RecordCard({
   record,
@@ -15,59 +13,86 @@ export function RecordCard({
   onDelete?: () => void;
   onOpen?: () => void;
 }) {
+  const synced = record.syncStatus === 'synced';
+
   return (
-    <Animated.View entering={FadeInUp.duration(260).springify().damping(18)} style={styles.card}>
-      <View style={styles.row}>
-        <View style={styles.titleRow}>
-          <View style={styles.iconWrap}>
-            <Ionicons name="document-text-outline" size={18} color={colors.primary} />
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <View style={styles.cardTitleGroup}>
+          <View style={styles.cardIcon}>
+            <Ionicons name="document-text-outline" size={20} color="#466349" />
           </View>
-          <Text numberOfLines={1} ellipsizeMode="tail" style={styles.title}>{record.title}</Text>
+          <Text numberOfLines={1} style={styles.cardTitle}>{record.title}</Text>
         </View>
         <Text style={styles.category}>{record.category}</Text>
       </View>
-      <Text style={styles.meta}>
-        情绪 {record.emotionIntensity}/10 · 决策 {record.decisionDifficulty}/10 · {record.timeCost}
-      </Text>
-      {record.thoughts ? <Text style={styles.thoughts} numberOfLines={2}>{record.thoughts}</Text> : null}
-      <View style={styles.row}>
-        <Text style={styles.date}>{new Date(record.createdAt).toLocaleString('zh-CN')}</Text>
-        <View style={styles.actions}>
-          <SyncBadge status={record.syncStatus} />
+
+      <View style={styles.metrics}>
+        <Text style={styles.metricLabel}>情绪</Text>
+        <Text style={styles.metricValue}>{record.emotionIntensity}/10</Text>
+        <Text style={styles.metricLabel}>决策</Text>
+        <Text style={styles.metricValue}>{record.decisionDifficulty}/10</Text>
+        <Ionicons name="time-outline" size={14} color="#424841" />
+        <Text style={styles.metricLabel}>{record.timeCost}</Text>
+      </View>
+
+      <View style={styles.thoughtsWrap}>
+        <Text numberOfLines={2} style={styles.thoughts}>{record.thoughts || '未填写当时反复出现的想法。'}</Text>
+      </View>
+
+      <View style={styles.cardFooter}>
+        <View style={styles.recordStatus}>
+          <Text style={styles.date}>{new Date(record.createdAt).toLocaleString('zh-CN')}</Text>
+          <View style={[styles.syncBadge, !synced && styles.pendingBadge]}>
+            <Ionicons name={synced ? 'sync-outline' : 'cloud-offline-outline'} size={10} color={synced ? '#466349' : '#665B7C'} />
+            <Text style={[styles.syncText, !synced && styles.pendingText]}>{synced ? '已同步' : '待同步'}</Text>
+          </View>
+        </View>
+        <View style={styles.cardActions}>
           {onOpen ? (
-            <HapticPressable feedback="selection" onPress={onOpen} hitSlop={10} style={styles.iconButton}>
-              <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+            <HapticPressable accessibilityRole="button" accessibilityLabel="查看记录详情" feedback="selection" hitSlop={10} style={styles.cardAction} onPress={onOpen}>
+              <Ionicons name="chevron-forward" size={18} color="#424841" />
             </HapticPressable>
           ) : null}
           {onDelete ? (
-            <HapticPressable feedback="light" onPress={onDelete} hitSlop={10} style={styles.iconButton}>
-              <Ionicons name="trash-outline" size={17} color={colors.danger} />
+            <HapticPressable accessibilityRole="button" accessibilityLabel="删除记录" hitSlop={10} style={styles.cardAction} onPress={onDelete}>
+              <Ionicons name="trash-outline" size={18} color="#F05B5B" />
             </HapticPressable>
           ) : null}
         </View>
       </View>
-    </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    gap: 9,
-    padding: 16,
+    minHeight: 232,
+    gap: 12,
+    paddingHorizontal: 21,
+    paddingVertical: 18,
     borderRadius: 24,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    boxShadow: '0 6px 18px rgba(79, 88, 82, 0.06)',
+    borderCurve: 'continuous',
+    backgroundColor: '#FFFFFF',
+    boxShadow: '0 10px 40px -10px rgba(70, 99, 73, 0.08)',
   },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  titleRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  iconWrap: { alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 16, backgroundColor: colors.primarySoft },
-  title: { flex: 1, color: colors.text, fontFamily: fonts.semibold, fontSize: 17 },
-  category: { color: '#665B7C', backgroundColor: '#F3F0FA', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, fontFamily: fonts.semibold, fontSize: 12 },
-  meta: { color: colors.muted, fontFamily: fonts.regular, fontSize: 13 },
-  thoughts: { color: colors.text, fontFamily: fonts.regular, lineHeight: 20 },
-  date: { color: colors.muted, fontFamily: fonts.regular, fontSize: 12 },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  iconButton: { alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 15, backgroundColor: '#F7F5F1' },
+  cardHeader: { height: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  cardTitleGroup: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  cardIcon: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 12, borderCurve: 'continuous', backgroundColor: '#F7F7F2' },
+  cardTitle: { flex: 1, color: '#181C1C', fontFamily: fonts.medium, fontSize: 18, lineHeight: 23 },
+  category: { borderRadius: 999, backgroundColor: '#FFDCBD', color: '#623F18', fontFamily: fonts.medium, fontSize: 11, letterSpacing: 0.55, lineHeight: 17, paddingHorizontal: 12, paddingVertical: 4 },
+  metrics: { height: 20, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  metricLabel: { color: '#424841', fontFamily: fonts.medium, fontSize: 11, lineHeight: 16, opacity: 0.6 },
+  metricValue: { color: '#181C1C', fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, marginRight: 12 },
+  thoughtsWrap: { height: 48, paddingTop: 3, paddingBottom: 3 },
+  thoughts: { color: '#424841', fontFamily: fonts.regular, fontSize: 14, lineHeight: 21, opacity: 0.9 },
+  cardFooter: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 0.5, borderTopColor: 'rgba(194, 200, 191, 0.08)', paddingTop: 12 },
+  recordStatus: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  date: { color: '#737971', fontFamily: fonts.medium, fontSize: 11, lineHeight: 17 },
+  syncBadge: { height: 21, flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 6, backgroundColor: 'rgba(202, 235, 201, 0.2)', paddingHorizontal: 8 },
+  pendingBadge: { backgroundColor: '#F3F0FA' },
+  syncText: { color: '#466349', fontFamily: fonts.medium, fontSize: 11, lineHeight: 17 },
+  pendingText: { color: '#665B7C' },
+  cardActions: { flexDirection: 'row', gap: 4 },
+  cardAction: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 999 },
 });

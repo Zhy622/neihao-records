@@ -116,7 +116,23 @@ function RootNavigation() {
                 ),
               })}
             />
-            <Stack.Screen name="Stats" component={StatsScreen} options={{ title: '统计', headerTitleAlign: 'center' }} />
+            <Stack.Screen
+              name="Stats"
+              component={StatsScreen}
+              options={() => ({
+                title: '统计',
+                headerTitleAlign: 'center',
+                headerStyle: { height: 70, backgroundColor: '#F7FAF8' },
+                headerShadowVisible: false,
+                headerTintColor: '#466349',
+                headerTitleStyle: {
+                  color: '#466349',
+                  fontFamily: 'Inter_500Medium',
+                  fontSize: 18,
+                  letterSpacing: -0.6,
+                },
+              })}
+            />
             <Stack.Screen
               name="RecordDetail"
               component={RecordDetailScreen}

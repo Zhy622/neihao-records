@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   },
   copy: { gap: 4 },
   value: { color: colors.text, fontFamily: fonts.medium, fontSize: 20 },
-  homeValue: { color: '#181C1C', fontSize: 28, lineHeight: 36 },
+  homeValue: { color: '#181C1C', fontSize: 24, lineHeight: 32 },
   compactValue: { fontSize: 20, lineHeight: 28 },
   label: { color: colors.muted, fontFamily: fonts.regular, fontSize: 13 },
   homeLabel: {

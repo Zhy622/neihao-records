@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
 import { StyleSheet, Text, View } from 'react-native';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { AccountScreen } from '../screens/AccountScreen';
 import { HomeScreen } from '../screens/HomeScreen';
 import { NoteEditorScreen } from '../screens/NoteEditorScreen';
@@ -12,12 +13,11 @@ import { HapticPressable } from '../components/HapticPressable';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 const icons: Record<
-  keyof MainTabsParamList,
+  Exclude<keyof MainTabsParamList, 'Observation'>,
   { active: keyof typeof Ionicons.glyphMap; inactive: keyof typeof Ionicons.glyphMap }
 > = {
   Home: { active: 'home', inactive: 'home-outline' },
-  Notes: { active: 'add-circle', inactive: 'add-circle-outline' },
-  Observation: { active: 'sparkles', inactive: 'sparkles-outline' },
+  Notes: { active: 'create', inactive: 'create-outline' },
   Account: { active: 'person', inactive: 'person-outline' },
 };
 const labels: Record<keyof MainTabsParamList, string> = {
@@ -27,27 +27,40 @@ const labels: Record<keyof MainTabsParamList, string> = {
   Account: '账号',
 };
 
+function MirrorTabIcon({ color, selected, size }: { color: string; selected: boolean; size: number }) {
+  return (
+    <Svg height={size} viewBox="0 0 24 24" width={size}>
+      <Circle cx="12" cy="12" r="8.4" fill={selected ? color : 'none'} stroke={color} strokeWidth="1.65" />
+      <Path d="M15 6.8a6.6 6.6 0 0 1 2.2 4.2" fill="none" stroke={selected ? '#F7FAF8' : color} strokeLinecap="round" strokeWidth="1.65" />
+    </Svg>
+  );
+}
+
 export function AppTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarActiveTintColor: '#7A532A',
+        tabBarActiveTintColor: '#466349',
         tabBarInactiveTintColor: '#424841',
         tabBarBackground: () => (
           <BlurView intensity={35} tint="light" style={[StyleSheet.absoluteFill, styles.tabBarBackground]} />
         ),
         tabBarIcon: ({ color, focused }) => {
-          const routeIcons = icons[route.name as keyof MainTabsParamList];
+          const routeIcons = icons[route.name as keyof typeof icons];
 
           return (
-            <View style={[styles.tabItem, focused && styles.activeTabItem]}>
-              <Ionicons
-                name={focused ? routeIcons.active : routeIcons.inactive}
-                size={focused ? 21 : 20}
-                color={color}
-              />
+            <View style={styles.tabItem}>
+              {route.name === 'Observation' ? (
+                <MirrorTabIcon color={color} selected={focused} size={focused ? 20 : 19} />
+              ) : (
+                <Ionicons
+                  name={focused ? routeIcons.active : routeIcons.inactive}
+                  size={focused ? 21 : 20}
+                  color={color}
+                />
+              )}
               <Text style={[styles.tabLabel, { color }]}>
                 {labels[route.name as keyof MainTabsParamList]}
               </Text>
@@ -154,7 +167,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 2,
   },
-  activeTabItem: { backgroundColor: '#FFCA98' },
   tabLabel: {
     fontFamily: fonts.regular,
     fontSize: 10,

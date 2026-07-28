@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { File, Paths } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { Image, KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -23,6 +24,7 @@ type Counts = { recordDays: number; notes: number; reviews: number };
 type ProfileDraft = Pick<AccountProfile, 'displayName' | 'signature' | 'avatarUri' | 'avatarMimeType'>;
 
 const maxAvatarBytes = 1024 * 1024;
+const targetAvatarBytes = 900 * 1024;
 
 function avatarMimeTypeFromUri(uri: string | null): AvatarMimeType | null {
   if (!uri) {
@@ -44,6 +46,28 @@ function avatarMimeTypeFromUri(uri: string | null): AvatarMimeType | null {
 
 function isAvatarMimeType(value: string | null): value is AvatarMimeType {
   return value === 'image/jpeg' || value === 'image/png' || value === 'image/webp' || value === 'image/heic';
+}
+
+async function prepareAvatar(uri: string, preferredMimeType: string | null) {
+  const source = new File(uri);
+  const sourceMimeType = isAvatarMimeType(preferredMimeType)
+    ? preferredMimeType
+    : avatarMimeTypeFromUri(uri);
+  if (source.size <= targetAvatarBytes && sourceMimeType) {
+    return { uri, mimeType: sourceMimeType };
+  }
+
+  for (const [width, compress] of [[1024, 0.72], [768, 0.64], [512, 0.58], [384, 0.5]] as const) {
+    const context = ImageManipulator.manipulate(uri);
+    context.resize({ width, height: null });
+    const rendered = await context.renderAsync();
+    const result = await rendered.saveAsync({ compress, format: SaveFormat.JPEG });
+    if (new File(result.uri).size <= targetAvatarBytes) {
+      return { uri: result.uri, mimeType: 'image/jpeg' as const };
+    }
+  }
+
+  throw new Error('avatar-compression-failed');
 }
 
 function toLocalProfile(remote: RemoteAccountProfile, fallbackName: string): ProfileDraft {
@@ -70,19 +94,8 @@ async function toRemoteProfileInput(profile: ProfileDraft): Promise<UpdateAccoun
     return { ...input, avatarMimeType: dataUrl[1].toLowerCase() as AvatarMimeType, avatarBase64: dataUrl[2] };
   }
 
-  const file = new File(profile.avatarUri);
-  if (file.size > maxAvatarBytes) {
-    throw new Error('avatar-too-large');
-  }
-
-  const avatarMimeType = isAvatarMimeType(profile.avatarMimeType)
-    ? profile.avatarMimeType
-    : avatarMimeTypeFromUri(profile.avatarUri);
-  if (!avatarMimeType) {
-    throw new Error('avatar-unsupported');
-  }
-
-  return { ...input, avatarMimeType, avatarBase64: await file.base64() };
+  const avatar = await prepareAvatar(profile.avatarUri, profile.avatarMimeType);
+  return { ...input, avatarMimeType: avatar.mimeType, avatarBase64: await new File(avatar.uri).base64() };
 }
 
 function SettingsRow({
@@ -99,10 +112,10 @@ function SettingsRow({
   return (
     <HapticPressable accessibilityRole="button" style={({ pressed }) => [styles.settingsRow, pressed && styles.pressed]} onPress={onPress}>
       <View style={[styles.settingIcon, styles[iconStyle]]}>
-        <Ionicons name={icon} size={21} color="#466349" />
+        <Ionicons name={icon} size={18} color="#466349" />
       </View>
       <Text style={styles.settingLabel}>{label}</Text>
-      <Ionicons name="chevron-forward" size={19} color="#B3BBB3" />
+      <Ionicons name="chevron-forward" size={16} color="#B3BBB3" />
     </HapticPressable>
   );
 }
@@ -115,6 +128,7 @@ export function AccountScreen() {
   const [profile, setProfile] = useState<ProfileDraft | null>(null);
   const [draft, setDraft] = useState<ProfileDraft | null>(null);
   const [editingProfile, setEditingProfile] = useState(false);
+  const [preparingAvatar, setPreparingAvatar] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
@@ -195,12 +209,16 @@ export function AccountScreen() {
     });
 
     if (!result.canceled) {
-      const asset = result.assets[0];
-      setDraft((current) => current ? {
-        ...current,
-        avatarUri: asset.uri,
-        avatarMimeType: avatarMimeTypeFromUri(asset.mimeType ? `avatar.${asset.mimeType.split('/')[1]}` : asset.uri),
-      } : current);
+      try {
+        setPreparingAvatar(true);
+        const asset = result.assets[0];
+        const avatar = await prepareAvatar(asset.uri, asset.mimeType ?? null);
+        setDraft((current) => current ? { ...current, avatarUri: avatar.uri, avatarMimeType: avatar.mimeType } : current);
+      } catch {
+        alert('头像处理失败', '请换一张照片后再试。');
+      } finally {
+        setPreparingAvatar(false);
+      }
     }
   };
 
@@ -216,8 +234,12 @@ export function AccountScreen() {
     try {
       setSavingProfile(true);
       let avatarUri = draft.avatarUri;
+      let avatarMimeType = draft.avatarMimeType;
       if (avatarUri && avatarUri !== profile?.avatarUri) {
-        const source = new File(avatarUri);
+        const avatar = await prepareAvatar(avatarUri, avatarMimeType);
+        avatarUri = avatar.uri;
+        avatarMimeType = avatar.mimeType;
+        const source = new File(avatar.uri);
         const destination = new File(
           Paths.document,
           `profile-${session.user.id.replace(/[^a-zA-Z0-9_-]/g, '')}${source.extension || '.jpg'}`,
@@ -236,7 +258,7 @@ export function AccountScreen() {
         }
       }
 
-      const localProfile = await upsertAccountProfile(db, session.user.id, { ...draft, avatarUri });
+      const localProfile = await upsertAccountProfile(db, session.user.id, { ...draft, avatarUri, avatarMimeType });
       if (!localProfile) {
         throw new Error('profile-not-saved');
       }
@@ -250,9 +272,7 @@ export function AccountScreen() {
           { ...toLocalProfile(remoteProfile, localProfile.displayName), updatedAt: remoteProfile.updatedAt },
         ) ?? localProfile;
       } catch (error) {
-        const message = error instanceof Error && error.message === 'avatar-too-large'
-          ? '头像请压缩到 1 MB 以内后再试。'
-          : '资料已保存到本机，联网后打开“我的”页面会自动同步。';
+        const message = '资料已保存到本机，联网后打开“我的”页面会自动同步。';
         alert('暂未同步到云端', message);
       }
       setProfile(savedProfile);
@@ -333,14 +353,19 @@ export function AccountScreen() {
               </HapticPressable>
             </View>
 
-            <HapticPressable accessibilityRole="button" style={styles.editorAvatarButton} onPress={() => void chooseAvatar()}>
+            <HapticPressable
+              accessibilityRole="button"
+              disabled={preparingAvatar || savingProfile}
+              style={({ pressed }) => [styles.editorAvatarButton, (pressed || preparingAvatar) && styles.pressed]}
+              onPress={() => void chooseAvatar()}
+            >
               <View style={styles.editorAvatar}>
                 {draft?.avatarUri ? <Image source={{ uri: draft.avatarUri }} style={styles.avatarImage} /> : <Text style={styles.avatarText}>{initial}</Text>}
                 <View style={styles.editorAvatarIcon}>
                   <Ionicons name="image-outline" size={15} color="#FFFFFF" />
                 </View>
               </View>
-              <Text style={styles.changeAvatarText}>从手机相册选择头像</Text>
+              <Text style={styles.changeAvatarText}>{preparingAvatar ? '正在优化头像…' : '从手机相册选择头像'}</Text>
             </HapticPressable>
 
             <View style={styles.editorField}>
@@ -397,12 +422,12 @@ const styles = StyleSheet.create({
   statValue: { color: '#466349', fontFamily: fonts.medium, fontSize: 17, fontVariant: ['tabular-nums'] },
   statLabel: { color: '#596159', fontFamily: fonts.regular, fontSize: 12 },
   settingsCard: { backgroundColor: '#FFFFFF', borderRadius: 28, overflow: 'hidden' },
-  settingsRow: { alignItems: 'center', flexDirection: 'row', gap: 14, minHeight: 82, paddingHorizontal: 20 },
-  settingIcon: { alignItems: 'center', borderRadius: 12, height: 40, justifyContent: 'center', width: 40 },
+  settingsRow: { alignItems: 'center', flexDirection: 'row', gap: 12, minHeight: 82, paddingHorizontal: 20 },
+  settingIcon: { alignItems: 'center', borderRadius: 11, height: 36, justifyContent: 'center', width: 36 },
   exportIcon: { backgroundColor: '#F0F2F0' },
   aboutIcon: { backgroundColor: '#F0F2F0' },
-  settingLabel: { color: '#313832', flex: 1, fontFamily: fonts.medium, fontSize: 16 },
-  divider: { backgroundColor: '#EEF1EE', height: StyleSheet.hairlineWidth, marginLeft: 74 },
+  settingLabel: { color: '#313832', flex: 1, fontFamily: fonts.medium, fontSize: 14 },
+  divider: { backgroundColor: '#EEF1EE', height: StyleSheet.hairlineWidth, marginLeft: 68 },
   signOut: { alignItems: 'center', backgroundColor: '#E9EDEC', borderRadius: 28, justifyContent: 'center', minHeight: 56 },
   signOutText: { color: '#5A625B', fontFamily: fonts.medium, fontSize: 15 },
   modalOverlay: { alignItems: 'center', backgroundColor: 'rgba(35, 45, 37, 0.28)', flex: 1, justifyContent: 'center', padding: 20 },
