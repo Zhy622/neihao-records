@@ -40,11 +40,19 @@ export function HomeScreen({ navigation }: { navigation: NativeStackNavigationPr
         />
       </View>
       <View style={styles.grid}>
-        <StatCard
-          icon="calendar-outline"
-          label="今日记录次数"
-          value={todayRecords.length}
-        />
+        <HapticPressable
+          accessibilityRole="button"
+          accessibilityLabel="查看纠结历史记录"
+          feedback="selection"
+          style={({ pressed }) => [styles.todayRecordsCard, pressed && styles.pressed]}
+          onPress={() => navigation.navigate('History')}
+        >
+          <StatCard
+            icon="calendar-outline"
+            label="今日记录次数"
+            value={todayRecords.length}
+          />
+        </HapticPressable>
         <StatCard
           icon="happy-outline"
           iconBackgroundColor="rgba(255, 220, 189, 0.3)"
@@ -129,7 +137,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#181C1C',
-    fontFamily: fonts.bold,
+    fontFamily: fonts.medium,
     fontSize: 26,
     lineHeight: 32.5,
     letterSpacing: -0.52,
@@ -157,6 +165,7 @@ const styles = StyleSheet.create({
     rowGap: 16,
     paddingBottom: 8,
   },
+  todayRecordsCard: { flex: 1, minWidth: '46%', height: 140, borderRadius: 24 },
   pendingCard: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 14 },
   pending: { flex: 1, color: colors.primary, fontFamily: fonts.medium, fontSize: 13, lineHeight: 20 },
   button: {

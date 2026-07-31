@@ -38,7 +38,7 @@ function Field({
   return (
     <View style={styles.field} onLayout={onLayout}>
       <View style={styles.labelRow}>
-        <Ionicons name={icon} size={17} color="#5D655E" />
+        <Ionicons name={icon} size={17} color="#466349" />
         <Text style={styles.label}>{label}</Text>
       </View>
       {hint ? <Text style={styles.hint}>{hint}</Text> : null}
@@ -199,90 +199,95 @@ export function PeopleObservationScreen() {
       contentStyle={styles.content}
     >
       <View style={styles.quoteCard}>
-        <View style={styles.quoteAccent} />
         <Text style={styles.quote}>以人为镜，映照己身。</Text>
         <Text style={styles.quoteSignature}>— 观照 · 小记</Text>
       </View>
 
-      <Field icon="person-outline" label="人物代号" hint="可以是昵称、角色名或只有你看得懂的代号。" onLayout={recordFieldOffset('alias')}>
-        <TextInput
-          value={alias}
-          onChangeText={setAlias}
-          onFocus={() => revealInputArea('alias')}
-          placeholder="例如：A 同事 / 那位朋友 / 高中同学"
-          placeholderTextColor={colors.muted}
-          style={styles.input}
-        />
-      </Field>
+      <View style={styles.form}>
+        <View style={styles.basicFields}>
+          <Field icon="person-outline" label="人物代号" hint="可以是昵称、角色名或只有你看得懂的代号。" onLayout={recordFieldOffset('alias')}>
+            <TextInput
+              value={alias}
+              onChangeText={setAlias}
+              onFocus={() => revealInputArea('alias')}
+              placeholder="例如：A 同事 / 那位朋友 / 高中同学"
+              placeholderTextColor={colors.muted}
+              style={styles.input}
+            />
+          </Field>
 
-      <Field icon="heart-outline" label="我对 TA 的主要情绪" hint="可以多选，复杂一点也没关系。">
-        <HapticPressable style={styles.selector} onPress={openEmotionSheet}>
-          <Text numberOfLines={1} style={styles.selectorText}>
-            {selectedEmotions.length ? selectedEmotions.join('、') : '选择主要情绪'}
-          </Text>
-          <Ionicons name="chevron-down-outline" size={18} color={colors.primary} />
-        </HapticPressable>
-      </Field>
+          <Field icon="heart-outline" label="我对 TA 的主要情绪" hint="可以多选，复杂一点也没关系。">
+            <HapticPressable style={styles.selector} onPress={openEmotionSheet}>
+              <Text numberOfLines={1} style={styles.selectorText}>
+                {selectedEmotions.length ? selectedEmotions.join('、') : '选择主要情绪'}
+              </Text>
+              <Ionicons name="chevron-down-outline" size={18} color={colors.primary} />
+            </HapticPressable>
+          </Field>
+        </View>
 
-      <Field icon="location-outline" label="触发场景" onLayout={recordFieldOffset('triggerScene')}>
-        <TextInput
-          value={triggerScene}
-          onChangeText={setTriggerScene}
-          onFocus={() => revealInputArea('triggerScene')}
-          placeholder="我是在什么情况下想到 TA 的？"
-          placeholderTextColor={colors.muted}
-          style={[styles.input, styles.multiline]}
-          multiline
-        />
-      </Field>
+        <View style={styles.reflectionFields}>
+          <Field icon="location-outline" label="触发场景" onLayout={recordFieldOffset('triggerScene')}>
+            <TextInput
+              value={triggerScene}
+              onChangeText={setTriggerScene}
+              onFocus={() => revealInputArea('triggerScene')}
+              placeholder="我是在什么情况下想到 TA 的？"
+              placeholderTextColor={colors.muted}
+              style={[styles.input, styles.multiline]}
+              multiline
+            />
+          </Field>
 
-      <Field icon="eye-off-outline" label="我轻蔑 TA 的点" hint="可以诚实一点写，先不急着评判自己。" onLayout={recordFieldOffset('contemptPoints')}>
-        <TextInput
-          value={contemptPoints}
-          onChangeText={setContemptPoints}
-          onFocus={() => revealInputArea('contemptPoints')}
-          placeholder="我看不上的地方是什么？"
-          placeholderTextColor={colors.muted}
-          style={[styles.input, styles.multiline]}
-          multiline
-        />
-      </Field>
+          <Field icon="eye-off-outline" label="我轻蔑 TA 的点" hint="可以诚实一点写，先不急着评判自己。" onLayout={recordFieldOffset('contemptPoints')}>
+            <TextInput
+              value={contemptPoints}
+              onChangeText={setContemptPoints}
+              onFocus={() => revealInputArea('contemptPoints')}
+              placeholder="我看不上的地方是什么？"
+              placeholderTextColor={colors.muted}
+              style={[styles.input, styles.multiline]}
+              multiline
+            />
+          </Field>
 
-      <Field icon="sparkles-outline" label="我自卑或羡慕 TA 的点" onLayout={recordFieldOffset('admirePoints')}>
-        <TextInput
-          value={admirePoints}
-          onChangeText={setAdmirePoints}
-          onFocus={() => revealInputArea('admirePoints')}
-          placeholder="TA 的什么地方让我不舒服、羡慕或不服气？"
-          placeholderTextColor={colors.muted}
-          style={[styles.input, styles.multiline]}
-          multiline
-        />
-      </Field>
+          <Field icon="sparkles-outline" label="我自卑或羡慕 TA 的点" onLayout={recordFieldOffset('admirePoints')}>
+            <TextInput
+              value={admirePoints}
+              onChangeText={setAdmirePoints}
+              onFocus={() => revealInputArea('admirePoints')}
+              placeholder="TA 的什么地方让我不舒服、羡慕或不服气？"
+              placeholderTextColor={colors.muted}
+              style={[styles.input, styles.multiline]}
+              multiline
+            />
+          </Field>
 
-      <Field icon="accessibility-outline" label="TA 比我强的具体能力" onLayout={recordFieldOffset('otherStrengths')}>
-        <TextInput
-          value={otherStrengths}
-          onChangeText={setOtherStrengths}
-          onFocus={() => revealInputArea('otherStrengths')}
-          placeholder="例如：表达更直接、执行更快、更会争取资源"
-          placeholderTextColor={colors.muted}
-          style={[styles.input, styles.multiline]}
-          multiline
-        />
-      </Field>
+          <Field icon="accessibility-outline" label="TA 比我强的具体能力" onLayout={recordFieldOffset('otherStrengths')}>
+            <TextInput
+              value={otherStrengths}
+              onChangeText={setOtherStrengths}
+              onFocus={() => revealInputArea('otherStrengths')}
+              placeholder="例如：表达更直接、执行更快、更会争取资源"
+              placeholderTextColor={colors.muted}
+              style={[styles.input, styles.multiline]}
+              multiline
+            />
+          </Field>
 
-      <Field icon="shield-checkmark-outline" label="我比 TA 强或不弱的地方" onLayout={recordFieldOffset('myStrengths')}>
-        <TextInput
-          value={myStrengths}
-          onChangeText={setMyStrengths}
-          onFocus={() => revealInputArea('myStrengths')}
-          placeholder="例如：更稳定、更细致、更愿意复盘"
-          placeholderTextColor={colors.muted}
-          style={[styles.input, styles.multiline]}
-          multiline
-        />
-      </Field>
+          <Field icon="shield-checkmark-outline" label="我比 TA 强或不弱的地方" onLayout={recordFieldOffset('myStrengths')}>
+            <TextInput
+              value={myStrengths}
+              onChangeText={setMyStrengths}
+              onFocus={() => revealInputArea('myStrengths')}
+              placeholder="例如：更稳定、更细致、更愿意复盘"
+              placeholderTextColor={colors.muted}
+              style={[styles.input, styles.multiline]}
+              multiline
+            />
+          </Field>
+        </View>
+      </View>
 
       <View style={styles.summaryGrid}>
         <View style={[styles.summaryCard, styles.definitionCard]}>
@@ -358,57 +363,66 @@ export function PeopleObservationScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { paddingTop: 24, paddingHorizontal: 20, paddingBottom: 150, gap: 32 },
+  content: { paddingTop: 24, paddingHorizontal: 20, paddingBottom: 150, gap: 24 },
   quoteCard: {
-    minHeight: 108,
+    minHeight: 100,
     overflow: 'hidden',
     justifyContent: 'space-between',
-    padding: 24,
-    borderRadius: 24,
+    padding: 20,
+    borderRadius: 16,
     borderCurve: 'continuous',
     backgroundColor: '#EDF3F0',
-    boxShadow: '0 12px 24px -14px rgba(70, 99, 73, 0.12)',
+    boxShadow: '0 8px 16px -12px rgba(70, 99, 73, 0.12)',
   },
-  quoteAccent: { position: 'absolute', left: 0, top: 12, bottom: 12, width: 5, borderRadius: 4, backgroundColor: '#466349' },
-  quote: { color: '#252B26', fontFamily: fonts.medium, fontSize: 19, lineHeight: 26 },
+  quoteAccent: { position: 'absolute', left: 0, top: 16, bottom: 16, width: 4, borderRadius: 4, backgroundColor: '#466349' },
+  quote: { color: '#252B26', fontFamily: fonts.medium, fontSize: 18, lineHeight: 24 },
   quoteSignature: { alignSelf: 'flex-end', color: '#5A625B', fontFamily: fonts.regular, fontSize: 12 },
-  field: { gap: 8 },
+  form: { gap: 16 },
+  basicFields: { gap: 16 },
+  reflectionFields: { gap: 16 },
+  field: {
+    gap: 8,
+    padding: 16,
+    borderRadius: 16,
+    borderCurve: 'continuous',
+    backgroundColor: '#FFFFFF',
+  },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  label: { color: '#424841', fontFamily: fonts.medium, fontSize: 16 },
+  label: { color: '#062509', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   hint: { color: '#5D655E', fontFamily: fonts.regular, fontSize: 12, lineHeight: 18 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   input: {
     color: colors.text,
-    minHeight: 56,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+    height: 50,
+    backgroundColor: '#F1F4F2',
+    borderRadius: 8,
     borderCurve: 'continuous',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
     fontFamily: fonts.regular,
-    fontSize: 16,
+    fontSize: 14,
+    lineHeight: 26,
   },
   selector: {
-    minHeight: 56,
+    height: 50,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    paddingHorizontal: 20,
-    borderRadius: 24,
+    paddingHorizontal: 16,
+    borderRadius: 8,
     borderCurve: 'continuous',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F1F4F2',
   },
-  selectorText: { flex: 1, color: colors.text, fontFamily: fonts.regular, fontSize: 16 },
-  multiline: { minHeight: 116, textAlignVertical: 'top' },
-  summaryGrid: { gap: 24 },
-  summaryCard: { borderRadius: 24, gap: 16, padding: 18 },
+  selectorText: { flex: 1, color: colors.text, fontFamily: fonts.regular, fontSize: 14, lineHeight: 26 },
+  multiline: { height: 102, paddingTop: 12, paddingBottom: 12, textAlignVertical: 'top' },
+  summaryGrid: { gap: 16 },
+  summaryCard: { borderRadius: 16, gap: 14, padding: 16 },
   definitionCard: { backgroundColor: '#FCF3E8' },
   actionCard: { backgroundColor: '#E7F1E8' },
   summaryHeader: { alignItems: 'center', flexDirection: 'row', gap: 11 },
   summaryIcon: { alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 15, height: 30, justifyContent: 'center', width: 30 },
   summaryTitleWrap: { gap: 2 },
-  summaryTitle: { color: '#466349', fontFamily: fonts.semibold, fontSize: 16 },
+  summaryTitle: { color: '#353b36', fontFamily: fonts.medium, fontSize: 16 },
   summarySubtitle: { color: '#899588', fontFamily: fonts.medium, fontSize: 9, letterSpacing: 0.7 },
   summaryResult: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 15 },
   summaryText: { color: '#303630', fontFamily: fonts.regular, fontSize: 14, lineHeight: 22 },

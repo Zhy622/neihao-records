@@ -222,12 +222,12 @@ export function NoteDetailScreen({
           </>
         ) : (
           <>
-            <HapticPressable style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]} onPress={() => setEditing(true)}>
-              <Ionicons name="create-outline" size={18} color={colors.primary} />
-              <Text style={styles.secondaryText}>编辑</Text>
+            <HapticPressable style={({ pressed }) => [styles.secondaryButton, styles.editButton, pressed && styles.pressed]} onPress={() => setEditing(true)}>
+              <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+              <Text style={[styles.secondaryText, styles.editText]}>编辑</Text>
             </HapticPressable>
             <HapticPressable style={({ pressed }) => [styles.dangerButton, pressed && styles.pressed]} onPress={remove}>
-              <Ionicons name="trash-outline" size={18} color={colors.danger} />
+              <Ionicons name="trash-outline" size={18} color="#5A625B" />
               <Text style={styles.dangerText}>删除</Text>
             </HapticPressable>
           </>
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   cardAccent: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, backgroundColor: '#D8EED8' },
   cardHeader: { gap: 9 },
   divider: { height: 1, backgroundColor: '#E0E5E0' },
-  noteText: { marginTop: 24, color: '#181C1C', fontFamily: fonts.medium, fontSize: 16, lineHeight: 26 },
+  noteText: { marginTop: 24,marginBottom: 24, color: '#181C1C', fontFamily: fonts.regular, fontSize: 15, lineHeight: 26 },
   noteInput: {
     flex: 1,
     minHeight: 160,
@@ -307,35 +307,37 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', gap: 16 },
   primaryButton: {
     flex: 1,
-    minHeight: 56,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 28,
     backgroundColor: '#466349',
   },
-  primaryText: { color: colors.white, fontFamily: fonts.bold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  primaryText: { color: colors.white, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   secondaryButton: {
     flex: 1,
-    minHeight: 56,
+    height: 52,
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 28,
-    backgroundColor: '#CDECCB',
+    backgroundColor: '#E9EDEC',
   },
-  secondaryText: { color: '#466349', fontFamily: fonts.bold, fontSize: 16, lineHeight: 22 },
+  secondaryText: { color: '#5A625B', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  editButton: { backgroundColor: '#466349' },
+  editText: { color: '#FFFFFF' },
   dangerButton: {
     flex: 1,
-    minHeight: 56,
+    height: 52,
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 28,
-    backgroundColor: '#FFD6D5',
+    backgroundColor: '#E9EDEC',
   },
-  dangerText: { color: '#B2272A', fontFamily: fonts.bold, fontSize: 16, lineHeight: 22 },
+  dangerText: { color: '#5A625B', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   pressed: { opacity: 0.78 },
 });
 

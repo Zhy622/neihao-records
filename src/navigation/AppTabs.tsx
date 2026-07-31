@@ -104,6 +104,7 @@ export function AppTabs() {
         options={({ navigation }) => ({
           title: '随记',
           headerShown: true,
+          tabBarHideOnKeyboard: true,
           headerTitleAlign: 'center',
           headerLeft: () => null,
           headerStyle: { backgroundColor: 'rgba(247, 250, 248, 0.96)' },

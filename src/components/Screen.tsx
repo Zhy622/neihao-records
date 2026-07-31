@@ -5,7 +5,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ScrollViewProps,
   StyleProp,
   StyleSheet,
   ViewStyle,
@@ -18,7 +17,6 @@ interface ScreenProps {
   contentStyle?: StyleProp<ViewStyle>;
   keyboardAvoiding?: boolean;
   keyboardAvoidingMode?: 'header' | 'fullscreen';
-  onScroll?: ScrollViewProps['onScroll'];
   scrollViewRef?: Ref<ScrollView>;
 }
 
@@ -28,7 +26,6 @@ export function Screen({
   contentStyle,
   keyboardAvoiding = false,
   keyboardAvoidingMode = 'header',
-  onScroll,
   scrollViewRef,
 }: PropsWithChildren<ScreenProps>) {
   const headerHeight = useContext(HeaderHeightContext) ?? 0;
@@ -46,8 +43,6 @@ export function Screen({
       contentInsetAdjustmentBehavior="automatic"
       keyboardDismissMode="on-drag"
       keyboardShouldPersistTaps="handled"
-      onScroll={onScroll}
-      scrollEventThrottle={onScroll ? 16 : undefined}
     >
       {children}
     </ScrollView>

@@ -12,7 +12,7 @@ import { Note } from '../types/note';
 import { RootStackParamList } from '../types/navigation';
 import { colors, fonts } from '../theme';
 
-const tagBackgroundColors = ['#CDECCB', '#FFDDBE', '#E6E7D6'];
+const tagBackgroundColors = ['#E1ECE0', '#F5E7D9', '#E8E9E1'];
 
 function getNoteTitle(content: string) {
   return content.trim().split(/\r?\n/, 1)[0] || '未命名随记';

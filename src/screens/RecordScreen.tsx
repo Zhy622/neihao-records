@@ -36,16 +36,21 @@ const levels = Array.from({ length: 10 }, (_, index) => index + 1);
 
 function Field({
   label,
+  icon,
   children,
   style,
 }: {
   label: string;
+  icon: keyof typeof Ionicons.glyphMap;
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
   return (
     <View style={[styles.field, style]}>
-      <Text style={styles.label}>{label}</Text>
+      <View style={styles.labelRow}>
+        <Ionicons name={icon} size={16} color="#466349" />
+        <Text style={styles.label}>{label}</Text>
+      </View>
       {children}
     </View>
   );
@@ -53,20 +58,23 @@ function Field({
 
 function IntensityField({
   label,
+  icon,
+  tone,
   value,
   onChange,
 }: {
   label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  tone: 'emotion' | 'decision';
   value: number;
   onChange: (value: number) => void;
 }) {
   return (
     <View style={[styles.field, styles.intensityField]}>
       <View style={styles.intensityHeader}>
-        <Text style={styles.label}>{label}</Text>
-        <View style={styles.intensityValue}>
-          <Text style={styles.intensityNumber}>{value}</Text>
-          <Text style={styles.intensitySuffix}>/10</Text>
+        <View style={styles.labelRow}>
+          <Ionicons name={icon} size={16} color="#466349" />
+          <Text style={styles.label}>{label}</Text>
         </View>
       </View>
       <View style={styles.levels}>
@@ -79,15 +87,13 @@ function IntensityField({
             feedback="selection"
             style={({ pressed }) => [
               styles.level,
-              level < value && styles.completedLevel,
-              value === level && styles.selectedLevel,
+              value === level && (tone === 'emotion' ? styles.selectedEmotionLevel : styles.selectedDecisionLevel),
               pressed && styles.pressed,
             ]}
             onPress={() => onChange(level)}
           >
             <Text style={[
               styles.levelText,
-              level < value && styles.completedLevelText,
               value === level && styles.selectedLevelText,
             ]}>
               {level}
@@ -187,7 +193,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
     >
       <View style={styles.form}>
         <View style={styles.basicFields}>
-          <Field label="这次纠结的事情 *">
+          <Field label="这次纠结的事情 *" icon="document-text-outline">
             <TextInput
               accessibilityLabel="这次纠结的事情"
               value={title}
@@ -197,7 +203,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
               style={styles.input}
             />
           </Field>
-          <Field label="分类">
+          <Field label="分类" icon="pricetag-outline">
             <HapticPressable
               accessibilityRole="button"
               accessibilityLabel="选择分类"
@@ -208,7 +214,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
               <Ionicons name="chevron-down-outline" size={20} color="#466349" />
             </HapticPressable>
           </Field>
-          <Field label="当时的感受 (可多选)">
+          <Field label="当时的感受 (可多选)" icon="heart-outline">
             <HapticPressable
               accessibilityRole="button"
               accessibilityLabel="选择当时的感受"
@@ -226,10 +232,10 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
           </Field>
         </View>
         <View style={styles.intensityFields}>
-          <IntensityField label="情绪强度" value={emotionIntensity} onChange={setEmotionIntensity} />
-          <IntensityField label="决策难度" value={decisionDifficulty} onChange={setDecisionDifficulty} />
+          <IntensityField label="情绪强度" icon="pulse-outline" tone="emotion" value={emotionIntensity} onChange={setEmotionIntensity} />
+          <IntensityField label="决策难度" icon="git-branch-outline" tone="decision" value={decisionDifficulty} onChange={setDecisionDifficulty} />
         </View>
-        <Field label="耗费时间" style={styles.timeField}>
+        <Field label="耗费时间" icon="time-outline" style={styles.timeField}>
           <View style={styles.timeOptions}>
             {TIME_COSTS.map((item) => {
               const selected = timeCost === item;
@@ -256,7 +262,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
           </View>
         </Field>
         <View style={styles.reflections}>
-          <Field label="当时反复出现的想法" style={styles.reflectionField}>
+          <Field label="当时反复出现的想法" icon="chatbubble-ellipses-outline" style={styles.reflectionField}>
             <TextInput
               accessibilityLabel="当时反复出现的想法"
               value={thoughts}
@@ -268,7 +274,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
               multiline
             />
           </Field>
-          <Field label="最后怎么决定" style={styles.reflectionField}>
+          <Field label="最后怎么决定" icon="checkmark-done-outline" style={styles.reflectionField}>
             <TextInput
               accessibilityLabel="最后怎么决定"
               value={finalDecision}
@@ -281,7 +287,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
             />
           </Field>
         </View>
-        <Field label="事后看是否值得纠结" style={styles.worthField}>
+        <Field label="事后看是否值得纠结" icon="bulb-outline" style={styles.worthField}>
           <View style={styles.worthOptions}>
             {WORTH_OPTIONS.map((item) => {
               const selected = worthIt === item;
@@ -408,6 +414,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     letterSpacing: 0.14,
   },
+  labelRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   input: {
     height: 50,
     paddingHorizontal: 16,
@@ -433,16 +440,7 @@ const styles = StyleSheet.create({
   selectorText: { flex: 1, color: '#181C1C', fontFamily: fonts.regular, fontSize: 14, lineHeight: 26 },
   placeholder: { color: 'rgba(115, 121, 113, 0.7)' },
   intensityField: { gap: 16 },
-  intensityHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  intensityValue: { flexDirection: 'row', alignItems: 'baseline' },
-  intensityNumber: { color: '#466349', fontFamily: fonts.semibold, fontSize: 24, lineHeight: 32 },
-  intensitySuffix: {
-    color: '#737971',
-    fontFamily: fonts.medium,
-    fontSize: 14,
-    lineHeight: 20,
-    letterSpacing: 0.14,
-  },
+  intensityHeader: { flexDirection: 'row', alignItems: 'center' },
   levels: { flexDirection: 'row', gap: 4 },
   level: {
     flex: 1,
@@ -453,14 +451,10 @@ const styles = StyleSheet.create({
     borderCurve: 'continuous',
     backgroundColor: '#F1F4F2',
   },
-  completedLevel: { backgroundColor: '#CAEBC9' },
-  selectedLevel: {
-    backgroundColor: '#466349',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-  },
+  selectedEmotionLevel: { backgroundColor: '#c6eec4' },
+  selectedDecisionLevel: { backgroundColor: '#c6eec4'},
   levelText: { color: '#737971', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
-  completedLevelText: { color: '#314D34' },
-  selectedLevelText: { color: colors.white },
+  selectedLevelText: { color: '#314D34' },
   timeField: { gap: 16 },
   timeOptions: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 10, rowGap: 10 },
   timeOption: {
@@ -470,14 +464,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 18,
     backgroundColor: '#F1F4F2',
+
   },
   selectedTimeOption: {
     height: 38,
-    backgroundColor: '#FFCA98',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    backgroundColor: '#c6eec4',
   },
   timeOptionText: { color: '#181C1C', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
-  selectedTimeOptionText: { color: '#3F250B' },
+  selectedTimeOptionText: { color: '#314D34' },
   reflections: { gap: 16 },
   reflectionField: { paddingBottom: 22 },
   multiline: { height: 102, paddingTop: 12, paddingBottom: 12, textAlignVertical: 'top' },

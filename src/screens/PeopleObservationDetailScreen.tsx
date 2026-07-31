@@ -454,7 +454,7 @@ export function PeopleObservationDetailScreen({
               style={({ pressed }) => [styles.deleteButton, (pressed || deleting) && styles.pressed]}
               onPress={confirmDelete}
             >
-              <Ionicons name="trash-outline" size={18} color="#A85C57" />
+              <Ionicons name="trash-outline" size={18} color="#5A625B" />
               <Text style={styles.deleteButtonText}>{deleting ? '删除中...' : '删除'}</Text>
             </HapticPressable>
             <HapticPressable
@@ -462,7 +462,7 @@ export function PeopleObservationDetailScreen({
               style={({ pressed }) => [styles.editButton, (pressed || deleting) && styles.pressed]}
               onPress={() => setEditing(true)}
             >
-              <Ionicons name="create-outline" size={18} color="#466349" />
+              <Ionicons name="create-outline" size={18} color="#FFFFFF" />
               <Text style={styles.editButtonText}>编辑</Text>
             </HapticPressable>
           </>
@@ -526,51 +526,51 @@ const styles = StyleSheet.create({
   reflectionContent: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 15 },
   reflectionText: { color: '#303630', fontFamily: fonts.regular, fontSize: 14, lineHeight: 22 },
   preview: { gap: 24 },
-  actions: { flexDirection: 'row', gap: 10 },
+  actions: { flexDirection: 'row', gap: 16 },
   primaryButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 8,
-    minHeight: 56,
+    height: 52,
     borderRadius: 28,
     backgroundColor: '#466349',
   },
-  primaryButtonText: { color: colors.white, fontFamily: fonts.bold, fontSize: 14 },
+  primaryButtonText: { color: colors.white, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   secondaryButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 8,
-    minHeight: 56,
+    height: 52,
     borderRadius: 28,
-    backgroundColor: '#EDF3F0',
+    backgroundColor: '#E9EDEC',
   },
-  secondaryButtonText: { color: '#466349', fontFamily: fonts.semibold, fontSize: 14 },
+  secondaryButtonText: { color: '#5A625B', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   deleteButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 8,
-    padding: 16,
-    borderRadius: 20,
-    backgroundColor: '#FBE8E6',
+    height: 52,
+    borderRadius: 28,
+    backgroundColor: '#E9EDEC',
   },
-  deleteButtonText: { color: '#A85C57', fontFamily: fonts.semibold, fontSize: 15 },
+  deleteButtonText: { color: '#5A625B', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   editButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 8,
-    padding: 16,
-    borderRadius: 20,
-    backgroundColor: '#CDECCB',
+    height: 52,
+    borderRadius: 28,
+    backgroundColor: '#466349',
   },
-  editButtonText: { color: '#466349', fontFamily: fonts.semibold, fontSize: 15 },
+  editButtonText: { color: '#FFFFFF', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   pressed: { opacity: 0.75 },
   empty: { color: colors.muted, fontFamily: fonts.regular, textAlign: 'center', paddingVertical: 40 },
 });

@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   cardTitleGroup: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   cardIcon: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 12, borderCurve: 'continuous', backgroundColor: '#F7F7F2' },
   cardTitle: { flex: 1, color: '#181C1C', fontFamily: fonts.medium, fontSize: 18, lineHeight: 23 },
-  category: { borderRadius: 999, backgroundColor: '#FFDCBD', color: '#623F18', fontFamily: fonts.medium, fontSize: 11, letterSpacing: 0.55, lineHeight: 17, paddingHorizontal: 12, paddingVertical: 4 },
+  category: { borderRadius: 999, backgroundColor: '#FFF3E8', color: '#7A532A', fontFamily: fonts.medium, fontSize: 11, letterSpacing: 0.55, lineHeight: 17, paddingHorizontal: 12, paddingVertical: 4 },
   metrics: { height: 20, flexDirection: 'row', alignItems: 'center', gap: 4 },
   metricLabel: { color: '#424841', fontFamily: fonts.medium, fontSize: 11, lineHeight: 16, opacity: 0.6 },
   metricValue: { color: '#181C1C', fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, marginRight: 12 },
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   syncBadge: { height: 21, flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 6, backgroundColor: 'rgba(202, 235, 201, 0.2)', paddingHorizontal: 8 },
   pendingBadge: { backgroundColor: '#F3F0FA' },
   syncText: { color: '#466349', fontFamily: fonts.medium, fontSize: 11, lineHeight: 17 },
-  pendingText: { color: '#665B7C' },
+  pendingText: { color: '#7c765b' },
   cardActions: { flexDirection: 'row', gap: 4 },
   cardAction: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 999 },
 });

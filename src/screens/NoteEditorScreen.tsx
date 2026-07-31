@@ -1,22 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import {
-  Keyboard,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSQLiteContext } from 'expo-sqlite';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../auth/AuthProvider';
 import { HapticPressable } from '../components/HapticPressable';
-import { Screen } from '../components/Screen';
 import { useAppAlert } from '../components/AppAlert';
 import { createNote } from '../database/database';
 import { NOTE_CATEGORIES, NOTE_EMOTIONS, NOTE_TYPES, NoteCategory, NoteEmotion, NoteType } from '../types/note';
@@ -36,8 +29,6 @@ const emptyDraft: NoteDraft = {
   emotions: [],
   categories: [],
 };
-const contentInputMinHeight = 414;
-const keyboardClearance = 64;
 
 // ponytail: in-memory draft until Notes persistence exists.
 let draft: NoteDraft = emptyDraft;
@@ -77,13 +68,8 @@ export function NoteEditorScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { session } = useAuth();
   const { alert } = useAppAlert();
-  const scrollViewRef = useRef<ScrollView>(null);
-  const contentInputRef = useRef<TextInput>(null);
-  const scrollOffset = useRef(0);
-  const contentInputFocused = useRef(false);
-  const contentLength = useRef(draft.content.length);
-  const cursorAtEnd = useRef(false);
-  const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const headerHeight = useHeaderHeight();
+  const bottomTabBarHeight = useBottomTabBarHeight();
   const organizeSheetRef = useRef<BottomSheetModal>(null);
   const sheetSnapPoints = useMemo(() => ['78%'], []);
   const [content, setContent] = useState(draft.content);
@@ -91,6 +77,7 @@ export function NoteEditorScreen() {
   const [emotions, setEmotions] = useState<NoteEmotion[]>(draft.emotions);
   const [categories, setCategories] = useState<NoteCategory[]>(draft.categories);
   const [saving, setSaving] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const hasDraft = useMemo(
     () => Boolean(content.trim() || emotions.length || categories.length || noteType !== '暂不分类'),
@@ -101,46 +88,12 @@ export function NoteEditorScreen() {
     draft = { content, noteType, emotions, categories };
   }, [categories, content, emotions, noteType]);
 
-  const keepContentInputVisible = () => {
-    const keyboard = Keyboard.metrics();
-    const input = contentInputRef.current;
-    if (!keyboard || !input || !contentInputFocused.current || !cursorAtEnd.current) {
-      return;
-    }
-
-    input.measureInWindow((_, y, __, height) => {
-      const overlap = y + height - keyboard.screenY + keyboardClearance;
-      if (overlap <= 0) {
-        return;
-      }
-
-      const nextOffset = scrollOffset.current + overlap;
-      scrollOffset.current = nextOffset;
-      scrollViewRef.current?.scrollTo({ y: nextOffset, animated: true });
-    });
-  };
-
-  const requestContentInputReveal = (delay = 32) => {
-    if (revealTimer.current) {
-      clearTimeout(revealTimer.current);
-    }
-    revealTimer.current = setTimeout(() => {
-      revealTimer.current = null;
-      keepContentInputVisible();
-    }, delay);
-  };
-
-  const trackScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    scrollOffset.current = event.nativeEvent.contentOffset.y;
-  };
-
   useEffect(() => {
-    const subscription = Keyboard.addListener('keyboardDidShow', () => requestContentInputReveal());
+    const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardVisible(false));
     return () => {
-      subscription.remove();
-      if (revealTimer.current) {
-        clearTimeout(revealTimer.current);
-      }
+      show.remove();
+      hide.remove();
     };
   }, []);
 
@@ -181,50 +134,38 @@ export function NoteEditorScreen() {
   };
 
   return (
-    <Screen
-      backgroundColor="#F7FAF8"
-      keyboardAvoiding
-      keyboardAvoidingMode="fullscreen"
-      onScroll={trackScroll}
-      scrollViewRef={scrollViewRef}
-      contentStyle={styles.content}
-    >
-      <View style={styles.notebook}>
-        <View style={styles.notebookTab}>
-          <View style={styles.notebookTabMark} />
+    <SafeAreaView style={styles.safe} edges={[]}>
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
+      >
+        <View style={styles.editorContainer}>
+          <View style={styles.notebook}>
+            <View style={styles.notebookTab}>
+              <View style={styles.notebookTabMark} />
+            </View>
+            <TextInput
+              accessibilityLabel="写下此刻"
+              multiline
+              scrollEnabled
+              value={content}
+              onChangeText={setContent}
+              placeholder="此刻你在想什么？刚刚做了什么？什么让你感到开心、压抑、投入或抗拒？"
+              placeholderTextColor="rgba(66, 72, 65, 0.48)"
+              style={styles.contentInput}
+              textAlignVertical="top"
+            />
+          </View>
         </View>
-        <TextInput
-          ref={contentInputRef}
-          accessibilityLabel="写下此刻"
-          multiline
-          value={content}
-          onChangeText={(nextContent) => {
-            contentLength.current = nextContent.length;
-            setContent(nextContent);
-          }}
-          onFocus={() => {
-            contentInputFocused.current = true;
-            requestContentInputReveal(300);
-          }}
-          onBlur={() => { contentInputFocused.current = false; }}
-          onSelectionChange={({ nativeEvent: { selection } }) => {
-            cursorAtEnd.current = selection.start === selection.end && selection.end === contentLength.current;
-            if (cursorAtEnd.current) {
-              requestContentInputReveal();
-            }
-          }}
-          onContentSizeChange={() => Keyboard.isVisible() && requestContentInputReveal()}
-          placeholder="此刻你在想什么？刚刚做了什么？什么让你感到开心、压抑、投入或抗拒？"
-          placeholderTextColor="rgba(66, 72, 65, 0.48)"
-          style={styles.contentInput}
-          textAlignVertical="top"
-        />
-      </View>
 
-      <HapticPressable accessibilityRole="button" style={({ pressed }) => [styles.save, pressed && styles.pressed]} onPress={openOrganizeSheet}>
-        <Ionicons name="sparkles" size={20} color={colors.white} />
-        <Text style={styles.saveText}>{hasDraft ? '保存随记' : '写下此刻'}</Text>
-      </HapticPressable>
+        <View style={[styles.toolbar, { marginBottom: keyboardVisible ? 0 : bottomTabBarHeight + 20 }]}>
+          <HapticPressable accessibilityRole="button" style={({ pressed }) => [styles.save, pressed && styles.pressed]} onPress={openOrganizeSheet}>
+            <Ionicons name="sparkles" size={20} color={colors.white} />
+            <Text style={styles.saveText}>{hasDraft ? '保存随记' : '写下此刻'}</Text>
+          </HapticPressable>
+        </View>
+      </KeyboardAvoidingView>
 
       <BottomSheetModal
         ref={organizeSheetRef}
@@ -288,15 +229,17 @@ export function NoteEditorScreen() {
           </HapticPressable>
         </BottomSheetScrollView>
       </BottomSheetModal>
-    </Screen>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { paddingTop: 0, paddingHorizontal: 30, paddingBottom: 130, gap: 48 },
-  notebook: { paddingTop: 32 },
+  safe: { flex: 1, backgroundColor: '#F7FAF8' },
+  keyboardContainer: { flex: 1 },
+  editorContainer: { flex: 1, minHeight: 0, paddingHorizontal: 30 },
+  notebook: { flex: 1, minHeight: 0, paddingTop: 26 },
   notebookTab: {
-    width: 80,
+    width: 86,
     height: 32,
     alignSelf: 'center',
     alignItems: 'center',
@@ -308,9 +251,10 @@ const styles = StyleSheet.create({
   notebookTabMark: { width: 35, height: 10, borderRadius: 999, backgroundColor: '#F7FAF8' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   contentInput: {
-    minHeight: contentInputMinHeight,
-    paddingHorizontal: 40,
-    paddingTop: 48,
+    flex: 1,
+    minHeight: 0,
+    paddingHorizontal: 26,
+    paddingTop: 30,
     paddingBottom: 24,
     borderRadius: 28,
     borderCurve: 'continuous',
@@ -323,6 +267,7 @@ const styles = StyleSheet.create({
     lineHeight: 32,
     textAlignVertical: 'top',
   },
+  toolbar: { marginTop: 28, paddingHorizontal: 22 },
   save: {
     height: 56,
     borderRadius: 28,

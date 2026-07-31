@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   cardActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  titleRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  titleRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
   iconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     backgroundColor: '#f4f5f4',
   },
-  alias: { flex: 1, color: '#181C1C', fontFamily: fonts.medium, fontSize: 18, lineHeight: 24 },
+  alias: { flex: 1, color: '#181C1C', fontFamily: fonts.medium, fontSize: 16, lineHeight: 24 },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tag: {
     color: '#5E655E',
