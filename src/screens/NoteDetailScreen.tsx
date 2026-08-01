@@ -1,9 +1,12 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useFocusEffect } from '@react-navigation/native';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../auth/AuthProvider';
 import { useAppAlert } from '../components/AppAlert';
 import { HapticPressable } from '../components/HapticPressable';
@@ -48,6 +51,9 @@ export function NoteDetailScreen({
   const db = useSQLiteContext();
   const { session } = useAuth();
   const { alert } = useAppAlert();
+  const headerHeight = useHeaderHeight();
+  const organizeSheetRef = useRef<BottomSheetModal>(null);
+  const sheetSnapPoints = useMemo(() => ['78%'], []);
   const [note, setNote] = useState<Note | null>(null);
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState('');
@@ -130,6 +136,94 @@ export function NoteDetailScreen({
     return null;
   }
 
+  if (editing) {
+    return (
+      <SafeAreaView style={styles.editSafe} edges={[]}>
+        <KeyboardAvoidingView
+          style={styles.editKeyboardContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
+        >
+          <View style={styles.editPage}>
+            <View style={styles.editCard}>
+              <View style={styles.cardHeader}>
+                <Text selectable style={styles.meta}>{new Date(note.createdAt).toLocaleString('zh-CN', { hour12: false })}</Text>
+                <View style={styles.divider} />
+              </View>
+              <TextInput
+                autoFocus
+                accessibilityLabel="编辑随记正文"
+                multiline
+                scrollEnabled
+                value={content}
+                onChangeText={setContent}
+                placeholder="写下此刻..."
+                placeholderTextColor={colors.muted}
+                style={styles.editInput}
+                textAlignVertical="top"
+              />
+            </View>
+
+            <HapticPressable
+              accessibilityRole="button"
+              accessibilityLabel="整理随记标签"
+              feedback="selection"
+              style={({ pressed }) => [styles.organizeButton, pressed && styles.pressed]}
+              onPress={() => {
+                Keyboard.dismiss();
+                organizeSheetRef.current?.present();
+              }}
+            >
+              <Ionicons name="options-outline" size={18} color="#466349" />
+              <Text style={styles.organizeText}>整理标签</Text>
+            </HapticPressable>
+
+            <View style={[styles.actions,{ marginBottom:30}]}>
+              <HapticPressable style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]} onPress={() => { applyNote(note); setEditing(false); }}>
+                <Text style={styles.secondaryText}>取消</Text>
+              </HapticPressable>
+              <HapticPressable disabled={saving} style={({ pressed }) => [styles.primaryButton, (pressed || saving) && styles.pressed]} onPress={save}>
+                <Text style={styles.primaryText}>{saving ? '保存中...' : '保存修改'}</Text>
+              </HapticPressable>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+
+        <BottomSheetModal
+          ref={organizeSheetRef}
+          snapPoints={sheetSnapPoints}
+          backgroundStyle={styles.sheetBackground}
+          handleIndicatorStyle={styles.sheetIndicator}
+          backdropComponent={(props) => <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={0.18} />}
+        >
+          <BottomSheetScrollView contentContainerStyle={styles.sheetContent}>
+            <Text style={styles.sheetTitle}>整理这条随记</Text>
+            <View style={styles.editorSections}>
+              <View style={styles.section}>
+                <Text style={styles.label}>记录类型</Text>
+                <View style={styles.chips}>
+                  {NOTE_TYPES.map((type) => <Pill key={type} label={type} tone="type" selected={noteType === type} onPress={() => setNoteType(type)} />)}
+                </View>
+              </View>
+              <View style={styles.section}>
+                <Text style={styles.label}>当前感受</Text>
+                <View style={styles.chips}>
+                  {NOTE_EMOTIONS.map((emotion) => <Pill key={emotion} label={emotion} tone="emotion" selected={emotions.includes(emotion)} onPress={() => setEmotions((current) => toggleItem(current, emotion))} />)}
+                </View>
+              </View>
+              <View style={styles.section}>
+                <Text style={styles.label}>初步判断</Text>
+                <View style={styles.chips}>
+                  {NOTE_CATEGORIES.map((category) => <Pill key={category} label={category} tone="category" selected={categories.includes(category)} onPress={() => setCategories((current) => toggleItem(current, category))} />)}
+                </View>
+              </View>
+            </View>
+          </BottomSheetScrollView>
+        </BottomSheetModal>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <Screen backgroundColor="#F7FAF8" keyboardAvoiding keyboardAvoidingMode="fullscreen" contentStyle={styles.content}>
       <View style={styles.card}>
@@ -138,20 +232,7 @@ export function NoteDetailScreen({
           <Text selectable style={styles.meta}>{new Date(note.createdAt).toLocaleString('zh-CN', { hour12: false })}</Text>
           <View style={styles.divider} />
         </View>
-        {editing ? (
-          <TextInput
-            autoFocus
-            multiline
-            value={content}
-            onChangeText={setContent}
-            placeholder="写下此刻..."
-            placeholderTextColor={colors.muted}
-            style={styles.noteInput}
-            textAlignVertical="top"
-          />
-        ) : (
-          <Text selectable style={styles.noteText}>{note.content}</Text>
-        )}
+        <Text selectable style={styles.noteText}>{note.content}</Text>
         {note.updatedAt !== note.createdAt ? <Text selectable style={styles.updatedMeta}>更新于 {new Date(note.updatedAt).toLocaleString('zh-CN', { hour12: false })}</Text> : null}
         <View style={styles.cardFooter}>
           <View style={styles.footerDot} />
@@ -159,79 +240,21 @@ export function NoteDetailScreen({
         </View>
       </View>
 
-      {editing ? (
-        <View style={styles.editorSections}>
-          <View style={styles.section}>
-            <Text style={styles.label}>记录类型</Text>
-            <View style={styles.chips}>
-              {NOTE_TYPES.map((type) => (
-                <Pill key={type} label={type} tone="type" selected={noteType === type} onPress={() => setNoteType(type)} />
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.label}>当前感受</Text>
-            <View style={styles.chips}>
-              {NOTE_EMOTIONS.map((emotion) => (
-                <Pill
-                  key={emotion}
-                  label={emotion}
-                  tone="emotion"
-                  selected={emotions.includes(emotion)}
-                  onPress={() => setEmotions((current) => toggleItem(current, emotion))}
-                />
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.label}>初步判断</Text>
-            <View style={styles.chips}>
-              {NOTE_CATEGORIES.map((category) => (
-                <Pill
-                  key={category}
-                  label={category}
-                  tone="category"
-                  selected={categories.includes(category)}
-                  onPress={() => setCategories((current) => toggleItem(current, category))}
-                />
-              ))}
-            </View>
-          </View>
-        </View>
-      ) : (
-        <>
-          <View style={styles.chips}>
-            <Text style={[styles.tag, styles.typeTag]}>{note.noteType}</Text>
-            {note.emotions.map((tag) => <Text key={tag} style={[styles.tag, styles.emotionTag]}>{tag}</Text>)}
-            {note.categories.map((tag) => <Text key={tag} style={[styles.tag, styles.categoryTag]}>{tag}</Text>)}
-          </View>
-        </>
-      )}
+      <View style={styles.chips}>
+        <Text style={[styles.tag, styles.typeTag]}>{note.noteType}</Text>
+        {note.emotions.map((tag) => <Text key={tag} style={[styles.tag, styles.emotionTag]}>{tag}</Text>)}
+        {note.categories.map((tag) => <Text key={tag} style={[styles.tag, styles.categoryTag]}>{tag}</Text>)}
+      </View>
 
       <View style={styles.actions}>
-        {editing ? (
-          <>
-            <HapticPressable style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]} onPress={() => { applyNote(note); setEditing(false); }}>
-              <Text style={styles.secondaryText}>取消</Text>
-            </HapticPressable>
-            <HapticPressable disabled={saving} style={({ pressed }) => [styles.primaryButton, (pressed || saving) && styles.pressed]} onPress={save}>
-              <Text style={styles.primaryText}>{saving ? '保存中...' : '保存修改'}</Text>
-            </HapticPressable>
-          </>
-        ) : (
-          <>
-            <HapticPressable style={({ pressed }) => [styles.secondaryButton, styles.editButton, pressed && styles.pressed]} onPress={() => setEditing(true)}>
-              <Ionicons name="create-outline" size={18} color="#FFFFFF" />
-              <Text style={[styles.secondaryText, styles.editText]}>编辑</Text>
-            </HapticPressable>
-            <HapticPressable style={({ pressed }) => [styles.dangerButton, pressed && styles.pressed]} onPress={remove}>
-              <Ionicons name="trash-outline" size={18} color="#5A625B" />
-              <Text style={styles.dangerText}>删除</Text>
-            </HapticPressable>
-          </>
-        )}
+        <HapticPressable style={({ pressed }) => [styles.secondaryButton, styles.editButton, pressed && styles.pressed]} onPress={() => setEditing(true)}>
+          <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+          <Text style={[styles.secondaryText, styles.editText]}>编辑</Text>
+        </HapticPressable>
+        <HapticPressable style={({ pressed }) => [styles.dangerButton, pressed && styles.pressed]} onPress={remove}>
+          <Ionicons name="trash-outline" size={18} color="#5A625B" />
+          <Text style={styles.dangerText}>删除</Text>
+        </HapticPressable>
       </View>
     </Screen>
   );
@@ -239,6 +262,21 @@ export function NoteDetailScreen({
 
 const styles = StyleSheet.create({
   content: { paddingTop: 20, paddingHorizontal: 30, paddingBottom: 130, gap: 32 },
+  editSafe: { flex: 1, backgroundColor: '#F7FAF8' },
+  editKeyboardContainer: { flex: 1 },
+  editPage: { flex: 1, minHeight: 0, gap: 16, paddingHorizontal: 30, paddingTop: 20, paddingBottom: 20 },
+  editCard: {
+    flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
+    paddingHorizontal: 32,
+    paddingTop: 32,
+    paddingBottom: 30,
+    borderRadius: 28,
+    borderCurve: 'continuous',
+    backgroundColor: '#FFFFFF',
+    boxShadow: '0 12px 24px -12px rgba(70, 99, 73, 0.08)',
+  },
   card: {
     minHeight: 424,
     overflow: 'hidden',
@@ -254,15 +292,17 @@ const styles = StyleSheet.create({
   cardHeader: { gap: 9 },
   divider: { height: 1, backgroundColor: '#E0E5E0' },
   noteText: { marginTop: 24,marginBottom: 24, color: '#181C1C', fontFamily: fonts.regular, fontSize: 15, lineHeight: 26 },
-  noteInput: {
+  editInput: {
     flex: 1,
-    minHeight: 160,
-    marginTop: 18,
+    minHeight: 0,
+    marginTop: 20,
+    marginBottom: 0,
     padding: 0,
     color: '#181C1C',
-    fontFamily: fonts.medium,
-    fontSize: 16,
-    lineHeight: 26,
+    fontFamily: fonts.regular,
+    fontSize: 15,
+    letterSpacing:0.3,
+    lineHeight: 24,
   },
   meta: { color: '#7B827B', fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
   updatedMeta: { marginTop: 8, color: '#A0A7A0', fontFamily: fonts.regular, fontSize: 12, lineHeight: 18 },
@@ -271,6 +311,12 @@ const styles = StyleSheet.create({
   footerText: { color: '#ABB0AB', fontFamily: fonts.regular, fontSize: 12, letterSpacing: 0.2 },
   section: { gap: 10 },
   editorSections: { gap: 20 },
+  organizeButton: { height: 48, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 24, backgroundColor: '#EDF3F0' },
+  organizeText: { color: '#466349', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  sheetBackground: { borderRadius: 28, backgroundColor: '#FFFEFC' },
+  sheetIndicator: { backgroundColor: '#D6D0C8' },
+  sheetContent: { padding: 20, paddingBottom: 34, gap: 18 },
+  sheetTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 20 },
   label: { color: colors.text, fontFamily: fonts.semibold, fontSize: 15 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   tag: {
@@ -285,26 +331,13 @@ const styles = StyleSheet.create({
   typeTag: { backgroundColor: '#EFF0EE' },
   emotionTag: { backgroundColor: '#FFF0DE' },
   categoryTag: { backgroundColor: '#E4F4E5' },
-  input: {
-    color: colors.text,
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontFamily: fonts.regular,
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  contentInput: { minHeight: 240, textAlignVertical: 'top' },
   pill: {
     borderRadius: 999,
     paddingHorizontal: 14,
     paddingVertical: 9,
   },
   pillText: { color: colors.muted, fontFamily: fonts.regular, fontSize: 13 },
-  actions: { flexDirection: 'row', gap: 16 },
+  actions: { flexDirection: 'row', gap: 16},
   primaryButton: {
     flex: 1,
     height: 52,
