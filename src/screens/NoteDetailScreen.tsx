@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../auth/AuthProvider';
 import { useAppAlert } from '../components/AppAlert';
 import { HapticPressable } from '../components/HapticPressable';
+import { NoteScrollbar, useNoteScrollbar } from '../components/NoteScrollbar';
 import { Screen } from '../components/Screen';
 import { deleteLocalNote, getNote, updateNote } from '../database/database';
 import { NOTE_CATEGORIES, NOTE_EMOTIONS, NOTE_TYPES, Note, NoteCategory, NoteEmotion, NoteType } from '../types/note';
@@ -61,6 +62,7 @@ export function NoteDetailScreen({
   const [emotions, setEmotions] = useState<NoteEmotion[]>([]);
   const [categories, setCategories] = useState<NoteCategory[]>([]);
   const [saving, setSaving] = useState(false);
+  const scrollbar = useNoteScrollbar();
 
   const applyNote = useCallback((nextNote: Note | null) => {
     setNote(nextNote);
@@ -150,18 +152,24 @@ export function NoteDetailScreen({
                 <Text selectable style={styles.meta}>{new Date(note.createdAt).toLocaleString('zh-CN', { hour12: false })}</Text>
                 <View style={styles.divider} />
               </View>
-              <TextInput
-                autoFocus
-                accessibilityLabel="编辑随记正文"
-                multiline
-                scrollEnabled
-                value={content}
-                onChangeText={setContent}
-                placeholder="写下此刻..."
-                placeholderTextColor={colors.muted}
-                style={styles.editInput}
-                textAlignVertical="top"
-              />
+              <View style={styles.editInputContainer}>
+                <TextInput
+                  autoFocus
+                  accessibilityLabel="编辑随记正文"
+                  multiline
+                  scrollEnabled
+                  value={content}
+                  onChangeText={setContent}
+                  onContentSizeChange={scrollbar.onContentSizeChange}
+                  onLayout={scrollbar.onLayout}
+                  onScroll={scrollbar.onScroll}
+                  placeholder="写下此刻..."
+                  placeholderTextColor={colors.muted}
+                  style={styles.editInput}
+                  textAlignVertical="top"
+                />
+                <NoteScrollbar scrollbar={scrollbar} right={-18} />
+              </View>
             </View>
 
             <HapticPressable
@@ -292,12 +300,13 @@ const styles = StyleSheet.create({
   cardHeader: { gap: 9 },
   divider: { height: 1, backgroundColor: '#E0E5E0' },
   noteText: { marginTop: 24,marginBottom: 24, color: '#181C1C', fontFamily: fonts.regular, fontSize: 15, lineHeight: 26 },
+  editInputContainer: { flex: 1, minHeight: 0, position: 'relative', marginTop: 20 },
   editInput: {
     flex: 1,
     minHeight: 0,
-    marginTop: 20,
     marginBottom: 0,
     padding: 0,
+    paddingRight: 6,
     color: '#181C1C',
     fontFamily: fonts.regular,
     fontSize: 15,

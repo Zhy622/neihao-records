@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../auth/AuthProvider';
 import { HapticPressable } from '../components/HapticPressable';
 import { useAppAlert } from '../components/AppAlert';
+import { NoteScrollbar, useNoteScrollbar } from '../components/NoteScrollbar';
 import { createNote } from '../database/database';
 import { NOTE_CATEGORIES, NOTE_EMOTIONS, NOTE_TYPES, NoteCategory, NoteEmotion, NoteType } from '../types/note';
 import { RootStackParamList } from '../types/navigation';
@@ -78,6 +79,7 @@ export function NoteEditorScreen() {
   const [categories, setCategories] = useState<NoteCategory[]>(draft.categories);
   const [saving, setSaving] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const scrollbar = useNoteScrollbar();
 
   const hasDraft = useMemo(
     () => Boolean(content.trim() || emotions.length || categories.length || noteType !== '暂不分类'),
@@ -145,17 +147,25 @@ export function NoteEditorScreen() {
             <View style={styles.notebookTab}>
               <View style={styles.notebookTabMark} />
             </View>
-            <TextInput
-              accessibilityLabel="写下此刻"
-              multiline
-              scrollEnabled
-              value={content}
-              onChangeText={setContent}
-              placeholder="此刻你在想什么？刚刚做了什么？什么让你感到开心、压抑、投入或抗拒？"
-              placeholderTextColor="rgba(66, 72, 65, 0.48)"
-              style={styles.contentInput}
-              textAlignVertical="top"
-            />
+
+            <View style={styles.contentCard}>
+              <TextInput
+                accessibilityLabel="写下此刻"
+                multiline
+                scrollEnabled
+                value={content}
+                onChangeText={setContent}
+                onContentSizeChange={scrollbar.onContentSizeChange}
+                onLayout={scrollbar.onLayout}
+                onScroll={scrollbar.onScroll}
+                placeholder="此刻你在想什么？刚刚做了什么？什么让你感到开心、压抑、投入或抗拒？"
+                placeholderTextColor="rgba(66, 72, 65, 0.48)"
+                style={styles.contentInput}
+                textAlignVertical="top"
+              />
+              <NoteScrollbar scrollbar={scrollbar} />
+            </View>
+
           </View>
         </View>
 
@@ -250,17 +260,24 @@ const styles = StyleSheet.create({
   },
   notebookTabMark: { width: 35, height: 10, borderRadius: 999, backgroundColor: '#F7FAF8' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  contentInput: {
+  contentCard: {
     flex: 1,
     minHeight: 0,
-    paddingHorizontal: 26,
-    paddingTop: 30,
-    paddingBottom: 24,
+    position: 'relative',
+    overflow: 'hidden',
     borderRadius: 28,
     borderCurve: 'continuous',
     borderWidth: 1,
     borderColor: '#5F8064',
     backgroundColor: '#FFFCFA',
+  },
+  contentInput: {
+    flex: 1,
+    minHeight: 0,
+    paddingLeft: 26,
+    paddingRight: 42,
+    paddingTop: 30,
+    paddingBottom: 24,
     color: '#181C1C',
     fontFamily: fonts.regular,
     fontSize: 15,
