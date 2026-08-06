@@ -355,8 +355,8 @@ export function AccountScreen() {
         <SettingsRow
           icon="information-circle-outline"
           iconStyle="aboutIcon"
-          label="关于小记"
-          onPress={() => alert('关于小记', '内耗记录本 v1.0.0\n记录、随记与观照，陪你看见自己。')}
+          label="关于"
+          onPress={() => alert('关于', '情绪笔录 v1.0.0\n记录、随记与观照，陪你看见自己。')}
         />
       </View>
 

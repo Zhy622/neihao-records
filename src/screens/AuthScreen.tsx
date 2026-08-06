@@ -150,13 +150,13 @@ export function AuthScreen() {
             placeholder: '怎么称呼你？',
             value: displayName,
           }) : null}
-          {input('账号', 'person-outline', {
+          {input('邮箱', 'person-outline', {
             autoCapitalize: 'none',
             autoComplete: 'email',
             autoCorrect: false,
             keyboardType: 'email-address',
             onChangeText: setEmail,
-            placeholder: '请输入您的账号',
+            placeholder: '请输入您的邮箱',
             value: email,
           })}
           {input('密码', 'lock-closed-outline', {
