@@ -7,12 +7,13 @@ import { RecordCard } from '../components/RecordCard';
 import { Screen } from '../components/Screen';
 import { useRecords } from '../hooks/useRecords';
 import { RootStackParamList } from '../types/navigation';
-import { fonts } from '../theme';
+import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
 import { calculateStats } from '../utils/stats';
 
 const chartColors = ['#739476', '#A8C6AA', '#D7BA7D'];
 
 function SummaryMetric({ label, value }: { label: string; value: string | number }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.summaryMetric}>
       <Text style={styles.summaryValue} numberOfLines={1}>{value}</Text>
@@ -22,6 +23,7 @@ function SummaryMetric({ label, value }: { label: string; value: string | number
 }
 
 function InsightRow({ label, value }: { label: string; value: string }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.insightRow}>
       <Text style={styles.insightLabel}>{label}</Text>
@@ -35,9 +37,11 @@ function SectionHeading({ icon, title, subtitle }: {
   title: string;
   subtitle?: string;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.sectionHeading}>
-      <View style={styles.sectionIcon}><Ionicons name={icon} size={15} color="#466349" /></View>
+      <View style={styles.sectionIcon}><Ionicons name={icon} size={15} color={colors.brand} /></View>
       <View style={styles.sectionCopy}>
         <Text style={styles.sectionTitle}>{title}</Text>
         {subtitle ? <Text style={styles.sectionSubtitle}>{subtitle}</Text> : null}
@@ -47,6 +51,8 @@ function SectionHeading({ icon, title, subtitle }: {
 }
 
 export function StatsScreen() {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { width } = useWindowDimensions();
   const { records } = useRecords({}, { pageSize: 200 });
@@ -67,7 +73,7 @@ export function StatsScreen() {
   }));
 
   return (
-    <Screen backgroundColor="#F7FAF8" contentStyle={styles.content}>
+    <Screen backgroundColor={colors.background} contentStyle={styles.content}>
       <View style={styles.header}>
         <Text style={styles.eyebrow}>回看与觉察</Text>
         <Text style={styles.title}>你的记录模式</Text>
@@ -76,7 +82,7 @@ export function StatsScreen() {
 
       <View style={styles.overviewCard}>
         <View style={styles.overviewTop}>
-          <View style={styles.overviewIcon}><Ionicons name="analytics-outline" size={19} color="#466349" /></View>
+          <View style={styles.overviewIcon}><Ionicons name="analytics-outline" size={19} color={colors.brand} /></View>
           <Text style={styles.overviewLabel}>累计记录</Text>
         </View>
         <View style={styles.overviewNumberRow}>
@@ -125,17 +131,17 @@ export function StatsScreen() {
               height={145}
               spacing={isNarrow ? 33 : 40}
               thickness={2.5}
-              color="#638569"
-              dataPointsColor="#638569"
+              color={colors.brand}
+              dataPointsColor={colors.brand}
               areaChart
-              startFillColor="#CFE0D0"
-              endFillColor="#FFFFFF"
+              startFillColor={colors.brandSoft}
+              endFillColor={colors.card}
               startOpacity={0.4}
               endOpacity={0.04}
               hideRules
               hideYAxisText
-              yAxisColor="transparent"
-              xAxisColor="#E7ECE7"
+              yAxisColor={colors.transparent}
+              xAxisColor={colors.border}
               xAxisLabelTextStyle={styles.chartLabel}
               initialSpacing={6}
             />
@@ -196,52 +202,52 @@ function buildTrendData(records: ReturnType<typeof useRecords>['records']) {
   });
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   content: { gap: 18, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 128 },
   header: { gap: 5, paddingTop: 4, paddingBottom: 3 },
-  eyebrow: { color: '#638569', fontFamily: fonts.medium, fontSize: 12, letterSpacing: 0.6 },
-  title: { color: '#252C26', fontFamily: fonts.medium, fontSize: 25, letterSpacing: -0.7, lineHeight: 33 },
-  subtitle: { color: '#6B746C', fontFamily: fonts.regular, fontSize: 14, lineHeight: 21 },
-  overviewCard: { backgroundColor: '#FFFFFF', borderRadius: 28, gap: 9, padding: 21 },
+  eyebrow: { color: colors.brand, fontFamily: fonts.medium, fontSize: 12, letterSpacing: 0.6 },
+  title: { color: colors.text, fontFamily: fonts.medium, fontSize: 25, letterSpacing: -0.7, lineHeight: 33 },
+  subtitle: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 14, lineHeight: 21 },
+  overviewCard: { backgroundColor: colors.card, borderRadius: 28, gap: 9, padding: 21 },
   overviewTop: { alignItems: 'center', flexDirection: 'row', gap: 8 },
-  overviewIcon: { alignItems: 'center', backgroundColor: '#E8F0E8', borderRadius: 15, height: 30, justifyContent: 'center', width: 30 },
-  overviewLabel: { color: '#59705D', fontFamily: fonts.medium, fontSize: 13 },
+  overviewIcon: { alignItems: 'center', backgroundColor: colors.brandSoft, borderRadius: 15, height: 30, justifyContent: 'center', width: 30 },
+  overviewLabel: { color: colors.brand, fontFamily: fonts.medium, fontSize: 13 },
   overviewNumberRow: { alignItems: 'baseline', flexDirection: 'row', gap: 5, marginTop: 3 },
-  overviewNumber: { color: '#304832', fontFamily: fonts.semibold, fontSize: 37, fontVariant: ['tabular-nums'], letterSpacing: -1.2, lineHeight: 44 },
-  overviewUnit: { color: '#59705D', fontFamily: fonts.regular, fontSize: 14 },
-  overviewHint: { color: '#788078', fontFamily: fonts.regular, fontSize: 13, lineHeight: 20 },
+  overviewNumber: { color: colors.text, fontFamily: fonts.semibold, fontSize: 37, fontVariant: ['tabular-nums'], letterSpacing: -1.2, lineHeight: 44 },
+  overviewUnit: { color: colors.brand, fontFamily: fonts.regular, fontSize: 14 },
+  overviewHint: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 13, lineHeight: 20 },
   summaryGrid: { alignItems: 'stretch', flexDirection: 'row', marginTop: 9 },
   summaryMetric: { flex: 1, gap: 5 },
-  summaryValue: { color: '#303832', fontFamily: fonts.medium, fontSize: 15, lineHeight: 20 },
-  summaryLabel: { color: '#89918A', fontFamily: fonts.regular, fontSize: 11 },
-  summaryDivider: { backgroundColor: '#EDF0ED', marginHorizontal: 8, width: StyleSheet.hairlineWidth },
-  intensityCard: { backgroundColor: '#EDF4ED', borderRadius: 22, flexDirection: 'row', paddingVertical: 16 },
+  summaryValue: { color: colors.text, fontFamily: fonts.medium, fontSize: 15, lineHeight: 20 },
+  summaryLabel: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 11 },
+  summaryDivider: { backgroundColor: colors.border, marginHorizontal: 8, width: StyleSheet.hairlineWidth },
+  intensityCard: { backgroundColor: colors.brandSoft, borderRadius: 22, flexDirection: 'row', paddingVertical: 16 },
   intensityItem: { flex: 1, gap: 5, paddingHorizontal: 18 },
-  intensityLabel: { color: '#68756A', fontFamily: fonts.regular, fontSize: 12 },
-  intensityValue: { color: '#3D5940', fontFamily: fonts.semibold, fontSize: 20, fontVariant: ['tabular-nums'] },
-  intensityUnit: { color: '#748176', fontFamily: fonts.regular, fontSize: 11 },
-  intensityDivider: { backgroundColor: '#DDE8DD', width: StyleSheet.hairlineWidth },
-  insightsCard: { backgroundColor: '#FFFFFF', borderRadius: 28, overflow: 'hidden', paddingTop: 18 },
+  intensityLabel: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 12 },
+  intensityValue: { color: colors.text, fontFamily: fonts.semibold, fontSize: 20, fontVariant: ['tabular-nums'] },
+  intensityUnit: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 11 },
+  intensityDivider: { backgroundColor: colors.border, width: StyleSheet.hairlineWidth },
+  insightsCard: { backgroundColor: colors.card, borderRadius: 28, overflow: 'hidden', paddingTop: 18 },
   sectionHeading: { alignItems: 'center', flexDirection: 'row', gap: 9, paddingHorizontal: 18 },
-  sectionIcon: { alignItems: 'center', backgroundColor: '#ECF2EC', borderRadius: 12, height: 24, justifyContent: 'center', width: 24 },
+  sectionIcon: { alignItems: 'center', backgroundColor: colors.brandSoft, borderRadius: 12, height: 24, justifyContent: 'center', width: 24 },
   sectionCopy: { flex: 1, gap: 1 },
-  sectionTitle: { color: '#354035', fontFamily: fonts.medium, fontSize: 16 },
-  sectionSubtitle: { color: '#909790', fontFamily: fonts.regular, fontSize: 11 },
+  sectionTitle: { color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
+  sectionSubtitle: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 11 },
   insightRow: { borderBottomColor: '#EEF1EE', borderBottomWidth: StyleSheet.hairlineWidth, gap: 4, marginLeft: 51, paddingBottom: 12, paddingRight: 18, paddingTop: 12 },
-  insightLabel: { color: '#89918A', fontFamily: fonts.regular, fontSize: 12 },
-  insightValue: { color: '#3D463E', fontFamily: fonts.medium, fontSize: 13, lineHeight: 20 },
-  chartCard: { backgroundColor: '#FFFFFF', borderRadius: 28, gap: 17, paddingBottom: 18, paddingTop: 18 },
+  insightLabel: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 12 },
+  insightValue: { color: colors.text, fontFamily: fonts.medium, fontSize: 13, lineHeight: 20 },
+  chartCard: { backgroundColor: colors.card, borderRadius: 28, gap: 17, paddingBottom: 18, paddingTop: 18 },
   lineChartWrap: { marginLeft: 13, overflow: 'hidden' },
-  chartLabel: { color: '#939A94', fontFamily: fonts.regular, fontSize: 9 },
-  chartEmpty: { color: '#89918A', fontFamily: fonts.regular, fontSize: 13, lineHeight: 21, paddingHorizontal: 24, paddingVertical: 35, textAlign: 'center' },
+  chartLabel: { color: colors.placeholder, fontFamily: fonts.regular, fontSize: 9 },
+  chartEmpty: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 13, lineHeight: 21, paddingHorizontal: 24, paddingVertical: 35, textAlign: 'center' },
   distributionBody: { alignItems: 'center', flexDirection: 'row', gap: 20, paddingHorizontal: 24 },
   distributionBodyNarrow: { gap: 13, paddingHorizontal: 18 },
   legend: { flex: 1, gap: 11 },
   legendRow: { alignItems: 'center', flexDirection: 'row', gap: 7 },
   legendDot: { borderRadius: 5, height: 10, width: 10 },
-  legendText: { color: '#4C554D', flex: 1, fontFamily: fonts.regular, fontSize: 12 },
-  legendCount: { color: '#6E786F', fontFamily: fonts.medium, fontSize: 12 },
+  legendText: { color: colors.textSecondary, flex: 1, fontFamily: fonts.regular, fontSize: 12 },
+  legendCount: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 12 },
   recordsSection: { gap: 14 },
   list: { gap: 10 },
-  recordsEmpty: { color: '#89918A', fontFamily: fonts.regular, fontSize: 13, lineHeight: 21, paddingHorizontal: 24, paddingVertical: 26, textAlign: 'center' },
+  recordsEmpty: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 13, lineHeight: 21, paddingHorizontal: 24, paddingVertical: 26, textAlign: 'center' },
 });

@@ -30,7 +30,7 @@ import {
 } from '../types/record';
 import { RootStackParamList } from '../types/navigation';
 import { syncRecordById } from '../sync/records-sync';
-import { colors, fonts } from '../theme';
+import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
 
 const levels = Array.from({ length: 10 }, (_, index) => index + 1);
 
@@ -45,10 +45,12 @@ function Field({
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={[styles.field, style]}>
       <View style={styles.labelRow}>
-        <Ionicons name={icon} size={16} color="#466349" />
+        <Ionicons name={icon} size={16} color={colors.brand} />
         <Text style={styles.label}>{label}</Text>
       </View>
       {children}
@@ -69,11 +71,13 @@ function IntensityField({
   value: number;
   onChange: (value: number) => void;
 }) {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useAppTheme();
   return (
     <View style={[styles.field, styles.intensityField]}>
       <View style={styles.intensityHeader}>
         <View style={styles.labelRow}>
-          <Ionicons name={icon} size={16} color="#466349" />
+          <Ionicons name={icon} size={16} color={colors.brand} />
           <Text style={styles.label}>{label}</Text>
         </View>
       </View>
@@ -106,6 +110,8 @@ function IntensityField({
 }
 
 export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Record'>) {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const db = useSQLiteContext();
   const { session } = useAuth();
   const { alert } = useAppAlert();
@@ -186,7 +192,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
 
   return (
     <Screen
-      backgroundColor="#F7FAF8"
+      backgroundColor={colors.background}
       keyboardAvoiding
       scrollViewRef={scrollViewRef}
       contentStyle={styles.content}
@@ -199,7 +205,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
               value={title}
               onChangeText={setTitle}
               placeholder="例如：要不要接下这个任务"
-              placeholderTextColor="rgba(115, 121, 113, 0.5)"
+              placeholderTextColor={colors.placeholder}
               style={styles.input}
             />
           </Field>
@@ -269,7 +275,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
               onChangeText={setThoughts}
               onFocus={revealBottomFields}
               placeholder="脑海里一直在想什么？"
-              placeholderTextColor="rgba(115, 121, 113, 0.5)"
+              placeholderTextColor={colors.placeholder}
               style={[styles.input, styles.multiline]}
               multiline
             />
@@ -281,7 +287,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
               onChangeText={setFinalDecision}
               onFocus={revealBottomFields}
               placeholder="写下最终选择或暂时的处理方式"
-              placeholderTextColor="rgba(115, 121, 113, 0.5)"
+              placeholderTextColor={colors.placeholder}
               style={[styles.input, styles.multiline]}
               multiline
             />
@@ -329,7 +335,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
         snapPoints={selectionSnapPoints}
         backgroundStyle={styles.sheetBackground}
         handleIndicatorStyle={styles.sheetIndicator}
-        backdropComponent={(props) => <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={0.18} />}
+        backdropComponent={(props) => <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={1} style={{ backgroundColor: colors.overlay }} />}
       >
         <BottomSheetScrollView contentContainerStyle={styles.sheetContent}>
           <Text style={styles.sheetTitle}>选择分类</Text>
@@ -361,7 +367,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
         snapPoints={selectionSnapPoints}
         backgroundStyle={styles.sheetBackground}
         handleIndicatorStyle={styles.sheetIndicator}
-        backdropComponent={(props) => <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={0.18} />}
+        backdropComponent={(props) => <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={1} style={{ backgroundColor: colors.overlay }} />}
       >
         <BottomSheetScrollView contentContainerStyle={styles.sheetContent}>
           <Text style={styles.sheetTitle}>选择当时的感受</Text>
@@ -393,9 +399,9 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   content: { paddingTop: 32, paddingBottom: 40, gap: 32 },
-  intro: { color: '#424841', fontFamily: fonts.medium, fontSize: 16, lineHeight: 26 },
+  intro: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 16, lineHeight: 26 },
   form: { gap: 32 },
   basicFields: { gap: 16 },
   intensityFields: { gap: 16 },
@@ -404,11 +410,11 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     borderCurve: 'continuous',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     // boxShadow: '0 1px 1px rgba(0, 0, 0, 0.05)',
   },
   label: {
-    color: '#062509',
+    color: colors.text,
     fontFamily: fonts.medium,
     fontSize: 14,
     lineHeight: 20,
@@ -420,8 +426,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
     borderCurve: 'continuous',
-    backgroundColor: '#F1F4F2',
-    color: '#181C1C',
+    backgroundColor: colors.input,
+    color: colors.text,
     fontFamily: fonts.regular,
     fontSize: 14,
     lineHeight: 26,
@@ -435,10 +441,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
     borderCurve: 'continuous',
-    backgroundColor: '#F1F4F2',
+    backgroundColor: colors.input,
   },
-  selectorText: { flex: 1, color: '#181C1C', fontFamily: fonts.regular, fontSize: 14, lineHeight: 26 },
-  placeholder: { color: 'rgba(115, 121, 113, 0.7)' },
+  selectorText: { flex: 1, color: colors.text, fontFamily: fonts.regular, fontSize: 14, lineHeight: 26 },
+  placeholder: { color: colors.placeholder },
   intensityField: { gap: 16 },
   intensityHeader: { flexDirection: 'row', alignItems: 'center' },
   levels: { flexDirection: 'row', gap: 4 },
@@ -449,12 +455,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 8,
     borderCurve: 'continuous',
-    backgroundColor: '#F1F4F2',
+    backgroundColor: colors.input,
   },
-  selectedEmotionLevel: { backgroundColor: '#c6eec4' },
-  selectedDecisionLevel: { backgroundColor: '#c6eec4'},
-  levelText: { color: '#737971', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
-  selectedLevelText: { color: '#314D34' },
+  selectedEmotionLevel: { backgroundColor: colors.positiveSoft },
+  selectedDecisionLevel: { backgroundColor: colors.positiveSoft},
+  levelText: { color: colors.placeholder, fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
+  selectedLevelText: { color: colors.positive },
   timeField: { gap: 16 },
   timeOptions: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 10, rowGap: 10 },
   timeOption: {
@@ -463,15 +469,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
     borderRadius: 18,
-    backgroundColor: '#F1F4F2',
+    backgroundColor: colors.input,
 
   },
   selectedTimeOption: {
     height: 38,
-    backgroundColor: '#c6eec4',
+    backgroundColor: colors.positiveSoft,
   },
-  timeOptionText: { color: '#181C1C', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
-  selectedTimeOptionText: { color: '#314D34' },
+  timeOptionText: { color: colors.text, fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
+  selectedTimeOptionText: { color: colors.positive },
   reflections: { gap: 16 },
   reflectionField: { paddingBottom: 22 },
   multiline: { height: 102, paddingTop: 12, paddingBottom: 12, textAlignVertical: 'top' },
@@ -482,7 +488,7 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 12,
     borderCurve: 'continuous',
-    backgroundColor: '#F1F4F2',
+    backgroundColor: colors.input,
   },
   worthOption: {
     flex: 1,
@@ -491,9 +497,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderCurve: 'continuous',
   },
-  selectedWorthOption: { backgroundColor: '#FFFFFF', boxShadow: '0 1px 1px rgba(0, 0, 0, 0.05)' },
-  worthOptionText: { color: '#737971', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
-  selectedWorthOptionText: { color: '#466349' },
+  selectedWorthOption: { backgroundColor: colors.card, boxShadow: `0 1px 1px ${colors.shadow}` },
+  worthOptionText: { color: colors.placeholder, fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
+  selectedWorthOptionText: { color: colors.brand },
   save: {
     height: 56,
     alignItems: 'center',
@@ -501,14 +507,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     borderRadius: 32,
-    backgroundColor: '#466349',
+    backgroundColor: colors.brand,
     boxShadow: '0 10px 15px -3px rgba(70, 99, 73, 0.2)',
   },
-  saveText: { color: colors.white, fontFamily: fonts.bold, fontSize: 14, lineHeight: 20 },
-  sheetBackground: { borderRadius: 28, backgroundColor: '#FFFFFF' },
-  sheetIndicator: { backgroundColor: '#D6D0C8' },
+  saveText: { color: colors.buttonForeground, fontFamily: fonts.bold, fontSize: 14, lineHeight: 20 },
+  sheetBackground: { borderRadius: 28, backgroundColor: colors.card },
+  sheetIndicator: { backgroundColor: colors.border },
   sheetContent: { padding: 20, paddingBottom: 34, gap: 16 },
-  sheetTitle: { color: '#181C1C', fontFamily: fonts.bold, fontSize: 20 },
+  sheetTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 20 },
   sheetChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   sheetChip: {
     paddingHorizontal: 14,
@@ -516,10 +522,10 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     borderColor: '#E3E1DA',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.cardSecondary,
   },
-  selectedSheetChip: { backgroundColor: '#CAEBC9', borderColor: '#CAEBC9' },
-  sheetChipText: { color: '#737971', fontFamily: fonts.medium, fontSize: 14 },
-  selectedSheetChipText: { color: '#314D34', fontFamily: fonts.semibold },
+  selectedSheetChip: { backgroundColor: colors.positiveSoft, borderColor: colors.positiveSoft },
+  sheetChipText: { color: colors.placeholder, fontFamily: fonts.medium, fontSize: 14 },
+  selectedSheetChipText: { color: colors.positive, fontFamily: fonts.semibold },
   pressed: { opacity: 0.75 },
 });

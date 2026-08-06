@@ -15,7 +15,7 @@ import { Screen } from '../components/Screen';
 import { deleteLocalNote, getNote, updateNote } from '../database/database';
 import { NOTE_CATEGORIES, NOTE_EMOTIONS, NOTE_TYPES, Note, NoteCategory, NoteEmotion, NoteType } from '../types/note';
 import { RootStackParamList } from '../types/navigation';
-import { colors, fonts } from '../theme';
+import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
 
 function toggleItem<T>(items: T[], item: T) {
   return items.includes(item) ? items.filter((current) => current !== item) : [...items, item];
@@ -32,6 +32,7 @@ function Pill({
   tone: 'type' | 'emotion' | 'category';
   onPress?: () => void;
 }) {
+  const styles = useThemedStyles(createStyles);
   const palette = pillTones[tone];
 
   return (
@@ -49,6 +50,8 @@ export function NoteDetailScreen({
   navigation,
   route,
 }: NativeStackScreenProps<RootStackParamList, 'NoteDetail'>) {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const db = useSQLiteContext();
   const { session } = useAuth();
   const { alert } = useAppAlert();
@@ -164,7 +167,7 @@ export function NoteDetailScreen({
                   onLayout={scrollbar.onLayout}
                   onScroll={scrollbar.onScroll}
                   placeholder="写下此刻..."
-                  placeholderTextColor={colors.muted}
+                  placeholderTextColor={colors.placeholder}
                   style={styles.editInput}
                   textAlignVertical="top"
                 />
@@ -182,7 +185,7 @@ export function NoteDetailScreen({
                 organizeSheetRef.current?.present();
               }}
             >
-              <Ionicons name="options-outline" size={18} color="#466349" />
+              <Ionicons name="options-outline" size={18} color={colors.brand} />
               <Text style={styles.organizeText}>整理标签</Text>
             </HapticPressable>
 
@@ -202,7 +205,7 @@ export function NoteDetailScreen({
           snapPoints={sheetSnapPoints}
           backgroundStyle={styles.sheetBackground}
           handleIndicatorStyle={styles.sheetIndicator}
-          backdropComponent={(props) => <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={0.18} />}
+          backdropComponent={(props) => <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={1} style={{ backgroundColor: colors.overlay }} />}
         >
           <BottomSheetScrollView contentContainerStyle={styles.sheetContent}>
             <Text style={styles.sheetTitle}>整理这条随记</Text>
@@ -233,7 +236,7 @@ export function NoteDetailScreen({
   }
 
   return (
-    <Screen backgroundColor="#F7FAF8" keyboardAvoiding keyboardAvoidingMode="fullscreen" contentStyle={styles.content}>
+    <Screen backgroundColor={colors.background} keyboardAvoiding keyboardAvoidingMode="fullscreen" contentStyle={styles.content}>
       <View style={styles.card}>
         <View pointerEvents="none" style={styles.cardAccent} />
         <View style={styles.cardHeader}>
@@ -256,11 +259,11 @@ export function NoteDetailScreen({
 
       <View style={styles.actions}>
         <HapticPressable style={({ pressed }) => [styles.secondaryButton, styles.editButton, pressed && styles.pressed]} onPress={() => setEditing(true)}>
-          <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+          <Ionicons name="create-outline" size={18} color={colors.buttonForeground} />
           <Text style={[styles.secondaryText, styles.editText]}>编辑</Text>
         </HapticPressable>
         <HapticPressable style={({ pressed }) => [styles.dangerButton, pressed && styles.pressed]} onPress={remove}>
-          <Ionicons name="trash-outline" size={18} color="#5A625B" />
+          <Ionicons name="trash-outline" size={18} color={colors.danger} />
           <Text style={styles.dangerText}>删除</Text>
         </HapticPressable>
       </View>
@@ -268,9 +271,9 @@ export function NoteDetailScreen({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   content: { paddingTop: 20, paddingHorizontal: 30, paddingBottom: 130, gap: 32 },
-  editSafe: { flex: 1, backgroundColor: '#F7FAF8' },
+  editSafe: { flex: 1, backgroundColor: colors.background },
   editKeyboardContainer: { flex: 1 },
   editPage: { flex: 1, minHeight: 0, gap: 16, paddingHorizontal: 30, paddingTop: 20, paddingBottom: 20 },
   editCard: {
@@ -282,7 +285,7 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
     borderRadius: 28,
     borderCurve: 'continuous',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     boxShadow: '0 12px 24px -12px rgba(70, 99, 73, 0.08)',
   },
   card: {
@@ -293,13 +296,13 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
     borderRadius: 28,
     borderCurve: 'continuous',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     boxShadow: '0 12px 24px -12px rgba(70, 99, 73, 0.08)',
   },
-  cardAccent: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, backgroundColor: '#D8EED8' },
+  cardAccent: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, backgroundColor: colors.positiveSoft },
   cardHeader: { gap: 9 },
-  divider: { height: 1, backgroundColor: '#E0E5E0' },
-  noteText: { marginTop: 24,marginBottom: 24, color: '#181C1C', fontFamily: fonts.regular, fontSize: 15, lineHeight: 26 },
+  divider: { height: 1, backgroundColor: colors.border },
+  noteText: { marginTop: 24,marginBottom: 24, color: colors.text, fontFamily: fonts.regular, fontSize: 15, lineHeight: 26 },
   editInputContainer: { flex: 1, minHeight: 0, position: 'relative', marginTop: 20 },
   editInput: {
     flex: 1,
@@ -307,29 +310,29 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     padding: 0,
     paddingRight: 6,
-    color: '#181C1C',
+    color: colors.text,
     fontFamily: fonts.regular,
     fontSize: 15,
     letterSpacing:0.3,
     lineHeight: 24,
   },
-  meta: { color: '#7B827B', fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
-  updatedMeta: { marginTop: 8, color: '#A0A7A0', fontFamily: fonts.regular, fontSize: 12, lineHeight: 18 },
+  meta: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
+  updatedMeta: { marginTop: 8, color: colors.placeholder, fontFamily: fonts.regular, fontSize: 12, lineHeight: 18 },
   cardFooter: { marginTop: 'auto', flexDirection: 'row', alignItems: 'center', gap: 10 },
   footerDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#8FAF93' },
   footerText: { color: '#ABB0AB', fontFamily: fonts.regular, fontSize: 12, letterSpacing: 0.2 },
   section: { gap: 10 },
   editorSections: { gap: 20 },
-  organizeButton: { height: 48, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 24, backgroundColor: '#EDF3F0' },
-  organizeText: { color: '#466349', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
-  sheetBackground: { borderRadius: 28, backgroundColor: '#FFFEFC' },
-  sheetIndicator: { backgroundColor: '#D6D0C8' },
+  organizeButton: { height: 48, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 24, backgroundColor: colors.brandSoft },
+  organizeText: { color: colors.brand, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  sheetBackground: { borderRadius: 28, backgroundColor: colors.card },
+  sheetIndicator: { backgroundColor: colors.border },
   sheetContent: { padding: 20, paddingBottom: 34, gap: 18 },
   sheetTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 20 },
   label: { color: colors.text, fontFamily: fonts.semibold, fontSize: 15 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   tag: {
-    color: '#424841',
+    color: colors.textSecondary,
     fontFamily: fonts.regular,
     fontSize: 14,
     lineHeight: 20,
@@ -337,15 +340,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 999,
   },
-  typeTag: { backgroundColor: '#EFF0EE' },
-  emotionTag: { backgroundColor: '#FFF0DE' },
-  categoryTag: { backgroundColor: '#E4F4E5' },
+  typeTag: { backgroundColor: colors.cardSecondary },
+  emotionTag: { backgroundColor: colors.warmSoft },
+  categoryTag: { backgroundColor: colors.positiveSoft },
   pill: {
     borderRadius: 999,
     paddingHorizontal: 14,
     paddingVertical: 9,
   },
-  pillText: { color: colors.muted, fontFamily: fonts.regular, fontSize: 13 },
+  pillText: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 13 },
   actions: { flexDirection: 'row', gap: 16},
   primaryButton: {
     flex: 1,
@@ -353,9 +356,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 28,
-    backgroundColor: '#466349',
+    backgroundColor: colors.brand,
   },
-  primaryText: { color: colors.white, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  primaryText: { color: colors.buttonForeground, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   secondaryButton: {
     flex: 1,
     height: 52,
@@ -364,11 +367,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 28,
-    backgroundColor: '#E9EDEC',
+    backgroundColor: colors.cardSecondary,
   },
-  secondaryText: { color: '#5A625B', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
-  editButton: { backgroundColor: '#466349' },
-  editText: { color: '#FFFFFF' },
+  secondaryText: { color: colors.textSecondary, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  editButton: { backgroundColor: colors.brand },
+  editText: { color: colors.buttonForeground },
   dangerButton: {
     flex: 1,
     height: 52,
@@ -377,9 +380,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 28,
-    backgroundColor: '#E9EDEC',
+    backgroundColor: colors.cardSecondary,
   },
-  dangerText: { color: '#5A625B', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  dangerText: { color: colors.danger, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   pressed: { opacity: 0.78 },
 });
 

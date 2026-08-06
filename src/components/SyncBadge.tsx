@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { LocalSyncStatus } from '../types/record';
-import { colors, fonts } from '../theme';
+import { AppColors, fonts, useThemedStyles } from '../theme';
 
 const labels: Record<LocalSyncStatus, string> = {
   pending_create: '待同步',
@@ -10,6 +10,7 @@ const labels: Record<LocalSyncStatus, string> = {
 };
 
 export function SyncBadge({ status, compact = false }: { status: LocalSyncStatus; compact?: boolean }) {
+  const styles = useThemedStyles(createStyles);
   const synced = status === 'synced';
 
   return (
@@ -21,13 +22,13 @@ export function SyncBadge({ status, compact = false }: { status: LocalSyncStatus
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   badge: { borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4 },
   compactBadge: { paddingHorizontal: 8, paddingVertical: 3 },
-  synced: { backgroundColor: '#E5ECE6' },
-  pending: { backgroundColor: '#F3F0FA' },
+  synced: { backgroundColor: colors.brandSoft },
+  pending: { backgroundColor: colors.purpleSoft },
   text: { fontFamily: fonts.semibold, fontSize: 12 },
   compactText: { fontFamily: fonts.medium, fontSize: 11 },
-  syncedText: { color: colors.primary },
-  pendingText: { color: '#776C91' },
+  syncedText: { color: colors.brand },
+  pendingText: { color: colors.purple },
 });

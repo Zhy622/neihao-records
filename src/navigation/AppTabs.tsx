@@ -8,7 +8,7 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { NoteEditorScreen } from '../screens/NoteEditorScreen';
 import { PeopleObservationScreen } from '../screens/PeopleObservationScreen';
 import { MainTabsParamList } from '../types/navigation';
-import { colors, fonts } from '../theme';
+import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
 import { HapticPressable } from '../components/HapticPressable';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
@@ -27,25 +27,27 @@ const labels: Record<keyof MainTabsParamList, string> = {
   Account: '账号',
 };
 
-function MirrorTabIcon({ color, selected, size }: { color: string; selected: boolean; size: number }) {
+function MirrorTabIcon({ color, selected, size, foreground }: { color: string; selected: boolean; size: number; foreground: string }) {
   return (
     <Svg height={size} viewBox="0 0 24 24" width={size}>
       <Circle cx="12" cy="12" r="8.4" fill={selected ? color : 'none'} stroke={color} strokeWidth="1.65" />
-      <Path d="M15 6.8a6.6 6.6 0 0 1 2.2 4.2" fill="none" stroke={selected ? '#F7FAF8' : color} strokeLinecap="round" strokeWidth="1.65" />
+      <Path d="M15 6.8a6.6 6.6 0 0 1 2.2 4.2" fill="none" stroke={selected ? foreground : color} strokeLinecap="round" strokeWidth="1.65" />
     </Svg>
   );
 }
 
 export function AppTabs() {
+  const { colors, isDark } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarActiveTintColor: '#466349',
-        tabBarInactiveTintColor: '#424841',
+        tabBarActiveTintColor: colors.brand,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarBackground: () => (
-          <BlurView intensity={35} tint="light" style={[StyleSheet.absoluteFill, styles.tabBarBackground]} />
+          <BlurView intensity={35} tint={isDark ? "dark" : "light"} style={[StyleSheet.absoluteFill, styles.tabBarBackground]} />
         ),
         tabBarIcon: ({ color, focused }) => {
           const routeIcons = icons[route.name as keyof typeof icons];
@@ -53,7 +55,7 @@ export function AppTabs() {
           return (
             <View style={styles.tabItem}>
               {route.name === 'Observation' ? (
-                <MirrorTabIcon color={color} selected={focused} size={focused ? 20 : 19} />
+                <MirrorTabIcon color={color} selected={focused} size={focused ? 20 : 19} foreground={colors.buttonForeground} />
               ) : (
                 <Ionicons
                   name={focused ? routeIcons.active : routeIcons.inactive}
@@ -72,11 +74,11 @@ export function AppTabs() {
           height: 81,
           paddingTop: 12,
           paddingBottom: 12,
-          backgroundColor: 'rgba(255, 255, 255, 0.92)',
-          borderTopColor: 'rgba(194, 200, 191, 0.1)',
+          backgroundColor: colors.card,
+          borderTopColor: colors.border,
           borderTopLeftRadius: 32,
           borderTopRightRadius: 32,
-          boxShadow: '0 -4px 24px rgba(70, 99, 73, 0.06)',
+          boxShadow: `0 -4px 24px ${colors.shadow}`,
         },
         tabBarItemStyle: { padding: 0 },
       })}
@@ -88,9 +90,9 @@ export function AppTabs() {
           title: '情绪笔录',
           // headerShown: true,
           headerTitleAlign: 'center',
-          headerStyle: { height: 80, backgroundColor: 'rgba(247, 250, 248, 0.96)' },
+          headerStyle: { height: 80, backgroundColor: colors.background },
           headerShadowVisible: true,
-          headerTintColor: '#181C1C',
+          headerTintColor: colors.text,
           headerTitleStyle: {
             fontFamily: fonts.bold,
             fontSize: 24,
@@ -107,10 +109,10 @@ export function AppTabs() {
           tabBarHideOnKeyboard: true,
           headerTitleAlign: 'center',
           headerLeft: () => null,
-          headerStyle: { backgroundColor: 'rgba(247, 250, 248, 0.96)' },
+          headerStyle: { backgroundColor: colors.background },
           headerShadowVisible: false,
-          headerTintColor: '#466349',
-          headerTitleStyle: { color: '#466349', fontFamily: fonts.medium, fontSize: 18 },
+          headerTintColor: colors.brand,
+          headerTitleStyle: { color: colors.brand, fontFamily: fonts.medium, fontSize: 18 },
           headerRight: () => (
             <HapticPressable
               accessibilityRole="button"
@@ -118,7 +120,7 @@ export function AppTabs() {
               style={{ padding: 4, borderRadius: 18, marginRight: 12 }}
               onPress={() => navigation.getParent()?.navigate('NoteHistory')}
             >
-              <Ionicons name="reader-outline" size={22} color="#466349" />
+              <Ionicons name="reader-outline" size={22} color={colors.brand} />
             </HapticPressable>
           ),
         })}
@@ -131,10 +133,10 @@ export function AppTabs() {
           headerShown: true,
           headerTitleAlign: 'center',
           headerLeft: () => null,
-          headerStyle: { backgroundColor: 'rgba(247, 250, 248, 0.96)' },
+          headerStyle: { backgroundColor: colors.background },
           headerShadowVisible: false,
-          headerTintColor: '#466349',
-          headerTitleStyle: { color: '#466349', fontFamily: fonts.medium, fontSize: 18 },
+          headerTintColor: colors.brand,
+          headerTitleStyle: { color: colors.brand, fontFamily: fonts.medium, fontSize: 18 },
           headerRight: () => (
             <HapticPressable
               accessibilityRole="button"
@@ -142,7 +144,7 @@ export function AppTabs() {
               style={{ padding: 4, borderRadius: 18, marginRight: 12 }}
               onPress={() => navigation.getParent()?.navigate('PeopleObservationHistory')}
             >
-              <Ionicons name="list-outline" size={22} color="#466349" />
+              <Ionicons name="list-outline" size={22} color={colors.brand} />
             </HapticPressable>
           ),
         })}
@@ -152,12 +154,12 @@ export function AppTabs() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   tabBarBackground: {
     overflow: 'hidden',
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+    backgroundColor: colors.card,
   },
   tabItem: {
     width: 62,

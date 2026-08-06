@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View,useColorScheme } from 'react-native';
 import { HapticPressable } from '../components/HapticPressable';
 import { Screen } from '../components/Screen';
 import { SoftCard } from '../components/SoftCard';
@@ -8,11 +8,12 @@ import { StatCard } from '../components/StatCard';
 import { useRecords } from '../hooks/useRecords';
 import { RootStackParamList } from '../types/navigation';
 import { average, getTodayRecords, mostCommon } from '../utils/stats';
-import { colors, fonts } from '../theme';
-
-const backgroundColor = '#F7FAF8';
+import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
 
 export function HomeScreen({ navigation }: { navigation: NativeStackNavigationProp<RootStackParamList> }) {
+  const { colors } = useAppTheme();
+  const scheme = useColorScheme();
+  const styles = useThemedStyles(createStyles);
   const { records } = useRecords({}, { pageSize: 200 });
   const todayRecords = getTodayRecords(records);
   const pendingCount = records.filter((record) => record.syncStatus !== 'synced').length;
@@ -23,7 +24,7 @@ export function HomeScreen({ navigation }: { navigation: NativeStackNavigationPr
     : 0;
 
   return (
-    <Screen backgroundColor={backgroundColor} contentStyle={styles.content}>
+    <Screen backgroundColor={colors.background} contentStyle={styles.content}>
       <View style={styles.hero}>
         <View style={styles.heroGlow} />
         <View style={styles.heroCopy}>
@@ -33,11 +34,11 @@ export function HomeScreen({ navigation }: { navigation: NativeStackNavigationPr
           </View>
           <Text style={styles.subtitle}>记录不是为了责怪，而是为了看清反复出现的模式。</Text>
         </View>
-        <Image
+        {scheme!='dark'?<Image
           accessibilityIgnoresInvertColors
           source={require('../../assets/home-hero-leaves.png')}
           style={styles.heroLeaves}
-        />
+        />:''}
       </View>
       <View style={styles.grid}>
         <HapticPressable
@@ -55,30 +56,30 @@ export function HomeScreen({ navigation }: { navigation: NativeStackNavigationPr
         </HapticPressable>
         <StatCard
           icon="happy-outline"
-          iconBackgroundColor="rgba(255, 220, 189, 0.3)"
-          iconColor="#7A532A"
+          iconBackgroundColor={colors.warmSoft}
+          iconColor={colors.warm}
           label="今日平均情绪"
           value={averageIntensity ? averageIntensity.toFixed(1) : '-'}
         />
         <StatCard
           compact
           icon="shapes-outline"
-          iconBackgroundColor="rgba(227, 228, 211, 0.3)"
-          iconColor="#666858"
+          iconBackgroundColor={colors.cardSecondary}
+          iconColor={colors.textSecondary}
           label="今日常见分类"
           value={commonCategory ?? '暂无'}
         />
         <StatCard
           icon="flash-outline"
-          iconBackgroundColor="rgba(255, 218, 214, 0.3)"
-          iconColor="#C10E1A"
+          iconBackgroundColor={colors.dangerSoft}
+          iconColor={colors.danger}
           label="最高耗心力"
           value={hardestToday ? `${hardestToday}/20` : '-'}
         />
       </View>
       {pendingCount ? (
-        <SoftCard colors={['#FFFFFF', '#F4F8F4']} style={styles.pendingCard}>
-          <Ionicons name="cloud-upload-outline" size={18} color={colors.primary} />
+        <SoftCard colors={[colors.card, colors.brandSoft]} style={styles.pendingCard}>
+          <Ionicons name="cloud-upload-outline" size={18} color={colors.brand} />
           <Text style={styles.pending}>有 {pendingCount} 条记录待同步，联网后会自动重试。</Text>
         </SoftCard>
       ) : null}
@@ -88,11 +89,11 @@ export function HomeScreen({ navigation }: { navigation: NativeStackNavigationPr
         style={({ pressed }) => [styles.button, pressed && styles.pressed]}
         onPress={() => navigation.navigate('Record')}
       >
-        <Ionicons name="add" size={20} color={colors.white} />
+        <Ionicons name="add" size={20} color={colors.buttonForeground} />
         <Text style={styles.buttonText}>记录一次纠结</Text>
       </HapticPressable>
-      <SoftCard colors={['#FFF3E8', '#FFF3E8']} style={styles.tipCard}>
-        <Ionicons name="bulb-outline" size={20} color="#7A532A" />
+      <SoftCard colors={[colors.warmSoft, colors.warmSoft]} style={styles.tipCard}>
+        <Ionicons name="bulb-outline" size={20} color={colors.warm} />
         <View style={styles.tipCopy}>
           <Text style={styles.tipTitle}>小贴士</Text>
           <Text style={styles.tipText}>
@@ -104,7 +105,7 @@ export function HomeScreen({ navigation }: { navigation: NativeStackNavigationPr
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   content: { paddingTop: 32, gap: 32 },
   hero: {
     minHeight: 200,
@@ -114,29 +115,29 @@ const styles = StyleSheet.create({
     borderCurve: 'continuous',
     // borderWidth: 1,
     // borderColor: 'rgba(194, 200, 191, 0.3)',
-    backgroundColor: '#FFFFFF',
-    boxShadow: '0 10px 40px -10px rgba(70, 99, 73, 0.08)',
+    backgroundColor: colors.card,
+    boxShadow: `0 10px 40px -10px ${colors.shadow}`,
   },
-  heroGlow: {
+  gg: {
     position: 'absolute',
     top: -64,
     right: -64,
     width: 256,
     height: 256,
     borderRadius: 128,
-    backgroundColor: 'rgba(202, 235, 201, 0.1)',
+    backgroundColor: colors.brandSoft,
   },
   heroCopy: { gap: 24 },
   heroHeading: { gap: 7 },
   eyebrow: {
-    color: '#466349',
+    color: colors.brand,
     fontFamily: fonts.medium,
     fontSize: 10,
     lineHeight: 20,
     letterSpacing: 1.4,
   },
   title: {
-    color: '#181C1C',
+    color: colors.text,
     fontFamily: fonts.medium,
     fontSize: 26,
     lineHeight: 32.5,
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     maxWidth: 280,
-    color: '#424841',
+    color: colors.textSecondary,
     fontFamily: fonts.regular,
     fontSize: 12,
     lineHeight: 26,
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
   },
   todayRecordsCard: { flex: 1, minWidth: '46%', height: 140, borderRadius: 24 },
   pendingCard: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 14 },
-  pending: { flex: 1, color: colors.primary, fontFamily: fonts.medium, fontSize: 13, lineHeight: 20 },
+  pending: { flex: 1, color: colors.brand, fontFamily: fonts.medium, fontSize: 13, lineHeight: 20 },
   button: {
     height: 56,
     borderRadius: 28,
@@ -175,11 +176,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 12,
-    backgroundColor: '#466349',
-    boxShadow: '0 10px 15px -3px rgba(70, 99, 73, 0.2)',
+    backgroundColor: colors.brand,
+    boxShadow: `0 10px 15px -3px ${colors.shadow}`,
   },
   buttonText: {
-    color: colors.white,
+    color: colors.buttonForeground,
     fontFamily: fonts.bold,
     fontSize: 14,
     lineHeight: 20,
@@ -193,19 +194,19 @@ const styles = StyleSheet.create({
     gap: 16,
     borderRadius: 32,
     borderCurve: 'continuous',
-    borderColor: 'rgba(255, 202, 152, 0.3)',
+    borderColor: colors.warm,
     boxShadow: 'none',
   },
   tipCopy: { flex: 1, gap: 4 },
   tipTitle: {
-    color: '#7A532A',
+    color: colors.warm,
     fontFamily: fonts.bold,
     fontSize: 14,
     lineHeight: 20,
     letterSpacing: 0.14,
   },
   tipText: {
-    color: '#623F18',
+    color: colors.warm,
     fontFamily: fonts.regular,
     fontSize: 12,
     lineHeight: 19.5,

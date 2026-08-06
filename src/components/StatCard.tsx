@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, fonts } from '../theme';
+import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
 
 interface StatCardProps {
   compact?: boolean;
@@ -15,19 +15,21 @@ interface StatCardProps {
 export function StatCard({
   compact = false,
   icon,
-  iconBackgroundColor = 'rgba(202, 235, 201, 0.3)',
-  iconColor = '#466349',
+  iconBackgroundColor,
+  iconColor,
   label,
   value,
 }: StatCardProps) {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <LinearGradient
-      colors={icon ? ['#FFFFFF', '#FFFFFF'] : ['#FFFEFC', '#F1F3FA']}
+      colors={icon ? [colors.card, colors.card] : [colors.card, colors.purpleSoft]}
       style={[styles.card, icon && styles.homeCard]}
     >
       {icon ? (
-        <View style={[styles.icon, { backgroundColor: iconBackgroundColor }]}>
-          <Ionicons name={icon} size={18} color={iconColor} />
+        <View style={[styles.icon, { backgroundColor: iconBackgroundColor ?? colors.brandSoft }]}>
+          <Ionicons name={icon} size={18} color={iconColor ?? colors.brand} />
         </View>
       ) : null}
       <View style={styles.copy}>
@@ -40,24 +42,24 @@ export function StatCard({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   card: {
     flex: 1,
     minWidth: '46%',
     padding: 14,
     borderRadius: 24,
     borderCurve: 'continuous',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.card,
     // borderWidth: 1,
     // borderColor: colors.border,
-    boxShadow: '0 5px 16px rgba(79, 88, 82, 0.05)',
+    boxShadow: `0 5px 16px ${colors.shadow}`,
   },
   homeCard: {
     minHeight: 140,
     padding: 16,
     justifyContent: 'space-between',
     // borderColor: 'rgba(194, 200, 191, 0.2)',
-    boxShadow: '0 10px 40px -10px rgba(70, 99, 73, 0.08)',
+    boxShadow: `0 10px 40px -10px ${colors.shadow}`,
   },
   icon: {
     width: 40,
@@ -68,11 +70,11 @@ const styles = StyleSheet.create({
   },
   copy: { gap: 4 },
   value: { color: colors.text, fontFamily: fonts.medium, fontSize: 20 },
-  homeValue: { color: '#181C1C', fontSize: 24, lineHeight: 32 },
+  homeValue: { color: colors.text, fontSize: 24, lineHeight: 32 },
   compactValue: { fontSize: 20, lineHeight: 28 },
   label: { color: colors.muted, fontFamily: fonts.regular, fontSize: 13 },
   homeLabel: {
-    color: '#424841',
+    color: colors.textSecondary,
     fontFamily: fonts.medium,
     fontSize: 12,
     lineHeight: 20,

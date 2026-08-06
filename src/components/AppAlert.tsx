@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { HapticPressable } from './HapticPressable';
-import { colors, fonts } from '../theme';
+import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
 
 export type AppAlertButton = {
   text: string;
@@ -24,7 +24,7 @@ type AppAlertContextValue = {
 
 const AppAlertContext = createContext<AppAlertContextValue | undefined>(undefined);
 
-function getAlertTone(alert: AppAlertState | null) {
+function getAlertTone(alert: AppAlertState | null, colors: AppColors) {
   const hasDestructive = alert?.buttons.some((button) => button.style === 'destructive');
   const title = alert?.title ?? '';
 
@@ -33,15 +33,17 @@ function getAlertTone(alert: AppAlertState | null) {
   }
 
   if (title.includes('保存') || title.includes('移除')) {
-    return { color: colors.primary, icon: 'checkmark-circle-outline' as const };
+    return { color: colors.brand, icon: 'checkmark-circle-outline' as const };
   }
 
-  return { color: colors.primary, icon: 'information-circle-outline' as const };
+  return { color: colors.brand, icon: 'information-circle-outline' as const };
 }
 
 export function AppAlertProvider({ children }: { children: ReactNode }) {
+  const { colors, isDark } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const [activeAlert, setActiveAlert] = useState<AppAlertState | null>(null);
-  const tone = getAlertTone(activeAlert);
+  const tone = getAlertTone(activeAlert, colors);
 
   const value = useMemo<AppAlertContextValue>(
     () => ({
@@ -68,7 +70,7 @@ export function AppAlertProvider({ children }: { children: ReactNode }) {
         {activeAlert ? (
           <Animated.View entering={FadeIn.duration(160)} exiting={FadeOut.duration(120)} style={styles.overlay}>
             <Pressable style={StyleSheet.absoluteFill} onPress={() => close()} />
-            <BlurView intensity={18} tint="light" style={StyleSheet.absoluteFill} />
+            <BlurView intensity={18} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
             <Animated.View
               entering={FadeIn.duration(160)}
               exiting={FadeOut.duration(100)}
@@ -130,13 +132,13 @@ export function useAppAlert() {
   return context;
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   overlay: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: 'rgba(45, 52, 47, 0.18)',
+    backgroundColor: colors.overlay,
   },
   card: {
     width: '100%',
@@ -144,10 +146,10 @@ const styles = StyleSheet.create({
     gap: 16,
     padding: 20,
     borderRadius: 28,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: 'rgba(227, 225, 218, 0.92)',
-    boxShadow: '0 18px 40px rgba(79, 88, 82, 0.16)',
+    borderColor: colors.border,
+    boxShadow: `0 18px 40px ${colors.shadow}`,
   },
   iconWrap: {
     alignItems: 'center',
@@ -158,7 +160,7 @@ const styles = StyleSheet.create({
   },
   copy: { gap: 8 },
   title: { color: colors.text, fontFamily: fonts.bold, fontSize: 20, lineHeight: 26 },
-  message: { color: colors.muted, fontFamily: fonts.regular, fontSize: 15, lineHeight: 23 },
+  message: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 15, lineHeight: 23 },
   actions: { gap: 10 },
   button: {
     minHeight: 48,
@@ -167,12 +169,12 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingHorizontal: 16,
   },
-  primaryButton: { backgroundColor: colors.primary },
-  cancelButton: { backgroundColor: colors.primarySoft },
-  destructiveButton: { backgroundColor: '#F8EAEA' },
+  primaryButton: { backgroundColor: colors.brand },
+  cancelButton: { backgroundColor: colors.brandSoft },
+  destructiveButton: { backgroundColor: colors.dangerSoft },
   buttonText: { fontFamily: fonts.bold, fontSize: 15 },
-  primaryButtonText: { color: colors.white },
-  cancelButtonText: { color: colors.primary },
+  primaryButtonText: { color: colors.buttonForeground },
+  cancelButtonText: { color: colors.brand },
   destructiveButtonText: { color: colors.danger },
   pressed: { opacity: 0.78 },
 });

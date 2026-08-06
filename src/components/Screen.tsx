@@ -10,7 +10,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '../theme';
+import { useAppTheme } from '../theme';
 
 interface ScreenProps {
   backgroundColor?: string;
@@ -21,13 +21,15 @@ interface ScreenProps {
 }
 
 export function Screen({
-  backgroundColor = colors.background,
+  backgroundColor,
   children,
   contentStyle,
   keyboardAvoiding = false,
   keyboardAvoidingMode = 'header',
   scrollViewRef,
 }: PropsWithChildren<ScreenProps>) {
+  const { colors } = useAppTheme();
+  const resolvedBackgroundColor = backgroundColor ?? colors.background;
   const headerHeight = useContext(HeaderHeightContext) ?? 0;
   const bottomTabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
   const shouldAvoidKeyboard =
@@ -38,7 +40,7 @@ export function Screen({
   const content = (
     <ScrollView
       ref={scrollViewRef}
-      style={[styles.scroll, { backgroundColor }]}
+      style={[styles.scroll, { backgroundColor: resolvedBackgroundColor }]}
       contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }, contentStyle]}
       contentInsetAdjustmentBehavior="automatic"
       keyboardDismissMode="on-drag"
@@ -50,7 +52,7 @@ export function Screen({
 
   return (
     <SafeAreaView
-      style={[styles.safe, { backgroundColor }]}
+      style={[styles.safe, { backgroundColor: resolvedBackgroundColor }]}
       edges={headerHeight ? [] : ['top']}
     >
       {shouldAvoidKeyboard ? (
@@ -69,7 +71,7 @@ export function Screen({
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1 },
   keyboardAvoiding: { flex: 1 },
   scroll: { flex: 1 },
   content: { padding: 20, paddingBottom: 40, gap: 16 },

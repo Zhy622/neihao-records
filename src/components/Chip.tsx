@@ -1,6 +1,6 @@
 import { StyleSheet, Text } from 'react-native';
 import { HapticPressable } from './HapticPressable';
-import { colors, fonts } from '../theme';
+import { AppColors, fonts, useThemedStyles } from '../theme';
 
 interface Props {
   label: string;
@@ -9,6 +9,7 @@ interface Props {
 }
 
 export function Chip({ label, selected, onPress }: Props) {
+  const styles = useThemedStyles(createStyles);
   return (
     <HapticPressable
       feedback="selection"
@@ -20,17 +21,17 @@ export function Chip({ label, selected, onPress }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   chip: {
     borderColor: colors.border,
     borderRadius: 999,
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 9,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.card,
   },
-  selected: { backgroundColor: '#E8E1F4', borderColor: '#C8BEDD' },
+  selected: { backgroundColor: colors.purpleSoft, borderColor: colors.purple },
   pressed: { opacity: 0.75 },
-  text: { color: colors.muted, fontFamily: fonts.medium, fontSize: 14 },
-  selectedText: { color: '#665B7C', fontFamily: fonts.semibold },
+  text: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 14 },
+  selectedText: { color: colors.purple, fontFamily: fonts.semibold },
 });

@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { NavigationContainer } from '@react-navigation/native';
+import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import {
@@ -29,7 +29,7 @@ import { StatsScreen } from './src/screens/StatsScreen';
 import { RecordSyncBootstrap } from './src/sync/RecordSyncBootstrap';
 import { initializeDatabase } from './src/database/database';
 import { RootStackParamList } from './src/types/navigation';
-import { colors, fonts } from './src/theme';
+import { fonts, useAppTheme } from './src/theme';
 import { HapticPressable } from './src/components/HapticPressable';
 import { AppAlertProvider } from './src/components/AppAlert';
 
@@ -37,19 +37,32 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function RootNavigation() {
   const { session, isRestoring } = useAuth();
+  const { colors, isDark } = useAppTheme();
+  const navigationTheme = {
+    ...DefaultTheme,
+    dark: isDark,
+    colors: {
+      primary: colors.brand,
+      background: colors.background,
+      card: colors.card,
+      text: colors.text,
+      border: colors.border,
+      notification: colors.danger,
+    },
+  };
 
   if (isRestoring) {
     return (
       <>
-        <StatusBar style="dark" />
+        <StatusBar style={isDark ? "light" : "dark"} />
         <AuthLoadingScreen />
       </>
     );
   }
 
   const navigation = (
-    <NavigationContainer>
-      <StatusBar style="dark" />
+    <NavigationContainer theme={navigationTheme}>
+      <StatusBar style={isDark ? "light" : "dark"} animated />
       <Stack.Navigator
         screenOptions={{
           headerStyle: { backgroundColor: colors.background },
@@ -68,11 +81,11 @@ function RootNavigation() {
               options={({ navigation }) => ({
                 title: '记录一次纠结',
                 headerTitleAlign: 'center',
-                headerStyle: { height: 70, backgroundColor: '#F7FAF8' },
+                headerStyle: { height: 70, backgroundColor: colors.background },
                 headerShadowVisible: false,
-                headerTintColor: '#466349',
+                headerTintColor: colors.brand,
                 headerTitleStyle: {
-                  color: '#466349',
+                  color: colors.brand,
                   fontFamily: 'Inter_500Medium',
                   fontSize: 18,
                   letterSpacing: -0.6,
@@ -84,7 +97,7 @@ function RootNavigation() {
                     style={{ padding: 4, borderRadius: 18 }}
                     onPress={() => navigation.navigate('History')}
                   >
-                    <Ionicons name="time-outline" size={20} color="#466349" />
+                    <Ionicons name="time-outline" size={20} color={colors.brand} />
                   </HapticPressable>
                 ),
               })}
@@ -95,11 +108,11 @@ function RootNavigation() {
               options={({ navigation }) => ({
                 title: '历史记录',
                 headerTitleAlign: 'center',
-                headerStyle: { height: 70, backgroundColor: '#F7FAF8' },
+                headerStyle: { height: 70, backgroundColor: colors.background },
                 headerShadowVisible: false,
-                headerTintColor: '#466349',
+                headerTintColor: colors.brand,
                 headerTitleStyle: {
-                  color: '#466349',
+                  color: colors.brand,
                   fontFamily: 'Inter_500Medium',
                   fontSize: 18,
                   letterSpacing: -0.6,
@@ -111,7 +124,7 @@ function RootNavigation() {
                     style={{ padding: 4, borderRadius: 18 }}
                     onPress={() => navigation.navigate('Stats')}
                   >
-                    <Ionicons name="trending-up-outline" size={22} color="#424841" />
+                    <Ionicons name="trending-up-outline" size={22} color={colors.textSecondary} />
                   </HapticPressable>
                 ),
               })}
@@ -122,11 +135,11 @@ function RootNavigation() {
               options={() => ({
                 title: '统计',
                 headerTitleAlign: 'center',
-                headerStyle: { height: 70, backgroundColor: '#F7FAF8' },
+                headerStyle: { height: 70, backgroundColor: colors.background },
                 headerShadowVisible: false,
-                headerTintColor: '#466349',
+                headerTintColor: colors.brand,
                 headerTitleStyle: {
-                  color: '#466349',
+                  color: colors.brand,
                   fontFamily: 'Inter_500Medium',
                   fontSize: 18,
                   letterSpacing: -0.6,
@@ -139,11 +152,11 @@ function RootNavigation() {
               options={{
                 title: '记录详情',
                 headerTitleAlign: 'center',
-                headerStyle: { backgroundColor: '#F7FAF8' },
+                headerStyle: { backgroundColor: colors.background },
                 headerShadowVisible: false,
-                headerTintColor: '#466349',
+                headerTintColor: colors.brand,
                 headerTitleStyle: {
-                  color: '#466349',
+                  color: colors.brand,
                   fontFamily: 'Inter_500Medium',
                   fontSize: 18,
                 },
@@ -156,10 +169,10 @@ function RootNavigation() {
                 title: '随记记录',
                 headerTitleAlign: 'center',
                 headerBackButtonDisplayMode: 'minimal',
-                headerStyle: { backgroundColor: 'rgba(247, 250, 248, 0.96)' },
+                headerStyle: { backgroundColor: colors.background },
                 headerShadowVisible: false,
-                headerTintColor: '#466349',
-                headerTitleStyle: { color: '#466349', fontFamily: fonts.medium, fontSize: 18 },
+                headerTintColor: colors.brand,
+                headerTitleStyle: { color: colors.brand, fontFamily: fonts.medium, fontSize: 18 },
               }}
             />
             <Stack.Screen
@@ -169,10 +182,10 @@ function RootNavigation() {
                 title: '随记详情',
                 headerTitleAlign: 'center',
                 headerBackButtonDisplayMode: 'minimal',
-                headerStyle: { backgroundColor: 'rgba(247, 250, 248, 0.96)' },
+                headerStyle: { backgroundColor: colors.background },
                 headerShadowVisible: false,
-                headerTintColor: '#466349',
-                headerTitleStyle: { color: '#466349', fontFamily: fonts.medium, fontSize: 18 },
+                headerTintColor: colors.brand,
+                headerTitleStyle: { color: colors.brand, fontFamily: fonts.medium, fontSize: 18 },
               })}
             />
             <Stack.Screen
@@ -188,7 +201,7 @@ function RootNavigation() {
                     style={{ padding: 4, borderRadius: 18 }}
                     onPress={() => navigation.navigate('PeopleObservationHistory')}
                   >
-                    <Ionicons name="list-outline" size={22} color={colors.primary} />
+                    <Ionicons name="list-outline" size={22} color={colors.brand} />
                   </HapticPressable>
                 ),
               })}
@@ -200,10 +213,10 @@ function RootNavigation() {
                 title: '观照列表',
                 headerTitleAlign: 'center',
                 headerBackButtonDisplayMode: 'minimal',
-                headerStyle: { backgroundColor: 'rgba(247, 250, 248, 0.96)' },
+                headerStyle: { backgroundColor: colors.background },
                 headerShadowVisible: false,
-                headerTintColor: '#466349',
-                headerTitleStyle: { color: '#466349', fontFamily: fonts.medium, fontSize: 18 },
+                headerTintColor: colors.brand,
+                headerTitleStyle: { color: colors.brand, fontFamily: fonts.medium, fontSize: 18 },
               }}
             />
             <Stack.Screen
@@ -213,10 +226,10 @@ function RootNavigation() {
                 title: '观照详情',
                 headerTitleAlign: 'center',
                 headerBackButtonDisplayMode: 'minimal',
-                headerStyle: { backgroundColor: 'rgba(247, 250, 248, 0.96)' },
+                headerStyle: { backgroundColor: colors.background },
                 headerShadowVisible: false,
-                headerTintColor: '#466349',
-                headerTitleStyle: { color: '#466349', fontFamily: fonts.medium, fontSize: 18 },
+                headerTintColor: colors.brand,
+                headerTitleStyle: { color: colors.brand, fontFamily: fonts.medium, fontSize: 18 },
               }}
             />
           </>
@@ -236,6 +249,7 @@ function RootNavigation() {
 }
 
 export default function App() {
+  const { colors } = useAppTheme();
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,

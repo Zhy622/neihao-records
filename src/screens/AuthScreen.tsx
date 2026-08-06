@@ -5,7 +5,7 @@ import { ApiError } from '../api/client';
 import { useAuth } from '../auth/AuthProvider';
 import { HapticPressable } from '../components/HapticPressable';
 import { Screen } from '../components/Screen';
-import { fonts } from '../theme';
+import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
 
 type AuthMode = 'login' | 'register';
 
@@ -19,6 +19,8 @@ const getSubmitError = (error: unknown, mode: AuthMode) => {
 };
 
 export function AuthScreen() {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { signIn, signUp } = useAuth();
   const scrollViewRef = useRef<ScrollView>(null);
   const { height } = useWindowDimensions();
@@ -85,8 +87,8 @@ export function AuthScreen() {
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.inputWrap}>
-        <Ionicons name={icon} size={18} color="#929B94" />
-        <TextInput {...props} placeholderTextColor="#B7BEB8" style={styles.input} />
+        <Ionicons name={icon} size={18} color={colors.placeholder} />
+        <TextInput {...props} placeholderTextColor={colors.placeholder} style={styles.input} />
         {canReveal ? (
           <HapticPressable
             accessibilityLabel={visible ? '隐藏密码' : '显示密码'}
@@ -96,7 +98,7 @@ export function AuthScreen() {
             onPress={onToggleVisible}
             style={styles.visibilityButton}
           >
-            <Ionicons name={visible ? 'eye-off-outline' : 'eye-outline'} size={19} color="#B4BCB5" />
+            <Ionicons name={visible ? 'eye-off-outline' : 'eye-outline'} size={19} color={colors.placeholder} />
           </HapticPressable>
         ) : null}
       </View>
@@ -105,7 +107,7 @@ export function AuthScreen() {
 
   return (
     <Screen
-      backgroundColor="#F7FAF8"
+      backgroundColor={colors.background}
       keyboardAvoiding
       keyboardAvoidingMode="fullscreen"
       scrollViewRef={scrollViewRef}
@@ -188,7 +190,7 @@ export function AuthScreen() {
             ]}
           >
             <Text style={styles.submitText}>{submitting ? '请稍候…' : mode === 'login' ? '登录' : '创建账号'}</Text>
-            {!submitting ? <Ionicons name="arrow-forward" size={19} color="#FFFFFF" /> : null}
+            {!submitting ? <Ionicons name="arrow-forward" size={19} color={colors.buttonForeground} /> : null}
           </HapticPressable>
         </View>
 
@@ -206,35 +208,35 @@ export function AuthScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingTop: 48, paddingBottom: 32, gap: 38 },
   compactContent: { justifyContent: 'flex-start', paddingTop: 28, gap: 24 },
   brand: { alignItems: 'center', gap: 9 },
   compactBrand: { gap: 5 },
-  name: { color: '#466349', fontFamily: fonts.semibold, fontSize: 25, letterSpacing: 0.3, lineHeight: 34 },
-  tagline: { color: '#343C35', fontFamily: fonts.regular, fontSize: 16, lineHeight: 24, textAlign: 'center' },
-  authCard: { backgroundColor: '#FFFFFF', borderRadius: 25, gap: 32, maxWidth: 390, paddingHorizontal: 24, paddingTop: 22, paddingBottom: 33, width: '100%' },
+  name: { color: colors.brand, fontFamily: fonts.semibold, fontSize: 25, letterSpacing: 0.3, lineHeight: 34 },
+  tagline: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 16, lineHeight: 24, textAlign: 'center' },
+  authCard: { backgroundColor: colors.card, borderRadius: 25, gap: 32, maxWidth: 390, paddingHorizontal: 24, paddingTop: 22, paddingBottom: 33, width: '100%' },
   compactCard: { gap: 22, paddingTop: 16, paddingBottom: 24 },
-  tabs: { borderBottomColor: '#DFE5E0', borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row' },
+  tabs: { borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row' },
   tab: { alignItems: 'center', flex: 1, justifyContent: 'center', minHeight: 43, position: 'relative' },
-  tabText: { color: '#4D554E', fontFamily: fonts.medium, fontSize: 14 },
-  selectedTabText: { color: '#466349', fontFamily: fonts.semibold },
-  tabIndicator: { backgroundColor: '#55765B', bottom: -1, height: 2, position: 'absolute', width: 29 },
+  tabText: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 14 },
+  selectedTabText: { color: colors.brand, fontFamily: fonts.semibold },
+  tabIndicator: { backgroundColor: colors.brand, bottom: -1, height: 2, position: 'absolute', width: 29 },
   form: { gap: 23 },
   registerForm: { gap: 17 },
   field: { gap: 8 },
-  label: { color: '#3F4740', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
-  inputWrap: { alignItems: 'center', backgroundColor: '#F1F3F1', borderRadius: 12, flexDirection: 'row', minHeight: 50, paddingHorizontal: 15 },
-  input: { color: '#29302A', flex: 1, fontFamily: fonts.regular, fontSize: 15, minHeight: 50, paddingHorizontal: 12, paddingVertical: 0 },
+  label: { color: colors.text, fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
+  inputWrap: { alignItems: 'center', backgroundColor: colors.input, borderRadius: 12, flexDirection: 'row', minHeight: 50, paddingHorizontal: 15 },
+  input: { color: colors.text, flex: 1, fontFamily: fonts.regular, fontSize: 15, minHeight: 50, paddingHorizontal: 12, paddingVertical: 0 },
   visibilityButton: { alignItems: 'center', height: 38, justifyContent: 'center', width: 28 },
-  error: { color: '#A45D5D', fontFamily: fonts.regular, fontSize: 13, lineHeight: 19, marginTop: -4 },
-  submit: { alignItems: 'center', backgroundColor: '#638569', borderRadius: 28, flexDirection: 'row', gap: 9, justifyContent: 'center', minHeight: 53, marginTop: 0 },
+  error: { color: colors.danger, fontFamily: fonts.regular, fontSize: 13, lineHeight: 19, marginTop: -4 },
+  submit: { alignItems: 'center', backgroundColor: colors.brand, borderRadius: 28, flexDirection: 'row', gap: 9, justifyContent: 'center', minHeight: 53, marginTop: 0 },
   registerSubmit: { marginTop: 10 },
-  submitText: { color: '#FFFFFF', fontFamily: fonts.medium, fontSize: 14 },
+  submitText: { color: colors.buttonForeground, fontFamily: fonts.medium, fontSize: 14 },
   cardFooter: { gap: 31 },
-  footerDivider: { backgroundColor: '#EEF1EE', height: StyleSheet.hairlineWidth },
+  footerDivider: { backgroundColor: colors.border, height: StyleSheet.hairlineWidth },
   footerPrompt: { alignItems: 'center', flexDirection: 'row', gap: 8, justifyContent: 'center' },
-  footerText: { color: '#333A34', fontFamily: fonts.regular, fontSize: 15 },
-  footerAction: { color: '#55765B', fontFamily: fonts.semibold, fontSize: 15 },
+  footerText: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 15 },
+  footerAction: { color: colors.brand, fontFamily: fonts.semibold, fontSize: 15 },
   pressed: { opacity: 0.76 },
 });

@@ -1,6 +1,7 @@
 import { LayoutChangeEvent, NativeSyntheticEvent, StyleSheet, TextInputContentSizeChangeEventData, TextInputScrollEventData, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useRef, useState } from 'react';
+import { AppColors, useThemedStyles } from '../theme';
 
 const MIN_THUMB_HEIGHT = 36;
 const MAX_THUMB_HEIGHT = 88;
@@ -72,6 +73,7 @@ export function useNoteScrollbar() {
 }
 
 export function NoteScrollbar({ scrollbar, right = 14 }: { scrollbar: ReturnType<typeof useNoteScrollbar>; right?: number }) {
+  const styles = useThemedStyles(createStyles);
   if (!scrollbar.scrollbarVisible) {
     return null;
   }
@@ -84,8 +86,8 @@ export function NoteScrollbar({ scrollbar, right = 14 }: { scrollbar: ReturnType
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   track: { position: 'absolute', top: TRACK_INSET, bottom: TRACK_INSET, width: 10, alignItems: 'center' },
-  rail: { position: 'absolute', top: 0, bottom: 0, alignSelf: 'center', width: 3, borderRadius: 999, backgroundColor: 'rgba(88, 112, 92, 0.18)' },
-  thumb: { position: 'absolute', top: 0, alignSelf: 'center', width: 5, borderRadius: 999, backgroundColor: 'rgba(70, 103, 77, 0.78)' },
+  rail: { position: 'absolute', top: 0, bottom: 0, alignSelf: 'center', width: 3, borderRadius: 999, backgroundColor: colors.border },
+  thumb: { position: 'absolute', top: 0, alignSelf: 'center', width: 5, borderRadius: 999, backgroundColor: colors.brand },
 });

@@ -18,7 +18,7 @@ import {
   PeopleObservationEmotion,
 } from '../types/people-observation';
 import { RootStackParamList } from '../types/navigation';
-import { colors, fonts } from '../theme';
+import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
 
 const emotions = PEOPLE_OBSERVATION_EMOTIONS;
 
@@ -35,10 +35,12 @@ function Field({
   icon: keyof typeof Ionicons.glyphMap;
   onLayout?: (event: LayoutChangeEvent) => void;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.field} onLayout={onLayout}>
       <View style={styles.labelRow}>
-        <Ionicons name={icon} size={17} color="#466349" />
+        <Ionicons name={icon} size={17} color={colors.brand} />
         <Text style={styles.label}>{label}</Text>
       </View>
       {hint ? <Text style={styles.hint}>{hint}</Text> : null}
@@ -89,6 +91,8 @@ function buildLearningAction({
 }
 
 export function PeopleObservationScreen() {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const db = useSQLiteContext();
   const { session } = useAuth();
@@ -192,7 +196,7 @@ export function PeopleObservationScreen() {
 
   return (
     <Screen
-      backgroundColor="#F7FAF8"
+      backgroundColor={colors.background}
       keyboardAvoiding
       keyboardAvoidingMode="fullscreen"
       scrollViewRef={scrollViewRef}
@@ -211,7 +215,7 @@ export function PeopleObservationScreen() {
               onChangeText={setAlias}
               onFocus={() => revealInputArea('alias')}
               placeholder="例如：A 同事 / 那位朋友 / 高中同学"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={colors.placeholder}
               style={styles.input}
             />
           </Field>
@@ -233,7 +237,7 @@ export function PeopleObservationScreen() {
               onChangeText={setTriggerScene}
               onFocus={() => revealInputArea('triggerScene')}
               placeholder="我是在什么情况下想到 TA 的？"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={colors.placeholder}
               style={[styles.input, styles.multiline]}
               multiline
             />
@@ -245,7 +249,7 @@ export function PeopleObservationScreen() {
               onChangeText={setContemptPoints}
               onFocus={() => revealInputArea('contemptPoints')}
               placeholder="我看不上的地方是什么？"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={colors.placeholder}
               style={[styles.input, styles.multiline]}
               multiline
             />
@@ -257,7 +261,7 @@ export function PeopleObservationScreen() {
               onChangeText={setAdmirePoints}
               onFocus={() => revealInputArea('admirePoints')}
               placeholder="TA 的什么地方让我不舒服、羡慕或不服气？"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={colors.placeholder}
               style={[styles.input, styles.multiline]}
               multiline
             />
@@ -269,7 +273,7 @@ export function PeopleObservationScreen() {
               onChangeText={setOtherStrengths}
               onFocus={() => revealInputArea('otherStrengths')}
               placeholder="例如：表达更直接、执行更快、更会争取资源"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={colors.placeholder}
               style={[styles.input, styles.multiline]}
               multiline
             />
@@ -281,7 +285,7 @@ export function PeopleObservationScreen() {
               onChangeText={setMyStrengths}
               onFocus={() => revealInputArea('myStrengths')}
               placeholder="例如：更稳定、更细致、更愿意复盘"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={colors.placeholder}
               style={[styles.input, styles.multiline]}
               multiline
             />
@@ -293,7 +297,7 @@ export function PeopleObservationScreen() {
         <View style={[styles.summaryCard, styles.definitionCard]}>
           <View style={styles.summaryHeader}>
             <View style={styles.summaryIcon}>
-              <Ionicons name="bulb-outline" size={18} color="#466349" />
+              <Ionicons name="bulb-outline" size={18} color={colors.brand} />
             </View>
             <View style={styles.summaryTitleWrap}>
               <Text style={styles.summaryTitle}>重新定义这个人</Text>
@@ -308,7 +312,7 @@ export function PeopleObservationScreen() {
         <View style={[styles.summaryCard, styles.actionCard]}>
           <View style={styles.summaryHeader}>
             <View style={styles.summaryIcon}>
-              <Ionicons name="walk-outline" size={18} color="#466349" />
+              <Ionicons name="walk-outline" size={18} color={colors.brand} />
             </View>
             <View style={styles.summaryTitleWrap}>
               <Text style={styles.summaryTitle}>我可以学习的一个行动</Text>
@@ -336,7 +340,7 @@ export function PeopleObservationScreen() {
         backgroundStyle={styles.sheetBackground}
         handleIndicatorStyle={styles.sheetIndicator}
         backdropComponent={(props) => (
-          <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={0.18} />
+          <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={1} style={{ backgroundColor: colors.overlay }} />
         )}
       >
         <BottomSheetScrollView contentContainerStyle={styles.sheetContent}>
@@ -362,7 +366,7 @@ export function PeopleObservationScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   content: { paddingTop: 24, paddingHorizontal: 20, paddingBottom: 150, gap: 24 },
   quoteCard: {
     minHeight: 100,
@@ -371,12 +375,12 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     borderCurve: 'continuous',
-    backgroundColor: '#EDF3F0',
+    backgroundColor: colors.brandSoft,
     boxShadow: '0 8px 16px -12px rgba(70, 99, 73, 0.12)',
   },
-  quoteAccent: { position: 'absolute', left: 0, top: 16, bottom: 16, width: 4, borderRadius: 4, backgroundColor: '#466349' },
-  quote: { color: '#252B26', fontFamily: fonts.medium, fontSize: 18, lineHeight: 24 },
-  quoteSignature: { alignSelf: 'flex-end', color: '#5A625B', fontFamily: fonts.regular, fontSize: 12 },
+  quoteAccent: { position: 'absolute', left: 0, top: 16, bottom: 16, width: 4, borderRadius: 4, backgroundColor: colors.brand },
+  quote: { color: colors.text, fontFamily: fonts.medium, fontSize: 18, lineHeight: 24 },
+  quoteSignature: { alignSelf: 'flex-end', color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 12 },
   form: { gap: 16 },
   basicFields: { gap: 16 },
   reflectionFields: { gap: 16 },
@@ -385,16 +389,16 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     borderCurve: 'continuous',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
   },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  label: { color: '#062509', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
-  hint: { color: '#5D655E', fontFamily: fonts.regular, fontSize: 12, lineHeight: 18 },
+  label: { color: colors.text, fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  hint: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 12, lineHeight: 18 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   input: {
     color: colors.text,
     height: 50,
-    backgroundColor: '#F1F4F2',
+    backgroundColor: colors.input,
     borderRadius: 8,
     borderCurve: 'continuous',
     paddingHorizontal: 16,
@@ -411,21 +415,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
     borderCurve: 'continuous',
-    backgroundColor: '#F1F4F2',
+    backgroundColor: colors.input,
   },
   selectorText: { flex: 1, color: colors.text, fontFamily: fonts.regular, fontSize: 14, lineHeight: 26 },
   multiline: { height: 102, paddingTop: 12, paddingBottom: 12, textAlignVertical: 'top' },
   summaryGrid: { gap: 16 },
   summaryCard: { borderRadius: 16, gap: 14, padding: 16 },
-  definitionCard: { backgroundColor: '#FCF3E8' },
-  actionCard: { backgroundColor: '#E7F1E8' },
+  definitionCard: { backgroundColor: colors.warmSoft },
+  actionCard: { backgroundColor: colors.positiveSoft },
   summaryHeader: { alignItems: 'center', flexDirection: 'row', gap: 11 },
-  summaryIcon: { alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 15, height: 30, justifyContent: 'center', width: 30 },
+  summaryIcon: { alignItems: 'center', backgroundColor: colors.cardSecondary, borderRadius: 15, height: 30, justifyContent: 'center', width: 30 },
   summaryTitleWrap: { gap: 2 },
-  summaryTitle: { color: '#353b36', fontFamily: fonts.medium, fontSize: 16 },
-  summarySubtitle: { color: '#899588', fontFamily: fonts.medium, fontSize: 9, letterSpacing: 0.7 },
-  summaryResult: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 15 },
-  summaryText: { color: '#303630', fontFamily: fonts.regular, fontSize: 14, lineHeight: 22 },
+  summaryTitle: { color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
+  summarySubtitle: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 9, letterSpacing: 0.7 },
+  summaryResult: { backgroundColor: colors.cardTemp, borderRadius: 16, padding: 15 },
+  summaryText: { color: colors.text, fontFamily: fonts.regular, fontSize: 14, lineHeight: 22 },
   finishButton: {
     marginTop: 8,
     height: 56,
@@ -434,12 +438,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 12,
-    backgroundColor: '#466349',
-    boxShadow: '0 10px 15px -3px rgba(70, 99, 73, 0.2)',
+    backgroundColor: colors.brand,
+    boxShadow: `0 10px 15px -3px ${colors.shadow}`,
   },
-  finishText: { color: colors.white, fontFamily: fonts.bold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
-  sheetBackground: { borderRadius: 28, backgroundColor: '#FFFEFC' },
-  sheetIndicator: { backgroundColor: '#D6D0C8' },
+  finishText: { color: colors.buttonForeground, fontFamily: fonts.bold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  sheetBackground: { borderRadius: 28, backgroundColor: colors.card },
+  sheetIndicator: { backgroundColor: colors.border },
   sheetContent: { padding: 20, paddingBottom: 34, gap: 16 },
   sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   sheetTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 20 },
@@ -447,8 +451,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: colors.primarySoft,
+    backgroundColor: colors.brandSoft,
   },
-  sheetDoneText: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 13 },
+  sheetDoneText: { color: colors.brand, fontFamily: fonts.semibold, fontSize: 13 },
   pressed: { opacity: 0.78 },
 });

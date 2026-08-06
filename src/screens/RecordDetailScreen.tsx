@@ -34,7 +34,7 @@ import {
   WorthIt,
 } from '../types/record';
 import { RootStackParamList } from '../types/navigation';
-import { colors, fonts } from '../theme';
+import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
 
 const levels = Array.from({ length: 10 }, (_, index) => index + 1);
 const aiGradientColors = ['#6F8DFF', '#8B7CF6', '#B56BDF'] as const;
@@ -49,6 +49,7 @@ function Field({
   label: string;
   children: React.ReactNode;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.field}>
       <View style={styles.labelRow}>
@@ -71,6 +72,7 @@ function IntensityField({
   value: number;
   onChange: (value: number) => void;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Field icon={icon} label={label}>
       <View style={styles.levels}>
@@ -97,6 +99,7 @@ function IntensityField({
 }
 
 function ChoiceChip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <HapticPressable
       accessibilityRole="button"
@@ -122,6 +125,7 @@ function DetailCell({
   value: string;
   muted?: boolean;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.detailCell}>
       <View style={styles.detailLabelRow}>
@@ -144,6 +148,7 @@ function IntensityCell({
   value: number;
   color: string;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.detailCell}>
       <View style={styles.detailLabelRow}>
@@ -171,6 +176,7 @@ function DetailContentCard({
   value: string;
   accentColor: string;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={[styles.detailContentCard, { borderLeftColor: accentColor }]}>
       <View style={styles.contentCardHeading}>
@@ -183,6 +189,7 @@ function DetailContentCard({
 }
 
 function AiInsightLine({ label, value }: { label: string; value: string }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.aiInsightLine}>
       <Text style={styles.aiInsightLabel}>{label}</Text>
@@ -192,6 +199,7 @@ function AiInsightLine({ label, value }: { label: string; value: string }) {
 }
 
 function AiGradientIcon({ size = 30 }: { size?: number }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={[styles.aiHexIcon, { height: size, width: size }]}>
       <Svg height={size} viewBox="0 0 100 100" width={size} style={StyleSheet.absoluteFill}>
@@ -220,6 +228,7 @@ function AiGradientIcon({ size = 30 }: { size?: number }) {
 }
 
 function AiGradientText({ children }: { children: string }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Text style={styles.aiGradientText}>
       {Array.from(children).map((char, index) => (
@@ -235,6 +244,8 @@ export function RecordDetailScreen({
   navigation,
   route,
 }: NativeStackScreenProps<RootStackParamList, 'RecordDetail'>) {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const db = useSQLiteContext();
   const { session } = useAuth();
   const { alert } = useAppAlert();
@@ -406,7 +417,7 @@ export function RecordDetailScreen({
 
   return (
     <Screen
-      backgroundColor="#F7FAF8"
+      backgroundColor={colors.background}
       keyboardAvoiding
       scrollViewRef={scrollViewRef}
       contentStyle={styles.content}
@@ -437,7 +448,7 @@ export function RecordDetailScreen({
         <View style={styles.form}>
           <View style={styles.basicFields}>
             <Field icon="document-text-outline" label="这次纠结的事情 *">
-              <TextInput value={title} onChangeText={setTitle} placeholder="例如：要不要接下这个任务" placeholderTextColor="rgba(115, 121, 113, 0.5)" style={styles.input} />
+              <TextInput value={title} onChangeText={setTitle} placeholder="例如：要不要接下这个任务" placeholderTextColor={colors.placeholder} style={styles.input} />
             </Field>
             <Field icon="pricetag-outline" label="分类">
               <View style={styles.choiceChips}>{CATEGORIES.map((item) => <ChoiceChip key={item} label={item} selected={category === item} onPress={() => setCategory(item)} />)}</View>
@@ -472,10 +483,10 @@ export function RecordDetailScreen({
           </Field>
           <View style={styles.reflections}>
             <Field icon="chatbubble-ellipses-outline" label="当时反复出现的想法">
-              <TextInput value={thoughts} onChangeText={setThoughts} onFocus={revealBottomFields} placeholder="脑海里一直在想什么？" placeholderTextColor="rgba(115, 121, 113, 0.5)" style={[styles.input, styles.multiline]} multiline />
+              <TextInput value={thoughts} onChangeText={setThoughts} onFocus={revealBottomFields} placeholder="脑海里一直在想什么？" placeholderTextColor={colors.placeholder} style={[styles.input, styles.multiline]} multiline />
             </Field>
             <Field icon="checkmark-done-outline" label="最后怎么决定">
-              <TextInput value={finalDecision} onChangeText={setFinalDecision} onFocus={revealBottomFields} placeholder="写下最终选择或暂时的处理方式" placeholderTextColor="rgba(115, 121, 113, 0.5)" style={[styles.input, styles.multiline]} multiline />
+              <TextInput value={finalDecision} onChangeText={setFinalDecision} onFocus={revealBottomFields} placeholder="写下最终选择或暂时的处理方式" placeholderTextColor={colors.placeholder} style={[styles.input, styles.multiline]} multiline />
             </Field>
           </View>
           <Field icon="eye-outline" label="事后看是否值得纠结">
@@ -548,11 +559,11 @@ export function RecordDetailScreen({
         ) : (
           <>
             <HapticPressable disabled={deleting} style={({ pressed }) => [styles.editButton, (pressed || deleting) && styles.pressed]} onPress={() => setEditing(true)}>
-              <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+              <Ionicons name="create-outline" size={18} color={colors.buttonForeground} />
               <Text style={styles.editButtonText}>编辑</Text>
             </HapticPressable>
             <HapticPressable disabled={deleting} style={({ pressed }) => [styles.deleteButton, (pressed || deleting) && styles.pressed]} onPress={confirmDelete}>
-              <Ionicons name="trash-outline" size={18} color="#5A625B" />
+              <Ionicons name="trash-outline" size={18} color={colors.danger} />
               <Text style={styles.deleteButtonText}>{deleting ? '删除中…' : '删除'}</Text>
             </HapticPressable>
           </>
@@ -608,64 +619,64 @@ export function RecordDetailScreen({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   content: { paddingTop: 32, paddingBottom: 128, gap: 32 },
-  header: { gap: 14, padding: 20, borderRadius: 24, borderCurve: 'continuous', backgroundColor: '#FFFFFF', boxShadow: '0 8px 15px rgba(70, 99, 73, 0.04)' },
+  header: { gap: 14, padding: 20, borderRadius: 24, borderCurve: 'continuous', backgroundColor: colors.card, boxShadow: `0 8px 15px ${colors.shadow}` },
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   dateRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  date: { color: '#737971', fontFamily: fonts.regular, fontSize: 12, lineHeight: 18, letterSpacing: 0.6 },
-  headerDivider: { height: StyleSheet.hairlineWidth, backgroundColor: '#EEF1EE' },
-  title: { color: '#2b322e', fontFamily: fonts.regular, fontSize: 22, lineHeight: 34, letterSpacing: -0.48 },
-  syncStatus: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 999, backgroundColor: 'rgba(70, 99, 73, 0.1)', paddingHorizontal: 13, paddingVertical: 5 },
-  pendingSyncStatus: { borderColor: '#D8D1E8', backgroundColor: '#F3F0FA' },
-  syncStatusText: { color: '#466349', fontFamily: fonts.regular, fontSize: 12, lineHeight: 20, letterSpacing: 0.14 },
-  pendingSyncText: { color: '#665B7C' },
+  date: { color: colors.placeholder, fontFamily: fonts.regular, fontSize: 12, lineHeight: 18, letterSpacing: 0.6 },
+  headerDivider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
+  title: { color: colors.text, fontFamily: fonts.regular, fontSize: 22, lineHeight: 34, letterSpacing: -0.48 },
+  syncStatus: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 999, backgroundColor: colors.brandSoft, paddingHorizontal: 13, paddingVertical: 5 },
+  pendingSyncStatus: { borderColor: colors.purple, backgroundColor: colors.purpleSoft },
+  syncStatusText: { color: colors.brand, fontFamily: fonts.regular, fontSize: 12, lineHeight: 20, letterSpacing: 0.14 },
+  pendingSyncText: { color: colors.purple },
   form: { gap: 32 },
   basicFields: { gap: 16 },
   intensityFields: { gap: 16 },
   reflections: { gap: 16 },
-  field: { gap: 8, padding: 16, borderRadius: 16, borderCurve: 'continuous', backgroundColor: '#FFFFFF' },
+  field: { gap: 8, padding: 16, borderRadius: 16, borderCurve: 'continuous', backgroundColor: colors.card },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  label: { color: '#062509', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
-  input: { height: 50, paddingHorizontal: 16, borderRadius: 8, borderCurve: 'continuous', backgroundColor: '#F1F4F2', color: '#181C1C', fontFamily: fonts.regular, fontSize: 14, lineHeight: 26 },
+  label: { color: colors.text, fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  input: { height: 50, paddingHorizontal: 16, borderRadius: 8, borderCurve: 'continuous', backgroundColor: colors.input, color: colors.text, fontFamily: fonts.regular, fontSize: 14, lineHeight: 26 },
   multiline: { height: 102, paddingTop: 12, paddingBottom: 12, textAlignVertical: 'top' },
   choiceChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  choiceChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: '#F1F4F2' },
-  selectedChoiceChip: { backgroundColor: '#C6EEC4' },
-  choiceChipText: { color: '#737971', fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
-  selectedChoiceChipText: { color: '#314D34' },
+  choiceChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.input },
+  selectedChoiceChip: { backgroundColor: colors.positiveSoft },
+  choiceChipText: { color: colors.placeholder, fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
+  selectedChoiceChipText: { color: colors.positive },
   levels: { flexDirection: 'row', gap: 4 },
-  level: { flex: 1, height: 28, alignItems: 'center', justifyContent: 'center', borderRadius: 8, borderCurve: 'continuous', backgroundColor: '#F1F4F2' },
-  selectedLevel: { backgroundColor: '#C6EEC4' },
-  levelText: { color: '#737971', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
-  selectedLevelText: { color: '#314D34' },
+  level: { flex: 1, height: 28, alignItems: 'center', justifyContent: 'center', borderRadius: 8, borderCurve: 'continuous', backgroundColor: colors.input },
+  selectedLevel: { backgroundColor: colors.positiveSoft },
+  levelText: { color: colors.placeholder, fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
+  selectedLevelText: { color: colors.positive },
   timeOptions: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 10, rowGap: 10 },
-  timeOption: { height: 36, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, borderRadius: 18, backgroundColor: '#F1F4F2' },
-  selectedTimeOption: { height: 38, backgroundColor: '#C6EEC4' },
-  timeOptionText: { color: '#181C1C', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
-  selectedTimeOptionText: { color: '#314D34' },
-  worthOptions: { height: 52, flexDirection: 'row', padding: 4, borderRadius: 12, borderCurve: 'continuous', backgroundColor: '#F1F4F2' },
+  timeOption: { height: 36, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, borderRadius: 18, backgroundColor: colors.input },
+  selectedTimeOption: { height: 38, backgroundColor: colors.positiveSoft },
+  timeOptionText: { color: colors.text, fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
+  selectedTimeOptionText: { color: colors.positive },
+  worthOptions: { height: 52, flexDirection: 'row', padding: 4, borderRadius: 12, borderCurve: 'continuous', backgroundColor: colors.input },
   worthOption: { flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 8, borderCurve: 'continuous' },
-  selectedWorthOption: { backgroundColor: '#FFFFFF', boxShadow: '0 1px 1px rgba(0, 0, 0, 0.05)' },
-  worthOptionText: { color: '#737971', fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
-  selectedWorthOptionText: { color: '#466349' },
-  detailGridCard: { padding: 21, borderRadius: 24, borderCurve: 'continuous', backgroundColor: '#FFFFFF', boxShadow: '0 8px 15px rgba(70, 99, 73, 0.04)' },
+  selectedWorthOption: { backgroundColor: colors.card, boxShadow: `0 1px 1px ${colors.shadow}` },
+  worthOptionText: { color: colors.placeholder, fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
+  selectedWorthOptionText: { color: colors.brand },
+  detailGridCard: { padding: 21, borderRadius: 24, borderCurve: 'continuous', backgroundColor: colors.card, boxShadow: `0 8px 15px ${colors.shadow}` },
   detailGrid: { gap: 16 },
   detailRow: { flexDirection: 'row', gap: 24 },
   detailCell: { flex: 1, gap: 4 },
   detailLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  detailLabel: { color: '#737971', fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
-  detailValue: { color: '#181C1C', fontFamily: fonts.regular, fontSize: 16, lineHeight: 26 },
-  mutedDetailValue: { color: '#424841', fontFamily: fonts.regular },
+  detailLabel: { color: colors.placeholder, fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  detailValue: { color: colors.text, fontFamily: fonts.regular, fontSize: 16, lineHeight: 26 },
+  mutedDetailValue: { color: colors.textSecondary, fontFamily: fonts.regular },
   intensityRow: { height: 20, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  intensityTrack: { flex: 1, height: 6, overflow: 'hidden', borderRadius: 999, backgroundColor: '#E0E3E1' },
+  intensityTrack: { flex: 1, height: 6, overflow: 'hidden', borderRadius: 999, backgroundColor: colors.border },
   intensityFill: { height: '100%', borderRadius: 999 },
-  intensityValue: { color: '#181C1C', fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
+  intensityValue: { color: colors.text, fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
   detailCards: { gap: 16 },
-  detailContentCard: { gap: 12, paddingVertical: 24, paddingLeft: 24, paddingRight: 24, borderLeftWidth: 4, borderRadius: 24, borderCurve: 'continuous', backgroundColor: '#F1F4F2', boxShadow: '0 1px 1px rgba(0, 0, 0, 0.05)' },
+  detailContentCard: { gap: 12, paddingVertical: 24, paddingLeft: 24, paddingRight: 24, borderLeftWidth: 4, borderRadius: 24, borderCurve: 'continuous', backgroundColor: colors.cardSecondary, boxShadow: `0 1px 1px ${colors.shadow}` },
   contentCardHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   contentCardLabel: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
-  note: { color: '#424841', fontFamily: fonts.regular, fontSize: 16, lineHeight: 26 },
+  note: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 16, lineHeight: 26 },
   actions: { flexDirection: 'row', gap: 16 },
   aiActionWrap: { alignItems: 'center', paddingTop: 2 },
   aiAction: {
@@ -692,14 +703,14 @@ const styles = StyleSheet.create({
   aiInsightLine: { gap: 6 },
   aiInsightLabel: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 14 },
   aiInsightText: { color: colors.text, fontFamily: fonts.regular, fontSize: 15, lineHeight: 23 },
-  primaryButton: { flex: 1, height: 52, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 28, backgroundColor: '#466349' },
-  primaryButtonText: { color: colors.white, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
-  secondaryButton: { flex: 1, height: 52, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 28, backgroundColor: '#E9EDEC' },
-  secondaryButtonText: { color: '#5A625B', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
-  editButton: { flex: 1, height: 52, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 28, backgroundColor: '#466349' },
-  editButtonText: { color: '#FFFFFF', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
-  deleteButton: { flex: 1, height: 52, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 28, backgroundColor: '#E9EDEC' },
-  deleteButtonText: { color: '#5A625B', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  primaryButton: { flex: 1, height: 52, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 28, backgroundColor: colors.brand },
+  primaryButtonText: { color: colors.buttonForeground, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  secondaryButton: { flex: 1, height: 52, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 28, backgroundColor: colors.cardSecondary },
+  secondaryButtonText: { color: colors.textSecondary, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  editButton: { flex: 1, height: 52, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 28, backgroundColor: colors.brand },
+  editButtonText: { color: colors.buttonForeground, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  deleteButton: { flex: 1, height: 52, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 28, backgroundColor: colors.cardSecondary },
+  deleteButtonText: { color: colors.danger, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   pressed: { opacity: 0.75 },
   empty: { color: colors.muted, fontFamily: fonts.regular, textAlign: 'center', paddingVertical: 40 },
 });

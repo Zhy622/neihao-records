@@ -4,7 +4,8 @@ import { File, Paths } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { Image, KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuth } from '../auth/AuthProvider';
 import {
@@ -18,7 +19,8 @@ import { useAppAlert } from '../components/AppAlert';
 import { HapticPressable } from '../components/HapticPressable';
 import { Screen } from '../components/Screen';
 import { AccountProfile, getAccountProfile, upsertAccountProfile } from '../database/database';
-import { fonts } from '../theme';
+import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
+import { RootStackParamList } from '../types/navigation';
 
 type Counts = { recordDays: number; notes: number; reviews: number };
 type ProfileDraft = Pick<AccountProfile, 'displayName' | 'signature' | 'avatarUri' | 'avatarMimeType'>;
@@ -109,19 +111,24 @@ function SettingsRow({
   label: string;
   onPress: () => void;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <HapticPressable accessibilityRole="button" style={({ pressed }) => [styles.settingsRow, pressed && styles.pressed]} onPress={onPress}>
       <View style={[styles.settingIcon, styles[iconStyle]]}>
-        <Ionicons name={icon} size={18} color="#466349" />
+        <Ionicons name={icon} size={18} color={colors.brand} />
       </View>
       <Text style={styles.settingLabel}>{label}</Text>
-      <Ionicons name="chevron-forward" size={16} color="#B3BBB3" />
+      <Ionicons name="chevron-forward" size={16} color={colors.placeholder} />
     </HapticPressable>
   );
 }
 
 export function AccountScreen() {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const db = useSQLiteContext();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { session, signOut } = useAuth();
   const { alert } = useAppAlert();
   const [counts, setCounts] = useState<Counts>({ recordDays: 0, notes: 0, reviews: 0 });
@@ -290,13 +297,13 @@ export function AccountScreen() {
   };
 
   return (
-    <Screen backgroundColor="#F7FAF8" contentStyle={styles.content}>
+    <Screen backgroundColor={colors.background} contentStyle={styles.content}>
       <View style={styles.profile}>
         <HapticPressable accessibilityRole="button" accessibilityLabel="编辑个人资料" style={styles.avatarPressable} onPress={openProfileEditor}>
           <View style={styles.avatar}>
             {avatarUri ? <Image source={{ uri: avatarUri }} style={styles.avatarImage} /> : <Text style={styles.avatarText}>{initial}</Text>}
             <View style={styles.editAvatarIcon}>
-              <Ionicons name="create" size={14} color="#FFFFFF" />
+              <Ionicons name="create" size={14} color={colors.buttonForeground} />
             </View>
           </View>
         </HapticPressable>
@@ -305,18 +312,36 @@ export function AccountScreen() {
       </View>
 
       <View style={styles.stats}>
-        <View style={styles.statCard}>
+        <HapticPressable
+          accessibilityRole="button"
+          accessibilityLabel="查看纠结历史记录"
+          feedback="selection"
+          style={({ pressed }) => [styles.statCard, pressed && styles.pressed]}
+          onPress={() => navigation.navigate('History')}
+        >
           <Text style={styles.statValue}>{counts.recordDays}</Text>
           <Text style={styles.statLabel}>记录天数</Text>
-        </View>
-        <View style={styles.statCard}>
+        </HapticPressable>
+        <HapticPressable
+          accessibilityRole="button"
+          accessibilityLabel="查看随记记录"
+          feedback="selection"
+          style={({ pressed }) => [styles.statCard, pressed && styles.pressed]}
+          onPress={() => navigation.navigate('NoteHistory')}
+        >
           <Text style={styles.statValue}>{counts.notes}</Text>
           <Text style={styles.statLabel}>随记篇数</Text>
-        </View>
-        <View style={styles.statCard}>
+        </HapticPressable>
+        <HapticPressable
+          accessibilityRole="button"
+          accessibilityLabel="查看观照列表"
+          feedback="selection"
+          style={({ pressed }) => [styles.statCard, pressed && styles.pressed]}
+          onPress={() => navigation.navigate('PeopleObservationHistory')}
+        >
           <Text style={styles.statValue}>{counts.reviews}</Text>
-          <Text style={styles.statLabel}>复盘次数</Text>
-        </View>
+          <Text style={styles.statLabel}>观照次数</Text>
+        </HapticPressable>
       </View>
 
       <View style={styles.settingsCard}>
@@ -349,7 +374,7 @@ export function AccountScreen() {
             <View style={styles.editorHeader}>
               <Text style={styles.editorTitle}>编辑个人资料</Text>
               <HapticPressable accessibilityRole="button" accessibilityLabel="关闭编辑" style={styles.closeButton} onPress={() => setEditingProfile(false)}>
-                <Ionicons name="close" size={20} color="#5D655E" />
+                <Ionicons name="close" size={20} color={colors.textSecondary} />
               </HapticPressable>
             </View>
 
@@ -362,7 +387,7 @@ export function AccountScreen() {
               <View style={styles.editorAvatar}>
                 {draft?.avatarUri ? <Image source={{ uri: draft.avatarUri }} style={styles.avatarImage} /> : <Text style={styles.avatarText}>{initial}</Text>}
                 <View style={styles.editorAvatarIcon}>
-                  <Ionicons name="image-outline" size={15} color="#FFFFFF" />
+                  <Ionicons name="image-outline" size={15} color={colors.buttonForeground} />
                 </View>
               </View>
               <Text style={styles.changeAvatarText}>{preparingAvatar ? '正在优化头像…' : '从手机相册选择头像'}</Text>
@@ -375,7 +400,7 @@ export function AccountScreen() {
                 onChangeText={(displayName) => setDraft((current) => current ? { ...current, displayName } : current)}
                 maxLength={24}
                 placeholder="输入你的昵称"
-                placeholderTextColor="#98A098"
+                placeholderTextColor={colors.placeholder}
                 style={styles.editorInput}
               />
             </View>
@@ -387,7 +412,7 @@ export function AccountScreen() {
                 maxLength={48}
                 multiline
                 placeholder="写下一句想对自己说的话"
-                placeholderTextColor="#98A098"
+                placeholderTextColor={colors.placeholder}
                 style={[styles.editorInput, styles.signatureInput]}
               />
             </View>
@@ -407,46 +432,46 @@ export function AccountScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   content: { paddingTop: 34, paddingHorizontal: 28, paddingBottom: 130, gap: 32 },
   profile: { alignItems: 'center', gap: 10 },
   avatarPressable: { borderRadius: 50 },
-  avatar: { alignItems: 'center', backgroundColor: '#DDE9DD', borderColor: '#FFFFFF', borderRadius: 50, borderWidth: 4, height: 100, justifyContent: 'center', overflow: 'visible', width: 100 },
+  avatar: { alignItems: 'center', backgroundColor: colors.brandSoft, borderColor: colors.card, borderRadius: 50, borderWidth: 4, height: 100, justifyContent: 'center', overflow: 'visible', width: 100 },
   avatarImage: { borderRadius: 46, height: '100%', width: '100%' },
-  avatarText: { color: '#466349', fontFamily: fonts.medium, fontSize: 34 },
-  editAvatarIcon: { alignItems: 'center', backgroundColor: '#466349', borderColor: '#FFFFFF', borderRadius: 16, borderWidth: 3, bottom: -4, height: 32, justifyContent: 'center', position: 'absolute', right: -4, width: 32 },
-  name: { color: '#1E241F', fontFamily: fonts.medium, fontSize: 24, lineHeight: 30 },
-  motto: { color: '#596159', fontFamily: fonts.regular, fontSize: 15, lineHeight: 22, textAlign: 'center' },
+  avatarText: { color: colors.brand, fontFamily: fonts.medium, fontSize: 34 },
+  editAvatarIcon: { alignItems: 'center', backgroundColor: colors.brand, borderColor: colors.card, borderRadius: 16, borderWidth: 3, bottom: -4, height: 32, justifyContent: 'center', position: 'absolute', right: -4, width: 32 },
+  name: { color: colors.text, fontFamily: fonts.medium, fontSize: 24, lineHeight: 30 },
+  motto: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 15, lineHeight: 22, textAlign: 'center' },
   stats: { flexDirection: 'row', gap: 12 },
-  statCard: { alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 24, flex: 1, gap: 5, minHeight: 82, justifyContent: 'center', paddingVertical: 12 },
-  statValue: { color: '#466349', fontFamily: fonts.medium, fontSize: 17, fontVariant: ['tabular-nums'] },
-  statLabel: { color: '#596159', fontFamily: fonts.regular, fontSize: 12 },
-  settingsCard: { backgroundColor: '#FFFFFF', borderRadius: 28, overflow: 'hidden' },
+  statCard: { alignItems: 'center', backgroundColor: colors.card, borderRadius: 24, flex: 1, gap: 5, minHeight: 82, justifyContent: 'center', paddingVertical: 12 },
+  statValue: { color: colors.brand, fontFamily: fonts.medium, fontSize: 17, fontVariant: ['tabular-nums'] },
+  statLabel: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 12 },
+  settingsCard: { backgroundColor: colors.card, borderRadius: 28, overflow: 'hidden' },
   settingsRow: { alignItems: 'center', flexDirection: 'row', gap: 12, minHeight: 82, paddingHorizontal: 20 },
   settingIcon: { alignItems: 'center', borderRadius: 11, height: 36, justifyContent: 'center', width: 36 },
-  exportIcon: { backgroundColor: '#F0F2F0' },
-  aboutIcon: { backgroundColor: '#F0F2F0' },
-  settingLabel: { color: '#313832', flex: 1, fontFamily: fonts.medium, fontSize: 14 },
-  divider: { backgroundColor: '#EEF1EE', height: StyleSheet.hairlineWidth, marginLeft: 68 },
-  signOut: { alignItems: 'center', backgroundColor: '#E9EDEC', borderRadius: 28, justifyContent: 'center', minHeight: 56 },
-  signOutText: { color: '#5A625B', fontFamily: fonts.medium, fontSize: 15 },
-  modalOverlay: { alignItems: 'center', backgroundColor: 'rgba(35, 45, 37, 0.28)', flex: 1, justifyContent: 'center', padding: 20 },
-  editorCard: { backgroundColor: '#F7FAF8', borderRadius: 28, gap: 20, maxWidth: 420, padding: 22, width: '100%' },
+  exportIcon: { backgroundColor: colors.cardSecondary },
+  aboutIcon: { backgroundColor: colors.cardSecondary },
+  settingLabel: { color: colors.text, flex: 1, fontFamily: fonts.medium, fontSize: 14 },
+  divider: { backgroundColor: colors.border, height: StyleSheet.hairlineWidth, marginLeft: 68 },
+  signOut: { alignItems: 'center', backgroundColor: colors.cardSecondary, borderRadius: 28, justifyContent: 'center', minHeight: 56 },
+  signOutText: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 15 },
+  modalOverlay: { alignItems: 'center', backgroundColor: colors.overlay, flex: 1, justifyContent: 'center', padding: 20 },
+  editorCard: { backgroundColor: colors.background, borderRadius: 28, gap: 20, maxWidth: 420, padding: 22, width: '100%' },
   editorHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
-  editorTitle: { color: '#252B26', fontFamily: fonts.medium, fontSize: 19 },
+  editorTitle: { color: colors.text, fontFamily: fonts.medium, fontSize: 19 },
   closeButton: { alignItems: 'center', borderRadius: 18, height: 36, justifyContent: 'center', width: 36 },
   editorAvatarButton: { alignItems: 'center', gap: 8 },
-  editorAvatar: { alignItems: 'center', backgroundColor: '#DDE9DD', borderColor: '#FFFFFF', borderRadius: 42, borderWidth: 3, height: 84, justifyContent: 'center', overflow: 'visible', width: 84 },
-  editorAvatarIcon: { alignItems: 'center', backgroundColor: '#466349', borderColor: '#FFFFFF', borderRadius: 13, borderWidth: 2, bottom: -3, height: 26, justifyContent: 'center', position: 'absolute', right: -3, width: 26 },
-  changeAvatarText: { color: '#466349', fontFamily: fonts.medium, fontSize: 13 },
+  editorAvatar: { alignItems: 'center', backgroundColor: colors.brandSoft, borderColor: colors.card, borderRadius: 42, borderWidth: 3, height: 84, justifyContent: 'center', overflow: 'visible', width: 84 },
+  editorAvatarIcon: { alignItems: 'center', backgroundColor: colors.brand, borderColor: colors.card, borderRadius: 13, borderWidth: 2, bottom: -3, height: 26, justifyContent: 'center', position: 'absolute', right: -3, width: 26 },
+  changeAvatarText: { color: colors.brand, fontFamily: fonts.medium, fontSize: 13 },
   editorField: { gap: 8 },
-  editorLabel: { color: '#596159', fontFamily: fonts.medium, fontSize: 14 },
-  editorInput: { backgroundColor: '#FFFFFF', borderRadius: 18, color: '#252B26', fontFamily: fonts.regular, fontSize: 16, minHeight: 52, paddingHorizontal: 16, paddingVertical: 13 },
+  editorLabel: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 14 },
+  editorInput: { backgroundColor: colors.input, borderRadius: 18, color: colors.text, fontFamily: fonts.regular, fontSize: 16, minHeight: 52, paddingHorizontal: 16, paddingVertical: 13 },
   signatureInput: { minHeight: 82, textAlignVertical: 'top' },
   editorActions: { flexDirection: 'row', gap: 10 },
-  cancelButton: { alignItems: 'center', backgroundColor: '#E9EDEC', borderRadius: 22, flex: 1, justifyContent: 'center', minHeight: 48 },
-  cancelButtonText: { color: '#5A625B', fontFamily: fonts.medium, fontSize: 14 },
-  saveButton: { alignItems: 'center', backgroundColor: '#466349', borderRadius: 22, flex: 1, justifyContent: 'center', minHeight: 48 },
-  saveButtonText: { color: '#FFFFFF', fontFamily: fonts.semibold, fontSize: 14 },
+  cancelButton: { alignItems: 'center', backgroundColor: colors.cardSecondary, borderRadius: 22, flex: 1, justifyContent: 'center', minHeight: 48 },
+  cancelButtonText: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 14 },
+  saveButton: { alignItems: 'center', backgroundColor: colors.brand, borderRadius: 22, flex: 1, justifyContent: 'center', minHeight: 48 },
+  saveButtonText: { color: colors.buttonForeground, fontFamily: fonts.semibold, fontSize: 14 },
   pressed: { opacity: 0.72 },
 });

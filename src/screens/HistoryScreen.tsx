@@ -16,7 +16,7 @@ import { useRecords } from '../hooks/useRecords';
 import { deleteAndSyncRecord } from '../sync/records-sync';
 import { CATEGORIES, Category, DateRange, EMOTIONS, Emotion } from '../types/record';
 import { RootStackParamList } from '../types/navigation';
-import { colors, fonts } from '../theme';
+import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
 
 const dateRanges: Array<{ label: string; value?: DateRange }> = [
   { label: '全部' },
@@ -26,6 +26,8 @@ const dateRanges: Array<{ label: string; value?: DateRange }> = [
 ];
 
 export function HistoryScreen() {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const filterSheetRef = useRef<BottomSheetModal>(null);
   const filterSnapPoints = useMemo(() => ['64%'], []);
@@ -64,16 +66,16 @@ export function HistoryScreen() {
   };
 
   return (
-    <Screen backgroundColor="#F7FAF8" contentStyle={styles.content}>
+    <Screen backgroundColor={colors.background} contentStyle={styles.content}>
       <View style={styles.searchAndFilter}>
         <View style={styles.searchWrap}>
-          <Ionicons name="search-outline" size={20} color="#737971" style={styles.searchIcon} />
+          <Ionicons name="search-outline" size={20} color={colors.placeholder} style={styles.searchIcon} />
           <TextInput
             accessibilityLabel="搜索事情或反复出现的想法"
             value={search}
             onChangeText={setSearch}
             placeholder="搜索事情或反复出现的想法"
-            placeholderTextColor="rgba(115, 121, 113, 0.6)"
+            placeholderTextColor={colors.placeholder}
             style={styles.search}
           />
         </View>
@@ -83,7 +85,7 @@ export function HistoryScreen() {
           style={({ pressed }) => [styles.filterButton, pressed && styles.pressed]}
           onPress={() => filterSheetRef.current?.present()}
         >
-          <Ionicons name="options-outline" size={18} color="#466349" />
+          <Ionicons name="options-outline" size={18} color={colors.brand} />
           <Text style={styles.filterButtonText}>
             {activeFilters ? `筛选条件 · ${activeFilters}` : '筛选条件'}
           </Text>
@@ -93,7 +95,7 @@ export function HistoryScreen() {
       <View style={styles.list}>
         {isLoading ? (
           <View style={styles.loading}>
-            <ActivityIndicator color={colors.primary} />
+            <ActivityIndicator color={colors.brand} />
             <Text style={styles.loadingText}>正在查询记录...</Text>
           </View>
         ) : records.length ? (
@@ -118,7 +120,7 @@ export function HistoryScreen() {
             style={({ pressed }) => [styles.loadMoreButton, (pressed || isLoadingMore) && styles.pressed]}
             onPress={() => void loadMore()}
           >
-            {isLoadingMore ? <ActivityIndicator color={colors.primary} size="small" /> : null}
+            {isLoadingMore ? <ActivityIndicator color={colors.brand} size="small" /> : null}
             <Text style={styles.loadMoreText}>{isLoadingMore ? '加载中...' : '加载更多'}</Text>
           </HapticPressable>
         ) : null}
@@ -130,7 +132,7 @@ export function HistoryScreen() {
         backgroundStyle={styles.sheetBackground}
         handleIndicatorStyle={styles.sheetIndicator}
         backdropComponent={(props) => (
-          <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={0.18} />
+          <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={1} style={{ backgroundColor: colors.overlay }} />
         )}
       >
         <BottomSheetScrollView contentContainerStyle={styles.sheetContent}>
@@ -191,7 +193,7 @@ export function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   content: { paddingTop: 32, paddingBottom: 128, gap: 24 },
   searchAndFilter: { gap: 16 },
   searchWrap: { height: 56, justifyContent: 'center' },
@@ -201,9 +203,9 @@ const styles = StyleSheet.create({
     paddingRight: 16,
     borderRadius: 16,
     borderCurve: 'continuous',
-    backgroundColor: '#FFFFFF',
-    boxShadow: '0 10px 40px -10px rgba(70, 99, 73, 0.08)',
-    color: '#181C1C',
+    backgroundColor: colors.card,
+    boxShadow: `0 10px 40px -10px ${colors.shadow}`,
+    color: colors.text,
     fontFamily: fonts.regular,
     fontSize: 14,
   },
@@ -216,30 +218,30 @@ const styles = StyleSheet.create({
     gap: 8,
     borderRadius: 16,
     borderCurve: 'continuous',
-    backgroundColor: 'rgba(202, 235, 201, 0.2)',
+    backgroundColor: colors.brandSoft,
   },
-  filterButtonText: { color: '#466349', fontFamily: fonts.medium, fontSize: 16, lineHeight: 24 },
+  filterButtonText: { color: colors.brand, fontFamily: fonts.medium, fontSize: 16, lineHeight: 24 },
   filterTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 15, marginTop: 4 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   list: { gap: 16, paddingTop: 8 },
   loading: { alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 34 },
-  loadingText: { color: colors.muted, fontFamily: fonts.medium, fontSize: 14 },
+  loadingText: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 14 },
   loadMoreButton: {
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: colors.primarySoft,
+    backgroundColor: colors.brandSoft,
     borderRadius: 18,
     flexDirection: 'row',
     gap: 8,
     minHeight: 44,
     paddingHorizontal: 18,
   },
-  loadMoreText: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 14 },
-  sheetBackground: { borderRadius: 28, backgroundColor: '#FFFEFC' },
-  sheetIndicator: { backgroundColor: '#D6D0C8' },
+  loadMoreText: { color: colors.brand, fontFamily: fonts.semibold, fontSize: 14 },
+  sheetBackground: { borderRadius: 28, backgroundColor: colors.card },
+  sheetIndicator: { backgroundColor: colors.border },
   sheetContent: { padding: 20, paddingBottom: 34, gap: 14 },
   sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sheetTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 20 },
-  clearText: { color: colors.primary, fontFamily: fonts.semibold },
+  clearText: { color: colors.brand, fontFamily: fonts.semibold },
   pressed: { opacity: 0.75 },
 });

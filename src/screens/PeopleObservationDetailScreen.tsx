@@ -20,9 +20,7 @@ import {
   PeopleObservationEmotion,
 } from '../types/people-observation';
 import { RootStackParamList } from '../types/navigation';
-import { colors, fonts } from '../theme';
-
-const emotionBackgrounds = ['#E6F2E6', '#FBEADF', '#F0ECF7', '#F3EEE5'];
+import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
 
 function Field({
   icon,
@@ -35,10 +33,12 @@ function Field({
   hint?: string;
   children: React.ReactNode;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.field}>
       <View style={styles.labelRow}>
-        <Ionicons name={icon} size={17} color="#5D655E" />
+        <Ionicons name={icon} size={17} color={colors.textSecondary} />
         <Text style={styles.label}>{label}</Text>
       </View>
       {hint ? <Text style={styles.hint}>{hint}</Text> : null}
@@ -56,11 +56,13 @@ function ObservationDetailCard({
   label: string;
   value: string;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.observationCard}>
       <View style={styles.cardLabelRow}>
         <View style={styles.cardIcon}>
-          <Ionicons name={icon} size={15} color="#6E7B6F" />
+          <Ionicons name={icon} size={15} color={colors.brand} />
         </View>
         <Text style={styles.cardLabel}>{label}</Text>
       </View>
@@ -82,11 +84,13 @@ function ReflectionCard({
   subtitle: string;
   value: string;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={[styles.reflectionCard, accent === 'definition' ? styles.definitionCard : styles.actionCard]}>
       <View style={styles.reflectionHeader}>
         <View style={styles.reflectionIcon}>
-          <Ionicons name={icon} size={18} color="#466349" />
+          <Ionicons name={icon} size={18} color={colors.brand} />
         </View>
         <View style={styles.reflectionTitleWrap}>
           <Text style={styles.reflectionLabel}>{label}</Text>
@@ -145,6 +149,8 @@ export function PeopleObservationDetailScreen({
   navigation,
   route,
 }: NativeStackScreenProps<RootStackParamList, 'PeopleObservationDetail'>) {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const db = useSQLiteContext();
   const { session } = useAuth();
   const { alert } = useAppAlert();
@@ -309,12 +315,12 @@ export function PeopleObservationDetailScreen({
   });
 
   return (
-    <Screen backgroundColor="#F7FAF8" keyboardAvoiding keyboardAvoidingMode="fullscreen" scrollViewRef={scrollViewRef} contentStyle={styles.content}>
+    <Screen backgroundColor={colors.background} keyboardAvoiding keyboardAvoidingMode="fullscreen" scrollViewRef={scrollViewRef} contentStyle={styles.content}>
       <View style={styles.header}>
         <View style={styles.headerBody}>
           <Text style={styles.title}>{observation.alias}</Text>
           <View style={styles.metaRow}>
-            <Ionicons name="calendar-outline" size={13} color="#7B827B" />
+            <Ionicons name="calendar-outline" size={13} color={colors.placeholder} />
             <Text style={styles.date}>{new Date(observation.createdAt).toLocaleDateString('zh-CN')}</Text>
           </View>
         </View>
@@ -338,7 +344,7 @@ export function PeopleObservationDetailScreen({
               onChangeText={setAlias}
               onFocus={revealBottomFields}
               placeholder="例如：A 同事 / 那位朋友 / 高中同学"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={colors.placeholder}
               style={styles.input}
             />
           </Field>
@@ -354,7 +360,7 @@ export function PeopleObservationDetailScreen({
                   feedback="selection"
                   style={({ pressed }) => [
                     styles.chip,
-                    emotions.includes(item) && { backgroundColor: emotionBackgrounds[index % emotionBackgrounds.length] },
+                    emotions.includes(item) && { backgroundColor: [colors.positiveSoft, colors.warmSoft, colors.purpleSoft, colors.cardSecondary][index % 4] },
                     pressed && styles.pressed,
                   ]}
                   onPress={() => toggleEmotion(item)}
@@ -365,26 +371,26 @@ export function PeopleObservationDetailScreen({
             </View>
           </Field>
           <Field icon="location-outline" label="触发场景">
-            <TextInput value={triggerScene} onChangeText={setTriggerScene} placeholder="我是在什么情况下想到 TA 的？" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline />
+            <TextInput value={triggerScene} onChangeText={setTriggerScene} placeholder="我是在什么情况下想到 TA 的？" placeholderTextColor={colors.placeholder} style={[styles.input, styles.multiline]} multiline />
           </Field>
           <Field icon="eye-off-outline" label="我轻蔑 TA 的点" hint="可以诚实一点写，先不急着评判自己。">
-            <TextInput value={contemptPoints} onChangeText={setContemptPoints} onFocus={revealBottomFields} placeholder="我看不上的地方是什么？" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline />
+            <TextInput value={contemptPoints} onChangeText={setContemptPoints} onFocus={revealBottomFields} placeholder="我看不上的地方是什么？" placeholderTextColor={colors.placeholder} style={[styles.input, styles.multiline]} multiline />
           </Field>
           <Field icon="sparkles-outline" label="我自卑或羡慕 TA 的点">
-            <TextInput value={inferiorityOrEnvyPoints} onChangeText={setInferiorityOrEnvyPoints} onFocus={revealBottomFields} placeholder="TA 的什么地方让我不舒服、羡慕或不服气？" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline />
+            <TextInput value={inferiorityOrEnvyPoints} onChangeText={setInferiorityOrEnvyPoints} onFocus={revealBottomFields} placeholder="TA 的什么地方让我不舒服、羡慕或不服气？" placeholderTextColor={colors.placeholder} style={[styles.input, styles.multiline]} multiline />
           </Field>
           <Field icon="accessibility-outline" label="TA 比我强的具体能力">
-            <TextInput value={otherStrengths} onChangeText={setOtherStrengths} onFocus={revealBottomFields} placeholder="例如：表达更直接、执行更快、更会争取资源" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline />
+            <TextInput value={otherStrengths} onChangeText={setOtherStrengths} onFocus={revealBottomFields} placeholder="例如：表达更直接、执行更快、更会争取资源" placeholderTextColor={colors.placeholder} style={[styles.input, styles.multiline]} multiline />
           </Field>
           <Field icon="shield-checkmark-outline" label="我比 TA 强或不弱的地方">
-            <TextInput value={myStrengths} onChangeText={setMyStrengths} onFocus={revealBottomFields} placeholder="例如：更稳定、更细致、更愿意复盘" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} multiline />
+            <TextInput value={myStrengths} onChangeText={setMyStrengths} onFocus={revealBottomFields} placeholder="例如：更稳定、更细致、更愿意复盘" placeholderTextColor={colors.placeholder} style={[styles.input, styles.multiline]} multiline />
           </Field>
         </View>
       ) : (
         <View style={styles.details}>
           <View style={styles.emotions}>
             {observation.emotions.length ? observation.emotions.map((emotion, index) => (
-              <Text key={emotion} style={[styles.emotion, { backgroundColor: emotionBackgrounds[index % emotionBackgrounds.length] }]}>{emotion}</Text>
+              <Text key={emotion} style={[styles.emotion, { backgroundColor: [colors.positiveSoft, colors.warmSoft, colors.purpleSoft, colors.cardSecondary][index % 4] }]}>{emotion}</Text>
             )) : <Text style={[styles.emotion, styles.emptyEmotion]}>未选择情绪</Text>}
           </View>
           <ObservationDetailCard icon="sparkles-outline" label="触发场景" value={observation.triggerScene} />
@@ -443,7 +449,7 @@ export function PeopleObservationDetailScreen({
               style={({ pressed }) => [styles.primaryButton, (pressed || saving) && styles.pressed]}
               onPress={() => void save()}
             >
-              <Ionicons name="checkmark-circle-outline" size={19} color={colors.white} />
+              <Ionicons name="checkmark-circle-outline" size={19} color={colors.buttonForeground} />
               <Text style={styles.primaryButtonText}>{saving ? '保存中...' : '保存修改'}</Text>
             </HapticPressable>
           </>
@@ -454,7 +460,7 @@ export function PeopleObservationDetailScreen({
               style={({ pressed }) => [styles.deleteButton, (pressed || deleting) && styles.pressed]}
               onPress={confirmDelete}
             >
-              <Ionicons name="trash-outline" size={18} color="#5A625B" />
+              <Ionicons name="trash-outline" size={18} color={colors.danger} />
               <Text style={styles.deleteButtonText}>{deleting ? '删除中...' : '删除'}</Text>
             </HapticPressable>
             <HapticPressable
@@ -462,7 +468,7 @@ export function PeopleObservationDetailScreen({
               style={({ pressed }) => [styles.editButton, (pressed || deleting) && styles.pressed]}
               onPress={() => setEditing(true)}
             >
-              <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+              <Ionicons name="create-outline" size={18} color={colors.buttonForeground} />
               <Text style={styles.editButtonText}>编辑</Text>
             </HapticPressable>
           </>
@@ -472,32 +478,32 @@ export function PeopleObservationDetailScreen({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => ({
   content: { paddingTop: 24, paddingHorizontal: 20, paddingBottom: 120, gap: 18 },
   header: { alignItems: 'center', flexDirection: 'row', gap: 12 },
-  avatar: { alignItems: 'center', backgroundColor: '#CDECCB', borderRadius: 24, height: 48, justifyContent: 'center', width: 48 },
+  avatar: { alignItems: 'center', backgroundColor: colors.positiveSoft, borderRadius: 24, height: 48, justifyContent: 'center', width: 48 },
   headerBody: { flex: 1, gap: 5 },
-  date: { color: '#7B827B', fontFamily: fonts.regular, fontSize: 12 },
-  title: { color: '#181C1C', fontFamily: fonts.medium, fontSize: 24, lineHeight: 30 },
+  date: { color: colors.placeholder, fontFamily: fonts.regular, fontSize: 12 },
+  title: { color: colors.text, fontFamily: fonts.medium, fontSize: 24, lineHeight: 30 },
   metaRow: { alignItems: 'center', flexDirection: 'row', gap: 5 },
   syncStatus: { alignItems: 'center', flexDirection: 'row', gap: 5 },
-  syncDot: { backgroundColor: '#8daf8f', borderRadius: 4, height: 7, width: 7 },
-  pendingDot: { backgroundColor: '#B79A63' },
-  syncText: { color: '#658267', fontFamily: fonts.medium, fontSize: 12 },
-  headerDivider: { backgroundColor: '#E1E8E2', height: StyleSheet.hairlineWidth },
+  syncDot: { backgroundColor: colors.brand, borderRadius: 4, height: 7, width: 7 },
+  pendingDot: { backgroundColor: colors.purple },
+  syncText: { color: colors.brand, fontFamily: fonts.medium, fontSize: 12 },
+  headerDivider: { backgroundColor: colors.border, height: StyleSheet.hairlineWidth },
   form: { gap: 32 },
   field: { gap: 8 },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  label: { color: '#424841', fontFamily: fonts.medium, fontSize: 16 },
-  hint: { color: '#5D655E', fontFamily: fonts.regular, fontSize: 12, lineHeight: 18 },
+  label: { color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
+  hint: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 12, lineHeight: 18 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { backgroundColor: '#FFFFFF', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 9 },
-  chipText: { color: '#5D655E', fontFamily: fonts.regular, fontSize: 13 },
-  selectedChipText: { color: '#526052', fontFamily: fonts.medium },
+  chip: { backgroundColor: colors.card, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 9 },
+  chipText: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 13 },
+  selectedChipText: { color: colors.positive, fontFamily: fonts.medium },
   input: {
     color: colors.text,
     minHeight: 56,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.input,
     borderRadius: 24,
     borderCurve: 'continuous',
     paddingHorizontal: 20,
@@ -508,23 +514,23 @@ const styles = StyleSheet.create({
   multiline: { minHeight: 116, textAlignVertical: 'top' },
   details: { gap: 12 },
   emotions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  emotion: { borderRadius: 999, color: '#526052', fontFamily: fonts.medium, fontSize: 13, paddingHorizontal: 13, paddingVertical: 7 },
-  emptyEmotion: { backgroundColor: '#EEF1EE' },
-  observationCard: { backgroundColor: '#FFFFFF', borderRadius: 20, gap: 13, padding: 18, boxShadow: '0 5px 18px rgba(70, 99, 73, 0.06)' },
+  emotion: { borderRadius: 999, color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13, paddingHorizontal: 13, paddingVertical: 7 },
+  emptyEmotion: { backgroundColor: colors.cardSecondary },
+  observationCard: { backgroundColor: colors.card, borderRadius: 20, gap: 13, padding: 18, boxShadow: `0 5px 18px ${colors.shadow}` },
   cardLabelRow: { alignItems: 'center', flexDirection: 'row', gap: 8 },
-  cardIcon: { alignItems: 'center', backgroundColor: '#EEF4EE', borderRadius: 14, height: 28, justifyContent: 'center', width: 28 },
-  cardLabel: { color: '#7B827B', fontFamily: fonts.medium, fontSize: 13 },
-  cardValue: { color: '#252A26', fontFamily: fonts.regular, fontSize: 15, lineHeight: 23 },
+  cardIcon: { alignItems: 'center', backgroundColor: colors.brandSoft, borderRadius: 14, height: 28, justifyContent: 'center', width: 28 },
+  cardLabel: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13 },
+  cardValue: { color: colors.text, fontFamily: fonts.regular, fontSize: 15, lineHeight: 23 },
   reflectionCard: { borderRadius: 24, gap: 16, padding: 18 },
-  definitionCard: { backgroundColor: '#FCF3E8' },
-  actionCard: { backgroundColor: '#E7F1E8' },
+  definitionCard: { backgroundColor: colors.warmSoft },
+  actionCard: { backgroundColor: colors.positiveSoft },
   reflectionHeader: { alignItems: 'center', flexDirection: 'row', gap: 11 },
-  reflectionIcon: { alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 15, height: 30, justifyContent: 'center', width: 30 },
+  reflectionIcon: { alignItems: 'center', backgroundColor: colors.cardSecondary, borderRadius: 15, height: 30, justifyContent: 'center', width: 30 },
   reflectionTitleWrap: { gap: 2 },
-  reflectionLabel: { color: '#353b36', fontFamily: fonts.medium, fontSize: 16 },
-  reflectionSubtitle: { color: '#899588', fontFamily: fonts.medium, fontSize: 9, letterSpacing: 0.7 },
-  reflectionContent: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 15 },
-  reflectionText: { color: '#303630', fontFamily: fonts.regular, fontSize: 14, lineHeight: 22 },
+  reflectionLabel: { color: colors.text, fontFamily: fonts.medium, fontSize: 16 },
+  reflectionSubtitle: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 9, letterSpacing: 0.7 },
+  reflectionContent: { backgroundColor: colors.cardTemp, borderRadius: 16, padding: 15 },
+  reflectionText: { color: colors.text, fontFamily: fonts.regular, fontSize: 14, lineHeight: 22 },
   preview: { gap: 24 },
   actions: { flexDirection: 'row', gap: 16 },
   primaryButton: {
@@ -535,9 +541,9 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 52,
     borderRadius: 28,
-    backgroundColor: '#466349',
+    backgroundColor: colors.brand,
   },
-  primaryButtonText: { color: colors.white, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  primaryButtonText: { color: colors.buttonForeground, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   secondaryButton: {
     flex: 1,
     alignItems: 'center',
@@ -546,9 +552,9 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 52,
     borderRadius: 28,
-    backgroundColor: '#E9EDEC',
+    backgroundColor: colors.cardSecondary,
   },
-  secondaryButtonText: { color: '#5A625B', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  secondaryButtonText: { color: colors.textSecondary, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   deleteButton: {
     flex: 1,
     alignItems: 'center',
@@ -557,9 +563,9 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 52,
     borderRadius: 28,
-    backgroundColor: '#E9EDEC',
+    backgroundColor: colors.cardSecondary,
   },
-  deleteButtonText: { color: '#5A625B', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  deleteButtonText: { color: colors.danger, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   editButton: {
     flex: 1,
     alignItems: 'center',
@@ -568,9 +574,9 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 52,
     borderRadius: 28,
-    backgroundColor: '#466349',
+    backgroundColor: colors.brand,
   },
-  editButtonText: { color: '#FFFFFF', fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
+  editButtonText: { color: colors.buttonForeground, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   pressed: { opacity: 0.75 },
-  empty: { color: colors.muted, fontFamily: fonts.regular, textAlign: 'center', paddingVertical: 40 },
+  empty: { color: colors.textSecondary, fontFamily: fonts.regular, textAlign: 'center', paddingVertical: 40 },
 });
