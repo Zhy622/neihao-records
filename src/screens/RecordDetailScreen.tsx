@@ -49,11 +49,12 @@ function Field({
   label: string;
   children: React.ReactNode;
 }) {
+  const { colors } = useAppTheme();
   const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.field}>
       <View style={styles.labelRow}>
-        <Ionicons name={icon} size={16} color="#466349" />
+        <Ionicons name={icon} size={16} color={colors.brand} />
         <Text style={styles.label}>{label}</Text>
       </View>
       {children}
@@ -125,11 +126,12 @@ function DetailCell({
   value: string;
   muted?: boolean;
 }) {
+  const { colors } = useAppTheme();
   const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.detailCell}>
       <View style={styles.detailLabelRow}>
-        <Ionicons name={icon} size={14} color="#466349" />
+        <Ionicons name={icon} size={14} color={colors.brand} />
         <Text style={styles.detailLabel}>{label}</Text>
       </View>
       <Text style={[styles.detailValue, muted && styles.mutedDetailValue]}>{value}</Text>
@@ -148,11 +150,12 @@ function IntensityCell({
   value: number;
   color: string;
 }) {
+  const { colors } = useAppTheme();
   const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.detailCell}>
       <View style={styles.detailLabelRow}>
-        <Ionicons name={icon} size={14} color="#466349" />
+        <Ionicons name={icon} size={14} color={colors.brand} />
         <Text style={styles.detailLabel}>{label}</Text>
       </View>
       <View style={styles.intensityRow}>
@@ -432,7 +435,7 @@ export function RecordDetailScreen({
               <Ionicons
                 name={record.syncStatus === 'synced' ? 'checkmark-circle' : 'cloud-offline-outline'}
                 size={12}
-                color={record.syncStatus === 'synced' ? '#466349' : '#665B7C'}
+                color={record.syncStatus === 'synced' ? colors.brand : '#665B7C'}
               />
               <Text style={[styles.syncStatusText, record.syncStatus !== 'synced' && styles.pendingSyncText]}>
                 {record.syncStatus === 'synced' ? '已同步' : '待同步'}
@@ -530,13 +533,13 @@ export function RecordDetailScreen({
           </View>
           <View style={styles.detailCards}>
             <DetailContentCard
-              accentColor="#466349"
+              accentColor={colors.brand}
               icon="bulb-outline"
               label="当时反复出现的想法"
               value={record.thoughts}
             />
             <DetailContentCard
-              accentColor="#7D562D"
+              accentColor="#b46714"
               icon="hammer-outline"
               label="最后怎么决定"
               value={record.finalDecision}
@@ -644,17 +647,17 @@ const createStyles = (colors: AppColors) => ({
   choiceChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: colors.input },
   selectedChoiceChip: { backgroundColor: colors.positiveSoft },
   choiceChipText: { color: colors.placeholder, fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
-  selectedChoiceChipText: { color: colors.positive },
+  selectedChoiceChipText: { color: colors.brand },
   levels: { flexDirection: 'row', gap: 4 },
   level: { flex: 1, height: 28, alignItems: 'center', justifyContent: 'center', borderRadius: 8, borderCurve: 'continuous', backgroundColor: colors.input },
   selectedLevel: { backgroundColor: colors.positiveSoft },
   levelText: { color: colors.placeholder, fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
-  selectedLevelText: { color: colors.positive },
+  selectedLevelText: { color: colors.brand },
   timeOptions: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 10, rowGap: 10 },
   timeOption: { height: 36, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, borderRadius: 18, backgroundColor: colors.input },
   selectedTimeOption: { height: 38, backgroundColor: colors.positiveSoft },
   timeOptionText: { color: colors.text, fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
-  selectedTimeOptionText: { color: colors.positive },
+  selectedTimeOptionText: { color: colors.brand },
   worthOptions: { height: 52, flexDirection: 'row', padding: 4, borderRadius: 12, borderCurve: 'continuous', backgroundColor: colors.input },
   worthOption: { flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 8, borderCurve: 'continuous' },
   selectedWorthOption: { backgroundColor: colors.card, boxShadow: `0 1px 1px ${colors.shadow}` },

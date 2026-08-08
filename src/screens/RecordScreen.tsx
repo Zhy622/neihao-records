@@ -460,7 +460,7 @@ const createStyles = (colors: AppColors) => ({
   selectedEmotionLevel: { backgroundColor: colors.positiveSoft },
   selectedDecisionLevel: { backgroundColor: colors.positiveSoft},
   levelText: { color: colors.placeholder, fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
-  selectedLevelText: { color: colors.positive },
+  selectedLevelText: { color: colors.brand },
   timeField: { gap: 16 },
   timeOptions: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 10, rowGap: 10 },
   timeOption: {
@@ -477,7 +477,7 @@ const createStyles = (colors: AppColors) => ({
     backgroundColor: colors.positiveSoft,
   },
   timeOptionText: { color: colors.text, fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
-  selectedTimeOptionText: { color: colors.positive },
+  selectedTimeOptionText: { color: colors.brand },
   reflections: { gap: 16 },
   reflectionField: { paddingBottom: 22 },
   multiline: { height: 102, paddingTop: 12, paddingBottom: 12, textAlignVertical: 'top' },
