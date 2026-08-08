@@ -98,6 +98,8 @@ export function PeopleObservationScreen() {
   const { session } = useAuth();
   const { alert } = useAppAlert();
   const scrollViewRef = useRef<ScrollView>(null);
+  const formOffsetRef = useRef(0);
+  const reflectionFieldsOffsetRef = useRef(0);
   const fieldOffsets = useRef<Record<string, number>>({});
   const emotionSheetRef = useRef<BottomSheetModal>(null);
   const emotionSnapPoints = useMemo(() => ['46%'], []);
@@ -127,7 +129,7 @@ export function PeopleObservationScreen() {
 
   const openEmotionSheet = () => {
     Keyboard.dismiss();
-    setTimeout(() => emotionSheetRef.current?.present(), 120);
+    setTimeout(() => emotionSheetRef.current?.present(), 50);
   };
 
   const recordFieldOffset = (field: string) => (event: LayoutChangeEvent) => {
@@ -136,9 +138,19 @@ export function PeopleObservationScreen() {
 
   const revealInputArea = (field: string) => {
     setTimeout(() => {
-      const y = fieldOffsets.current[field] ?? 0;
-      scrollViewRef.current?.scrollTo({ y: Math.max(y - 16, 0), animated: true });
-    }, 260);
+      const y = formOffsetRef.current + reflectionFieldsOffsetRef.current + (fieldOffsets.current[field] ?? 0) - 120;
+      scrollViewRef.current?.scrollTo({ y: Math.max(y, 0), animated: true });
+    }, 300);
+  };
+
+  const resetObservation = () => {
+    setAlias('');
+    setSelectedEmotions([]);
+    setTriggerScene('');
+    setContemptPoints('');
+    setAdmirePoints('');
+    setOtherStrengths('');
+    setMyStrengths('');
   };
 
   const finishObservation = async () => {
@@ -181,12 +193,15 @@ export function PeopleObservationScreen() {
         (await getPeopleObservation(db, session!.user.id, localObservation.id)) ?? localObservation,
       );
       setSaving(false);
-      if (synced) {
-        navigation.goBack();
+      resetObservation();
+      if (!synced) {
+        alert('已保存到本机', '暂时无法同步到服务器，联网后会自动重试。');
+      }
+      const parentNavigation = navigation.getParent();
+      if (parentNavigation) {
+        parentNavigation.navigate('PeopleObservationHistory');
       } else {
-        alert('已保存到本机', '暂时无法同步到服务器，联网后会自动重试。', [
-          { text: '知道了', onPress: () => navigation.goBack() },
-        ]);
+        navigation.navigate('PeopleObservationHistory');
       }
     } catch {
       alert('保存失败', '观照暂时没有保存，请稍后再试。');
@@ -207,13 +222,13 @@ export function PeopleObservationScreen() {
         <Text style={styles.quoteSignature}>— 观照 · 小记</Text>
       </View>
 
-      <View style={styles.form}>
+      <View style={styles.form} onLayout={(event) => { formOffsetRef.current = event.nativeEvent.layout.y; }}>
         <View style={styles.basicFields}>
           <Field icon="person-outline" label="人物代号" hint="可以是昵称、角色名或只有你看得懂的代号。" onLayout={recordFieldOffset('alias')}>
             <TextInput
               value={alias}
               onChangeText={setAlias}
-              onFocus={() => revealInputArea('alias')}
+              // onFocus={() => revealInputArea('alias')}
               placeholder="例如：A 同事 / 那位朋友 / 高中同学"
               placeholderTextColor={colors.placeholder}
               style={styles.input}
@@ -230,7 +245,7 @@ export function PeopleObservationScreen() {
           </Field>
         </View>
 
-        <View style={styles.reflectionFields}>
+        <View style={styles.reflectionFields} onLayout={(event) => { reflectionFieldsOffsetRef.current = event.nativeEvent.layout.y; }}>
           <Field icon="location-outline" label="触发场景" onLayout={recordFieldOffset('triggerScene')}>
             <TextInput
               value={triggerScene}
@@ -375,7 +390,7 @@ const createStyles = (colors: AppColors) => ({
     padding: 20,
     borderRadius: 16,
     borderCurve: 'continuous',
-    backgroundColor: colors.brandSoft,
+    backgroundColor: colors.brandSoftIcon,
     boxShadow: '0 8px 16px -12px rgba(70, 99, 73, 0.12)',
   },
   quoteAccent: { position: 'absolute', left: 0, top: 16, bottom: 16, width: 4, borderRadius: 4, backgroundColor: colors.brand },

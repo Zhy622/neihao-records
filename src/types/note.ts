@@ -7,6 +7,11 @@ export const NOTE_CATEGORIES = ['积极的', '负面的', '让我快乐的', '�
 export type NoteType = (typeof NOTE_TYPES)[number];
 export type NoteEmotion = (typeof NOTE_EMOTIONS)[number];
 export type NoteCategory = (typeof NOTE_CATEGORIES)[number];
+export type NoteCategoryFilter = Extract<NoteCategory, '积极的' | '负面的'>;
+
+export interface NoteFilters {
+  category?: NoteCategoryFilter;
+}
 
 export interface NoteInput {
   content: string;

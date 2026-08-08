@@ -152,7 +152,13 @@ export function usePeopleObservations(filters: PeopleObservationFilters = {}) {
     }
   }, [db, hasMore, isLoading, isLoadingMore, isRefreshing, search, userId]);
 
-  useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasLoadedRef.current || filterKeyRef.current !== filterKey) {
+        void refresh();
+      }
+    }, [filterKey, refresh]),
+  );
   return {
     peopleObservations,
     animatedObservationIds,

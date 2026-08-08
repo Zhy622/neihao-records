@@ -18,7 +18,7 @@ import {
   toLocalNoteSnapshot,
   updateRemoteNote,
 } from '../api/notes';
-import { Note } from '../types/note';
+import { Note, NoteFilters } from '../types/note';
 import { SyncResult } from './records-sync';
 
 const activeSyncs = new WeakMap<SQLiteDatabase, Map<string, Promise<SyncResult>>>();
@@ -120,9 +120,19 @@ export function syncPendingNotes(db: SQLiteDatabase, ownerUserId: string) {
   return sync;
 }
 
-export async function syncNotes(db: SQLiteDatabase, ownerUserId: string, limit = 50) {
+interface SyncNotesOptions {
+  filters?: NoteFilters;
+  limit?: number;
+  offset?: number;
+}
+
+export async function syncNotes(
+  db: SQLiteDatabase,
+  ownerUserId: string,
+  { filters = {}, limit = 50, offset = 0 }: SyncNotesOptions = {},
+) {
   const result = await syncPendingNotes(db, ownerUserId);
-  const page = await fetchRemoteNotesPage({ limit });
+  const page = await fetchRemoteNotesPage({ filters, limit, offset });
   await db.withTransactionAsync(async () => {
     for (const note of page.notes) {
       await upsertRemoteNote(db, ownerUserId, toLocalNoteSnapshot(note));

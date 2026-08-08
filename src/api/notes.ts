@@ -1,5 +1,5 @@
 import { ApiError, apiRequest } from './client';
-import { Note } from '../types/note';
+import { Note, NoteFilters } from '../types/note';
 
 export interface RemoteNote {
   id: string;
@@ -53,10 +53,12 @@ export function deleteRemoteNote(serverId: string) {
 }
 
 export function fetchRemoteNotesPage({
+  filters = {},
   includeDeleted,
   limit = 50,
   offset = 0,
 }: {
+  filters?: NoteFilters;
   includeDeleted?: boolean;
   limit?: number;
   offset?: number;
@@ -64,6 +66,9 @@ export function fetchRemoteNotesPage({
   const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
   if (includeDeleted) {
     params.set('includeDeleted', 'true');
+  }
+  if (filters.category) {
+    params.set('category', filters.category);
   }
   return apiRequest<RemoteNotesPage>(`/notes?${params}`);
 }

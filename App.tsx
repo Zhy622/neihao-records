@@ -93,7 +93,7 @@ function RootNavigation() {
                 headerRight: () => (
                   <HapticPressable
                     accessibilityRole="button"
-                    accessibilityLabel="查看历史记录"
+                    accessibilityLabel="查看纠结记录"
                     style={{ padding: 4, borderRadius: 18 }}
                     onPress={() => navigation.navigate('History')}
                   >
@@ -106,7 +106,7 @@ function RootNavigation() {
               name="History"
               component={HistoryScreen}
               options={({ navigation }) => ({
-                title: '历史记录',
+                title: '纠结记录',
                 headerTitleAlign: 'center',
                 headerStyle: { height: 70, backgroundColor: colors.background },
                 headerShadowVisible: false,

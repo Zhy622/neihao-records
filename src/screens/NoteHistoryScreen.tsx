@@ -1,17 +1,19 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { StyleSheet, Text, View } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
-import { useAuth } from '../auth/AuthProvider';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { HapticPressable } from '../components/HapticPressable';
 import { Screen } from '../components/Screen';
-import { getNotes } from '../database/database';
-import { syncNotes } from '../sync/notes-sync';
-import { Note } from '../types/note';
+import { useNotes } from '../hooks/useNotes';
+import { Note, NoteCategoryFilter } from '../types/note';
 import { RootStackParamList } from '../types/navigation';
 import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
+
+const NOTE_CATEGORY_FILTERS = [
+  { label: '全部', value: undefined },
+  { label: '积极的', value: '积极的' },
+  { label: '负面的', value: '负面的' },
+] as const;
 
 function getNoteTitle(content: string) {
   return content.trim().split(/\r?\n/, 1)[0] || '未命名随记';
@@ -37,37 +39,48 @@ function getNoteTypeIcon(noteType: Note['noteType']) {
 export function NoteHistoryScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'NoteHistory'>) {
   const { colors } = useAppTheme();
   const styles = useThemedStyles(createStyles);
-  const db = useSQLiteContext();
-  const { session } = useAuth();
-  const [notes, setNotes] = useState<Note[]>([]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!session) {
-        return;
-      }
-
-      let active = true;
-      void (async () => {
-        try {
-          await syncNotes(db, session.user.id);
-        } catch {
-          // ponytail: local notes remain available while offline.
-        }
-        const nextNotes = await getNotes(db, session.user.id, { limit: 50 });
-        if (active) setNotes(nextNotes);
-      })();
-
-      return () => {
-        active = false;
-      };
-    }, [db, session]),
-  );
+  const [category, setCategory] = useState<NoteCategoryFilter>();
+  const { notes, loadMore, isLoading, isRefreshing, isLoadingMore, hasMore } = useNotes({ category });
 
   return (
     <Screen backgroundColor={colors.background} contentStyle={styles.content}>
-      {notes.length ? (
+      <View style={styles.categoryOptions}>
+        {NOTE_CATEGORY_FILTERS.map((item) => {
+          const selected = category === item.value;
+          return (
+            <HapticPressable
+              key={item.label}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              feedback="selection"
+              style={({ pressed }) => [
+                styles.categoryOption,
+                selected && styles.selectedCategoryOption,
+                pressed && styles.pressed,
+              ]}
+              onPress={() => setCategory(item.value)}
+            >
+              <Text style={[styles.categoryOptionText, selected && styles.selectedCategoryOptionText]}>
+                {item.label}
+              </Text>
+            </HapticPressable>
+          );
+        })}
+      </View>
+
+      {isLoading ? (
+        <View style={styles.loading}>
+          <ActivityIndicator color={colors.brand} />
+          <Text style={styles.loadingText}>正在查询随记...</Text>
+        </View>
+      ) : notes.length ? (
         <View style={styles.list}>
+          {isRefreshing ? (
+            <View style={styles.refreshing}>
+              <ActivityIndicator color={colors.brand} size="small" />
+              <Text style={styles.refreshingText}>同步中...</Text>
+            </View>
+          ) : null}
           {notes.map((note) => (
             <HapticPressable
               key={note.id}
@@ -94,6 +107,16 @@ export function NoteHistoryScreen({ navigation }: NativeStackScreenProps<RootSta
               </View>
             </HapticPressable>
           ))}
+          {hasMore ? (
+            <HapticPressable
+              disabled={isLoadingMore}
+              style={({ pressed }) => [styles.loadMoreButton, (pressed || isLoadingMore) && styles.pressed]}
+              onPress={() => void loadMore()}
+            >
+              {isLoadingMore ? <ActivityIndicator color={colors.brand} size="small" /> : null}
+              <Text style={styles.loadMoreText}>{isLoadingMore ? '加载中...' : '加载更多'}</Text>
+            </HapticPressable>
+          ) : null}
         </View>
       ) : (
         <View style={styles.empty}>
@@ -114,7 +137,41 @@ export function NoteHistoryScreen({ navigation }: NativeStackScreenProps<RootSta
 
 const createStyles = (colors: AppColors) => ({
   content: { flexGrow: 1, paddingTop: 32, paddingHorizontal: 30, paddingBottom: 130 },
+  categoryOptions: {
+    height: 52,
+    flexDirection: 'row',
+    marginBottom: 20,
+    padding: 4,
+    borderRadius: 12,
+    borderCurve: 'continuous',
+    backgroundColor: colors.input,
+  },
+  categoryOption: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    borderCurve: 'continuous',
+  },
+  selectedCategoryOption: { backgroundColor: colors.card, boxShadow: `0 1px 1px ${colors.shadow}` },
+  categoryOptionText: { color: colors.placeholder, fontFamily: fonts.medium, fontSize: 14, lineHeight: 20 },
+  selectedCategoryOptionText: { color: colors.brand },
+  loading: { alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 34 },
+  loadingText: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 14 },
+  refreshing: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  refreshingText: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13 },
   list: { gap: 16 },
+  loadMoreButton: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: colors.brandSoft,
+    borderRadius: 18,
+    flexDirection: 'row',
+    gap: 8,
+    minHeight: 44,
+    paddingHorizontal: 18,
+  },
+  loadMoreText: { color: colors.brand, fontFamily: fonts.semibold, fontSize: 14 },
   card: {
     minHeight: 142,
     justifyContent: 'space-between',

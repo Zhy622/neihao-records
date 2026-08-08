@@ -1,7 +1,7 @@
 import { Param, Controller,  Post, Get, UseGuards } from '@nestjs/common';
 import { AiService } from './ai.service';
 import { CurrentUser } from '../auth/current-user.decorator';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AccessTokenPayload } from '../auth/auth.types';
 
 @Controller('ai')

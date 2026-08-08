@@ -18,6 +18,7 @@ export class NotesService {
       userId,
       ...(query.includeDeleted === 'true' ? {} : { syncStatus: RecordSyncStatus.ACTIVE }),
       ...(query.updatedSince ? { updatedAt: { gt: new Date(query.updatedSince) } } : {}),
+      ...(query.category ? { categories: { has: query.category } } : {}),
       ...(query.search?.trim() ? { content: { contains: query.search.trim(), mode: 'insensitive' } } : {}),
     };
     const [notes, total] = await this.prisma.$transaction([

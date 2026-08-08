@@ -18,6 +18,7 @@ import {
   Note,
   NoteCategory,
   NoteEmotion,
+  NoteFilters,
   NoteInput,
   NoteType,
 } from '../types/note';
@@ -966,8 +967,17 @@ export async function getPeopleObservations(
 export async function getNotes(
   db: SQLiteDatabase,
   ownerUserId: string,
+  filters: NoteFilters = {},
   pagination: { limit?: number; offset?: number } = {},
 ) {
+  const clauses = ["ownerUserId = ?", "syncStatus != 'pending_delete'"];
+  const params: Array<string | number> = [ownerUserId];
+
+  if (filters.category) {
+    clauses.push('categories LIKE ?');
+    params.push(`%"${filters.category}"%`);
+  }
+
   const paginationSql =
     pagination.limit === undefined
       ? ''
@@ -977,8 +987,8 @@ export async function getNotes(
       ? []
       : [pagination.limit, pagination.offset ?? 0];
   const rows = await db.getAllAsync<NoteRow>(
-    `SELECT * FROM notes WHERE ownerUserId = ? AND syncStatus != 'pending_delete' ORDER BY createdAt DESC${paginationSql}`,
-    ownerUserId,
+    `SELECT * FROM notes WHERE ${clauses.join(' AND ')} ORDER BY createdAt DESC${paginationSql}`,
+    ...params,
     ...paginationParams,
   );
   return rows.map(mapNoteRow);

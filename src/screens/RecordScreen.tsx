@@ -138,7 +138,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
 
   const revealBottomFields = () => {
     // Wait until the keyboard has resized the Android window before scrolling.
-    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 300);
+    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 350);
   };
 
   const openSelectionSheet = (sheetRef: RefObject<BottomSheetModal | null>) => {
@@ -177,13 +177,10 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
       }
 
       setSaving(false);
-      if (synced) {
-        navigation.goBack();
-      } else {
-        alert('已保存到本机', '暂时无法同步到服务器，联网后会自动重试。', [
-          { text: '知道了', onPress: () => navigation.goBack() },
-        ]);
+      if (!synced) {
+        alert('已保存到本机', '暂时无法同步到服务器，联网后会自动重试。');
       }
+      navigation.replace('History');
     } catch {
       alert('保存失败', '记录暂时没有保存，请稍后再试。');
       setSaving(false);

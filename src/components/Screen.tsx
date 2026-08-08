@@ -57,7 +57,7 @@ export function Screen({
     >
       {shouldAvoidKeyboard ? (
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={keyboardVerticalOffset}
           style={styles.keyboardAvoiding}
         >

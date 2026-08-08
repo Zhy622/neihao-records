@@ -28,7 +28,7 @@ export function StatCard({
       style={[styles.card, icon && styles.homeCard]}
     >
       {icon ? (
-        <View style={[styles.icon, { backgroundColor: iconBackgroundColor ?? colors.brandSoft }]}>
+        <View style={[styles.icon, { backgroundColor: iconBackgroundColor ?? colors.brandSoftIcon }]}>
           <Ionicons name={icon} size={18} color={iconColor ?? colors.brand} />
         </View>
       ) : null}

@@ -1065,6 +1065,18 @@
             }
           },
           {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "积极的",
+                "负面的"
+              ]
+            }
+          },
+          {
             "name": "updatedSince",
             "required": false,
             "in": "query",

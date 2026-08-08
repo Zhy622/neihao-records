@@ -118,7 +118,7 @@ const createStyles = (colors: AppColors) => ({
     backgroundColor: colors.card,
     boxShadow: `0 10px 40px -10px ${colors.shadow}`,
   },
-  gg: {
+  heroGlow: {
     position: 'absolute',
     top: -64,
     right: -64,

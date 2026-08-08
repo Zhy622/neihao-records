@@ -12,6 +12,11 @@ export class NoteQueryDto {
   @MaxLength(100)
   search?: string;
 
+  @ApiPropertyOptional({ enum: ['积极的', '负面的'] })
+  @IsOptional()
+  @IsIn(['积极的', '负面的'])
+  category?: string;
+
   @ApiPropertyOptional({ format: 'date-time' })
   @IsOptional()
   @IsISO8601({ strict: true })

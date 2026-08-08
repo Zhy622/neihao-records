@@ -439,6 +439,19 @@ describe('Backend API (e2e)', () => {
       .expect(({ body }) => expect(body.content).toBe('An updated synced note.'));
 
     await request(app.getHttpServer())
+      .post('/api/notes')
+      .set(ownerHeader)
+      .send({ ...note, clientId: 'e2e-client-note-2', categories: ['负面的'] })
+      .expect(201);
+
+    const positiveNotes = await request(app.getHttpServer())
+      .get(`/api/notes?category=${encodeURIComponent('积极的')}`)
+      .set(ownerHeader)
+      .expect(200);
+    expect(positiveNotes.body.total).toBe(1);
+    expect(positiveNotes.body.notes[0].id).toBe(created.body.id);
+
+    await request(app.getHttpServer())
       .delete(`/api/notes/${created.body.id}`)
       .set(ownerHeader)
       .expect(200)
