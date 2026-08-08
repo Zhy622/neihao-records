@@ -64,7 +64,7 @@ export function HomeScreen({ navigation }: { navigation: NativeStackNavigationPr
         <StatCard
           compact
           icon="shapes-outline"
-          iconBackgroundColor={colors.cardSecondary}
+          iconBackgroundColor={colors.cardSecondaryHome}
           iconColor={colors.textSecondary}
           label="今日常见分类"
           value={commonCategory ?? '暂无'}

@@ -467,6 +467,14 @@ export function PeopleObservationDetailScreen({
           </>
         ) : (
           <>
+           <HapticPressable
+              disabled={deleting}
+              style={({ pressed }) => [styles.editButton, (pressed || deleting) && styles.pressed]}
+              onPress={() => setEditing(true)}
+            >
+              <Ionicons name="create-outline" size={18} color={colors.buttonForeground} />
+              <Text style={styles.editButtonText}>编辑</Text>
+            </HapticPressable>
             <HapticPressable
               disabled={deleting}
               style={({ pressed }) => [styles.deleteButton, (pressed || deleting) && styles.pressed]}
@@ -475,14 +483,7 @@ export function PeopleObservationDetailScreen({
               <Ionicons name="trash-outline" size={18} color={colors.danger} />
               <Text style={styles.deleteButtonText}>{deleting ? '删除中...' : '删除'}</Text>
             </HapticPressable>
-            <HapticPressable
-              disabled={deleting}
-              style={({ pressed }) => [styles.editButton, (pressed || deleting) && styles.pressed]}
-              onPress={() => setEditing(true)}
-            >
-              <Ionicons name="create-outline" size={18} color={colors.buttonForeground} />
-              <Text style={styles.editButtonText}>编辑</Text>
-            </HapticPressable>
+            
           </>
         )}
       </View>
