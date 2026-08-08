@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { EmptyState } from '../components/EmptyState';
 import { HapticPressable } from '../components/HapticPressable';
@@ -64,10 +63,9 @@ function PeopleObservationCard({
   );
 }
 
-export function PeopleObservationHistoryScreen() {
+export function PeopleObservationHistoryScreen({ navigation, route }: NativeStackScreenProps<RootStackParamList, 'PeopleObservationHistory'>) {
   const { colors } = useAppTheme();
   const styles = useThemedStyles(createStyles);
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {
     peopleObservations,
     animatedObservationIds,
@@ -77,6 +75,7 @@ export function PeopleObservationHistoryScreen() {
     isLoadingMore,
     hasMore,
   } = usePeopleObservations();
+  const visibleObservations = peopleObservations.filter((observation) => observation.id !== route.params?.deletedId);
 
   return (
     <Screen backgroundColor={colors.background} contentStyle={styles.content}>
@@ -85,7 +84,7 @@ export function PeopleObservationHistoryScreen() {
           <ActivityIndicator color={colors.brand} />
           <Text style={styles.loadingText}>正在查询人物观照...</Text>
         </View>
-      ) : peopleObservations.length ? (
+      ) : visibleObservations.length ? (
         <>
           {isRefreshing ? (
             <View style={styles.refreshing}>
@@ -94,7 +93,7 @@ export function PeopleObservationHistoryScreen() {
             </View>
           ) : null}
           <View style={styles.list}>
-            {peopleObservations.map((observation) => (
+            {visibleObservations.map((observation) => (
               <PeopleObservationCard
                 key={observation.id}
                 animate={animatedObservationIds.has(observation.id)}
@@ -122,7 +121,7 @@ export function PeopleObservationHistoryScreen() {
         />
       )}
 
-      {!isLoading && !peopleObservations.length ? (
+      {!isLoading && !visibleObservations.length ? (
         <HapticPressable
           style={({ pressed }) => [styles.button, pressed && styles.pressed]}
           onPress={() => navigation.navigate('PeopleObservation')}
