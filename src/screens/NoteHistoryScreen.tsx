@@ -8,6 +8,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { HapticPressable } from '../components/HapticPressable';
 import { Screen } from '../components/Screen';
 import { getNotes } from '../database/database';
+import { syncNotes } from '../sync/notes-sync';
 import { Note } from '../types/note';
 import { RootStackParamList } from '../types/navigation';
 import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
@@ -47,11 +48,15 @@ export function NoteHistoryScreen({ navigation }: NativeStackScreenProps<RootSta
       }
 
       let active = true;
-      void getNotes(db, session.user.id, { limit: 50 }).then((nextNotes) => {
-        if (active) {
-          setNotes(nextNotes);
+      void (async () => {
+        try {
+          await syncNotes(db, session.user.id);
+        } catch {
+          // ponytail: local notes remain available while offline.
         }
-      });
+        const nextNotes = await getNotes(db, session.user.id, { limit: 50 });
+        if (active) setNotes(nextNotes);
+      })();
 
       return () => {
         active = false;

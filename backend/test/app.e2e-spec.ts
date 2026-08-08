@@ -65,6 +65,8 @@ describe('Backend API (e2e)', () => {
         '/api/records/{id}': expect.any(Object),
         '/api/people-observations': expect.any(Object),
         '/api/people-observations/{id}': expect.any(Object),
+        '/api/notes': expect.any(Object),
+        '/api/notes/{id}': expect.any(Object),
       }),
     );
     expect(response.body.components.securitySchemes['access-token']).toEqual(
@@ -397,5 +399,49 @@ describe('Backend API (e2e)', () => {
       .set(otherHeader)
       .expect(200);
     expect(otherObservations.body.total).toBe(0);
+  });
+
+  it('syncs notes through the authenticated CRUD API', async () => {
+    const owner = await register('notes-owner@example.com');
+    const otherUser = await register('notes-other@example.com');
+    const ownerHeader = { Authorization: `Bearer ${owner.tokens.accessToken}` };
+    const otherHeader = { Authorization: `Bearer ${otherUser.tokens.accessToken}` };
+    const note = {
+      clientId: 'e2e-client-note-1',
+      content: 'A note that should sync between devices.',
+      noteType: '一个想法',
+      emotions: ['平静'],
+      categories: ['积极的'],
+    };
+
+    const created = await request(app.getHttpServer())
+      .post('/api/notes')
+      .set(ownerHeader)
+      .send(note)
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .post('/api/notes')
+      .set(ownerHeader)
+      .send(note)
+      .expect(409);
+
+    await request(app.getHttpServer())
+      .get(`/api/notes/${created.body.id}`)
+      .set(otherHeader)
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .patch(`/api/notes/${created.body.id}`)
+      .set(ownerHeader)
+      .send({ content: 'An updated synced note.', emotions: ['开心'] })
+      .expect(200)
+      .expect(({ body }) => expect(body.content).toBe('An updated synced note.'));
+
+    await request(app.getHttpServer())
+      .delete(`/api/notes/${created.body.id}`)
+      .set(ownerHeader)
+      .expect(200)
+      .expect(({ body }) => expect(body.syncStatus).toBe('DELETED'));
   });
 });

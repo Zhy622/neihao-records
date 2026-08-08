@@ -50,6 +50,12 @@ export type RemotePeopleObservationSnapshot = PeopleObservationInput & {
   createdAt: string;
   updatedAt: string;
 };
+export type RemoteNoteSnapshot = NoteInput & {
+  clientId: string;
+  serverId: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
 const mapRow = (row: RecordRow): DilemmaRecord => ({
   ...row,
@@ -219,6 +225,14 @@ export async function claimLegacyRecords(db: SQLiteDatabase, ownerUserId: string
 export async function claimLegacyPeopleObservations(db: SQLiteDatabase, ownerUserId: string) {
   await db.runAsync(
     'UPDATE people_observations SET ownerUserId = ? WHERE ownerUserId IS NULL OR ownerUserId = ?',
+    ownerUserId,
+    '',
+  );
+}
+
+export async function claimLegacyNotes(db: SQLiteDatabase, ownerUserId: string) {
+  await db.runAsync(
+    'UPDATE notes SET ownerUserId = ? WHERE ownerUserId IS NULL OR ownerUserId = ?',
     ownerUserId,
     '',
   );
@@ -403,6 +417,14 @@ export async function getPendingPeopleObservations(db: SQLiteDatabase, ownerUser
   return rows.map(mapPeopleObservationRow);
 }
 
+export async function getPendingNotes(db: SQLiteDatabase, ownerUserId: string) {
+  const rows = await db.getAllAsync<NoteRow>(
+    "SELECT * FROM notes WHERE ownerUserId = ? AND syncStatus != 'synced' ORDER BY createdAt ASC",
+    ownerUserId,
+  );
+  return rows.map(mapNoteRow);
+}
+
 export async function markRecordSynced(
   db: SQLiteDatabase,
   ownerUserId: string,
@@ -433,6 +455,21 @@ export async function markPeopleObservationSynced(
   );
 }
 
+export async function markNoteSynced(
+  db: SQLiteDatabase,
+  ownerUserId: string,
+  id: number,
+  serverId: string,
+) {
+  return db.runAsync(
+    "UPDATE notes SET serverId = ?, syncStatus = 'synced', updatedAt = ? WHERE id = ? AND ownerUserId = ?",
+    serverId,
+    new Date().toISOString(),
+    id,
+    ownerUserId,
+  );
+}
+
 export async function markRecordPendingDelete(
   db: SQLiteDatabase,
   ownerUserId: string,
@@ -453,6 +490,19 @@ export async function markPeopleObservationPendingDelete(
 ) {
   return db.runAsync(
     "UPDATE people_observations SET syncStatus = 'pending_delete', updatedAt = ? WHERE id = ? AND ownerUserId = ?",
+    new Date().toISOString(),
+    id,
+    ownerUserId,
+  );
+}
+
+export async function markNotePendingDelete(
+  db: SQLiteDatabase,
+  ownerUserId: string,
+  id: number,
+) {
+  return db.runAsync(
+    "UPDATE notes SET syncStatus = 'pending_delete', updatedAt = ? WHERE id = ? AND ownerUserId = ?",
     new Date().toISOString(),
     id,
     ownerUserId,
@@ -766,6 +816,59 @@ export async function upsertRemotePeopleObservation(
     observation.learningAction,
     observation.createdAt,
     observation.updatedAt,
+  );
+}
+
+export async function upsertRemoteNote(
+  db: SQLiteDatabase,
+  ownerUserId: string,
+  note: RemoteNoteSnapshot,
+) {
+  const existing = await db.getFirstAsync<Pick<NoteRow, 'id' | 'syncStatus'>>(
+    'SELECT id, syncStatus FROM notes WHERE ownerUserId = ? AND (serverId = ? OR clientId = ?) LIMIT 1',
+    ownerUserId,
+    note.serverId,
+    note.clientId,
+  );
+
+  if (existing) {
+    if (existing.syncStatus !== 'synced') {
+      return;
+    }
+
+    await db.runAsync(
+      `UPDATE notes
+       SET clientId = ?, serverId = ?, syncStatus = 'synced', content = ?, noteType = ?,
+           emotions = ?, categories = ?, createdAt = ?, updatedAt = ?
+       WHERE id = ? AND ownerUserId = ?`,
+      note.clientId,
+      note.serverId,
+      note.content,
+      note.noteType,
+      JSON.stringify(note.emotions),
+      JSON.stringify(note.categories),
+      note.createdAt,
+      note.updatedAt,
+      existing.id,
+      ownerUserId,
+    );
+    return;
+  }
+
+  await db.runAsync(
+    `INSERT INTO notes (
+      ownerUserId, clientId, serverId, syncStatus,
+      content, noteType, emotions, categories, createdAt, updatedAt
+    ) VALUES (?, ?, ?, 'synced', ?, ?, ?, ?, ?, ?)`,
+    ownerUserId,
+    note.clientId,
+    note.serverId,
+    note.content,
+    note.noteType,
+    JSON.stringify(note.emotions),
+    JSON.stringify(note.categories),
+    note.createdAt,
+    note.updatedAt,
   );
 }
 

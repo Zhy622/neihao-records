@@ -12,7 +12,8 @@ import { useAppAlert } from '../components/AppAlert';
 import { HapticPressable } from '../components/HapticPressable';
 import { NoteScrollbar, useNoteScrollbar } from '../components/NoteScrollbar';
 import { Screen } from '../components/Screen';
-import { deleteLocalNote, getNote, updateNote } from '../database/database';
+import { getNote, updateNote } from '../database/database';
+import { deleteAndSyncNote, syncNoteById } from '../sync/notes-sync';
 import { NOTE_CATEGORIES, NOTE_EMOTIONS, NOTE_TYPES, Note, NoteCategory, NoteEmotion, NoteType } from '../types/note';
 import { RootStackParamList } from '../types/navigation';
 import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
@@ -110,8 +111,20 @@ export function NoteDetailScreen({
         emotions,
         categories,
       });
+      if (!updated) {
+        throw new Error('Note was not updated.');
+      }
       applyNote(updated);
+      let synced = false;
+      try {
+        synced = await syncNoteById(db, session.user.id, updated.id);
+      } catch {
+        synced = false;
+      }
       setEditing(false);
+      if (!synced) {
+        alert('已保存到本机', '暂时无法同步到服务器，联网后会自动重试。');
+      }
     } catch {
       alert('保存失败', '随记暂时没有保存，请稍后再试。');
     } finally {
@@ -130,7 +143,10 @@ export function NoteDetailScreen({
         text: '删除',
         style: 'destructive',
         onPress: async () => {
-          await deleteLocalNote(db, session.user.id, note.id);
+          const synced = await deleteAndSyncNote(db, session.user.id, note.id);
+          if (!synced) {
+            alert('已从本机移除', '服务器删除会在联网后自动重试。');
+          }
           navigation.goBack();
         },
       },

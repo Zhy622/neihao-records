@@ -13,6 +13,7 @@ import { HapticPressable } from '../components/HapticPressable';
 import { useAppAlert } from '../components/AppAlert';
 import { NoteScrollbar, useNoteScrollbar } from '../components/NoteScrollbar';
 import { createNote } from '../database/database';
+import { syncNoteById } from '../sync/notes-sync';
 import { NOTE_CATEGORIES, NOTE_EMOTIONS, NOTE_TYPES, NoteCategory, NoteEmotion, NoteType } from '../types/note';
 import { RootStackParamList } from '../types/navigation';
 import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
@@ -126,13 +127,26 @@ export function NoteEditorScreen() {
         throw new Error('Local note was not created.');
       }
 
+      let synced = false;
+      try {
+        synced = await syncNoteById(db, session.user.id, note.id);
+      } catch {
+        synced = false;
+      }
+
       draft = emptyDraft;
       setContent('');
       setNoteType('暂不分类');
       setEmotions([]);
       setCategories([]);
       organizeSheetRef.current?.dismiss();
-      navigation.navigate('NoteHistory');
+      if (synced) {
+        navigation.navigate('NoteHistory');
+      } else {
+        alert('已保存到本机', '暂时无法同步到服务器，联网后会自动重试。', [
+          { text: '知道了', onPress: () => navigation.navigate('NoteHistory') },
+        ]);
+      }
     } catch {
       alert('保存失败', '随记暂时没有保存，请稍后再试。');
     } finally {

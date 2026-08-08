@@ -6,6 +6,7 @@ import { PeopleObservationsModule } from './people-observations/people-observati
 import { PrismaModule } from './prisma/prisma.module';
 import { RecordsModule } from './records/records.module';
 import { AiModule } from './ai/ai.module';
+import { NotesModule } from './notes/notes.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AiModule } from './ai/ai.module';
     AuthModule,
     RecordsModule,
     PeopleObservationsModule,
+    NotesModule,
     HealthModule,
     AiModule,
   ],
