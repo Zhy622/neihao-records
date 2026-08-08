@@ -296,7 +296,7 @@ export function PeopleObservationDetailScreen({
               alert('已从本机移除', '服务器删除会在联网后自动重试。');
             }
             removePeopleObservationCache(session.user.id, observation.id);
-            navigation.popTo('PeopleObservationHistory', { deletedId: observation.id });
+            navigation.goBack();
           } catch {
             alert('删除失败', '这次观照暂时没有删除，请稍后再试。');
             setDeleting(false);

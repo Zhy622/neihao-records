@@ -118,12 +118,31 @@ export function useNotes(filters: NoteFilters = {}) {
     }
   }, [category, db, hasMore, isLoading, isLoadingMore, isRefreshing, userId]);
 
+  const reloadLocal = useCallback(async () => {
+    if (!userId) return;
+
+    const nextNotes = await getNotes(
+      db,
+      userId,
+      { category },
+      { limit: loadedLimitRef.current },
+    );
+    setNotes(nextNotes);
+    setHasMore(
+      remoteTotalRef.current === null
+        ? nextNotes.length >= loadedLimitRef.current
+        : loadedLimitRef.current < remoteTotalRef.current,
+    );
+  }, [category, db, userId]);
+
   useFocusEffect(
     useCallback(() => {
       if (!hasLoadedRef.current || filterKeyRef.current !== filterKey) {
         void refresh();
+      } else {
+        void reloadLocal();
       }
-    }, [filterKey, refresh]),
+    }, [filterKey, refresh, reloadLocal]),
   );
 
   return { notes, refresh, loadMore, isLoading, isRefreshing, isLoadingMore, hasMore };

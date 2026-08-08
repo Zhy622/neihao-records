@@ -152,12 +152,35 @@ export function usePeopleObservations(filters: PeopleObservationFilters = {}) {
     }
   }, [db, hasMore, isLoading, isLoadingMore, isRefreshing, search, userId]);
 
+  const reloadLocal = useCallback(async () => {
+    if (!userId) return;
+
+    const observations = await getPeopleObservations(
+      db,
+      userId,
+      { search },
+      { limit: loadedLimitRef.current },
+    );
+    setCachedPeopleObservations(userId, observations);
+    setPeopleObservations(observations);
+    setAnimatedObservationIds(
+      consumePendingPeopleObservationAnimationIds(userId, observations),
+    );
+    setHasMore(
+      remoteTotalRef.current === null
+        ? observations.length >= loadedLimitRef.current
+        : loadedLimitRef.current < remoteTotalRef.current,
+    );
+  }, [db, search, userId]);
+
   useFocusEffect(
     useCallback(() => {
       if (!hasLoadedRef.current || filterKeyRef.current !== filterKey) {
         void refresh();
+      } else {
+        void reloadLocal();
       }
-    }, [filterKey, refresh]),
+    }, [filterKey, refresh, reloadLocal]),
   );
   return {
     peopleObservations,

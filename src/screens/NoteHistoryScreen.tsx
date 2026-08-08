@@ -36,12 +36,11 @@ function getNoteTypeIcon(noteType: Note['noteType']) {
   }
 }
 
-export function NoteHistoryScreen({ navigation, route }: NativeStackScreenProps<RootStackParamList, 'NoteHistory'>) {
+export function NoteHistoryScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'NoteHistory'>) {
   const { colors } = useAppTheme();
   const styles = useThemedStyles(createStyles);
   const [category, setCategory] = useState<NoteCategoryFilter>();
   const { notes, loadMore, isLoading, isRefreshing, isLoadingMore, hasMore } = useNotes({ category });
-  const visibleNotes = notes.filter((note) => note.id !== route.params?.deletedId);
 
   return (
     <Screen backgroundColor={colors.background} contentStyle={styles.content}>
@@ -74,7 +73,7 @@ export function NoteHistoryScreen({ navigation, route }: NativeStackScreenProps<
           <ActivityIndicator color={colors.brand} />
           <Text style={styles.loadingText}>正在查询随记...</Text>
         </View>
-      ) : visibleNotes.length ? (
+      ) : notes.length ? (
         <View style={styles.list}>
           {isRefreshing ? (
             <View style={styles.refreshing}>
@@ -82,7 +81,7 @@ export function NoteHistoryScreen({ navigation, route }: NativeStackScreenProps<
               <Text style={styles.refreshingText}>同步中...</Text>
             </View>
           ) : null}
-          {visibleNotes.map((note) => (
+          {notes.map((note) => (
             <HapticPressable
               key={note.id}
               accessibilityRole="button"

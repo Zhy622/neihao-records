@@ -147,7 +147,7 @@ export function NoteDetailScreen({
           if (!synced) {
             alert('已从本机移除', '服务器删除会在联网后自动重试。');
           }
-          navigation.popTo('NoteHistory', { deletedId: note.id });
+          navigation.goBack();
         },
       },
     ]);

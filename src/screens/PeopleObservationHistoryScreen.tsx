@@ -63,7 +63,7 @@ function PeopleObservationCard({
   );
 }
 
-export function PeopleObservationHistoryScreen({ navigation, route }: NativeStackScreenProps<RootStackParamList, 'PeopleObservationHistory'>) {
+export function PeopleObservationHistoryScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'PeopleObservationHistory'>) {
   const { colors } = useAppTheme();
   const styles = useThemedStyles(createStyles);
   const {
@@ -75,7 +75,6 @@ export function PeopleObservationHistoryScreen({ navigation, route }: NativeStac
     isLoadingMore,
     hasMore,
   } = usePeopleObservations();
-  const visibleObservations = peopleObservations.filter((observation) => observation.id !== route.params?.deletedId);
 
   return (
     <Screen backgroundColor={colors.background} contentStyle={styles.content}>
@@ -84,7 +83,7 @@ export function PeopleObservationHistoryScreen({ navigation, route }: NativeStac
           <ActivityIndicator color={colors.brand} />
           <Text style={styles.loadingText}>正在查询人物观照...</Text>
         </View>
-      ) : visibleObservations.length ? (
+      ) : peopleObservations.length ? (
         <>
           {isRefreshing ? (
             <View style={styles.refreshing}>
@@ -93,7 +92,7 @@ export function PeopleObservationHistoryScreen({ navigation, route }: NativeStac
             </View>
           ) : null}
           <View style={styles.list}>
-            {visibleObservations.map((observation) => (
+            {peopleObservations.map((observation) => (
               <PeopleObservationCard
                 key={observation.id}
                 animate={animatedObservationIds.has(observation.id)}
@@ -121,7 +120,7 @@ export function PeopleObservationHistoryScreen({ navigation, route }: NativeStac
         />
       )}
 
-      {!isLoading && !visibleObservations.length ? (
+      {!isLoading && !peopleObservations.length ? (
         <HapticPressable
           style={({ pressed }) => [styles.button, pressed && styles.pressed]}
           onPress={() => navigation.navigate('PeopleObservation')}

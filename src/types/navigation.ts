@@ -5,10 +5,10 @@ export type RootStackParamList = {
   History: undefined;
   Stats: undefined;
   RecordDetail: { id: number };
-  NoteHistory: { deletedId?: number } | undefined;
+  NoteHistory: undefined;
   NoteDetail: { id: number };
   PeopleObservation: undefined;
-  PeopleObservationHistory: { deletedId?: number } | undefined;
+  PeopleObservationHistory: undefined;
   PeopleObservationDetail: { id: number };
 };
 
