@@ -71,7 +71,7 @@ export function AppTabs() {
         },
         tabBarStyle: {
           position: 'absolute',
-          height: 66,
+          height: 80,
           paddingTop: 12,
           paddingBottom: 12,
           backgroundColor: colors.card,
