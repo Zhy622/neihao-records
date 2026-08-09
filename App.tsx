@@ -9,10 +9,12 @@ import {
   Inter_700Bold,
   useFonts,
 } from '@expo-google-fonts/inter';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { SQLiteProvider } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
+import * as SystemUI from 'expo-system-ui';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { AuthProvider, useAuth } from './src/auth/AuthProvider';
 import { AppTabs } from './src/navigation/AppTabs';
 import { AuthLoadingScreen } from './src/screens/AuthLoadingScreen';
@@ -38,6 +40,11 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 function RootNavigation() {
   const { session, isRestoring } = useAuth();
   const { colors, isDark } = useAppTheme();
+
+  useEffect(() => {
+    void SystemUI.setBackgroundColorAsync(colors.card);
+  }, [colors.card]);
+
   const navigationTheme = {
     ...DefaultTheme,
     dark: isDark,
@@ -263,17 +270,19 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
-      <BottomSheetModalProvider>
-        <Suspense fallback={<AuthLoadingScreen />}>
-          <SQLiteProvider databaseName="neihao-records.db" onInit={initializeDatabase} useSuspense>
-            <AuthProvider>
-              <AppAlertProvider>
-                <RootNavigation />
-              </AppAlertProvider>
-            </AuthProvider>
-          </SQLiteProvider>
-        </Suspense>
-      </BottomSheetModalProvider>
+      <KeyboardProvider>
+        <BottomSheetModalProvider>
+          <Suspense fallback={<AuthLoadingScreen />}>
+            <SQLiteProvider databaseName="neihao-records.db" onInit={initializeDatabase} useSuspense>
+              <AuthProvider>
+                <AppAlertProvider>
+                  <RootNavigation />
+                </AppAlertProvider>
+              </AuthProvider>
+            </SQLiteProvider>
+          </Suspense>
+        </BottomSheetModalProvider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

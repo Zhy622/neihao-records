@@ -3,7 +3,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import {
   Keyboard,
-  ScrollView,
   StyleProp,
   StyleSheet,
   Text,
@@ -115,7 +114,6 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
   const db = useSQLiteContext();
   const { session } = useAuth();
   const { alert } = useAppAlert();
-  const scrollViewRef = useRef<ScrollView>(null);
   const categorySheetRef = useRef<BottomSheetModal>(null);
   const emotionSheetRef = useRef<BottomSheetModal>(null);
   const selectionSnapPoints = useMemo(() => ['48%'], []);
@@ -134,11 +132,6 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
     setEmotions((current) =>
       current.includes(emotion) ? current.filter((item) => item !== emotion) : [...current, emotion],
     );
-  };
-
-  const revealBottomFields = () => {
-    // Wait until the keyboard has resized the Android window before scrolling.
-    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 350);
   };
 
   const openSelectionSheet = (sheetRef: RefObject<BottomSheetModal | null>) => {
@@ -190,8 +183,7 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
   return (
     <Screen
       backgroundColor={colors.background}
-      keyboardAvoiding
-      scrollViewRef={scrollViewRef}
+      keyboardAware
       contentStyle={styles.content}
     >
       <View style={styles.form}>
@@ -270,7 +262,6 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
               accessibilityLabel="当时反复出现的想法"
               value={thoughts}
               onChangeText={setThoughts}
-              onFocus={revealBottomFields}
               placeholder="脑海里一直在想什么？"
               placeholderTextColor={colors.placeholder}
               style={[styles.input, styles.multiline]}
@@ -282,7 +273,6 @@ export function RecordScreen({ navigation }: NativeStackScreenProps<RootStackPar
               accessibilityLabel="最后怎么决定"
               value={finalDecision}
               onChangeText={setFinalDecision}
-              onFocus={revealBottomFields}
               placeholder="写下最终选择或暂时的处理方式"
               placeholderTextColor={colors.placeholder}
               style={[styles.input, styles.multiline]}

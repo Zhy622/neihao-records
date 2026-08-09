@@ -307,10 +307,6 @@ export function RecordDetailScreen({
     );
   };
 
-  const revealBottomFields = () => {
-    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 300);
-  };
-
   const save = async () => {
     if (!session || !record) {
       return;
@@ -421,7 +417,7 @@ export function RecordDetailScreen({
   return (
     <Screen
       backgroundColor={colors.background}
-      keyboardAvoiding
+      keyboardAware
       scrollViewRef={scrollViewRef}
       contentStyle={styles.content}
     >
@@ -486,10 +482,10 @@ export function RecordDetailScreen({
           </Field>
           <View style={styles.reflections}>
             <Field icon="chatbubble-ellipses-outline" label="当时反复出现的想法">
-              <TextInput value={thoughts} onChangeText={setThoughts} onFocus={revealBottomFields} placeholder="脑海里一直在想什么？" placeholderTextColor={colors.placeholder} style={[styles.input, styles.multiline]} multiline />
+              <TextInput value={thoughts} onChangeText={setThoughts} placeholder="脑海里一直在想什么？" placeholderTextColor={colors.placeholder} style={[styles.input, styles.multiline]} multiline />
             </Field>
             <Field icon="checkmark-done-outline" label="最后怎么决定">
-              <TextInput value={finalDecision} onChangeText={setFinalDecision} onFocus={revealBottomFields} placeholder="写下最终选择或暂时的处理方式" placeholderTextColor={colors.placeholder} style={[styles.input, styles.multiline]} multiline />
+              <TextInput value={finalDecision} onChangeText={setFinalDecision} placeholder="写下最终选择或暂时的处理方式" placeholderTextColor={colors.placeholder} style={[styles.input, styles.multiline]} multiline />
             </Field>
           </View>
           <Field icon="eye-outline" label="事后看是否值得纠结">

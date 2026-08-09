@@ -10,6 +10,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView, KeyboardAwareScrollViewRef } from 'react-native-keyboard-controller';
 import { useAppTheme } from '../theme';
 
 interface ScreenProps {
@@ -17,6 +18,8 @@ interface ScreenProps {
   contentStyle?: StyleProp<ViewStyle>;
   keyboardAvoiding?: boolean;
   keyboardAvoidingMode?: 'header' | 'fullscreen';
+  keyboardAware?: boolean;
+  keyboardBottomOffset?: number;
   scrollViewRef?: Ref<ScrollView>;
 }
 
@@ -26,6 +29,8 @@ export function Screen({
   contentStyle,
   keyboardAvoiding = false,
   keyboardAvoidingMode = 'header',
+  keyboardAware = false,
+  keyboardBottomOffset = 20,
   scrollViewRef,
 }: PropsWithChildren<ScreenProps>) {
   const { colors } = useAppTheme();
@@ -33,18 +38,30 @@ export function Screen({
   const headerHeight = useContext(HeaderHeightContext) ?? 0;
   const bottomTabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
   const shouldAvoidKeyboard =
-    keyboardAvoiding && (Platform.OS === 'ios' || keyboardAvoidingMode === 'fullscreen');
+    !keyboardAware && keyboardAvoiding && (Platform.OS === 'ios' || keyboardAvoidingMode === 'fullscreen');
   const keyboardVerticalOffset =
     keyboardAvoidingMode === 'header' && Platform.OS === 'ios' ? headerHeight : 0;
   const bottomPadding = 40 + bottomTabBarHeight;
-  const content = (
+  const scrollProps = {
+    contentContainerStyle: [styles.content, { paddingBottom: bottomPadding }, contentStyle],
+    keyboardDismissMode: 'on-drag' as const,
+    keyboardShouldPersistTaps: 'handled' as const,
+    style: [styles.scroll, { backgroundColor: resolvedBackgroundColor }],
+  };
+  const content = keyboardAware ? (
+    <KeyboardAwareScrollView
+      ref={scrollViewRef as Ref<KeyboardAwareScrollViewRef>}
+      bottomOffset={keyboardBottomOffset}
+      {...scrollProps}
+    >
+      {children}
+    </KeyboardAwareScrollView>
+  ) : (
     <ScrollView
       ref={scrollViewRef}
-      style={[styles.scroll, { backgroundColor: resolvedBackgroundColor }]}
-      contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }, contentStyle]}
       contentInsetAdjustmentBehavior="automatic"
-      keyboardDismissMode="on-drag"
-      keyboardShouldPersistTaps="handled"
+      automaticallyAdjustKeyboardInsets={keyboardAware}
+      {...scrollProps}
     >
       {children}
     </ScrollView>
@@ -57,7 +74,7 @@ export function Screen({
     >
       {shouldAvoidKeyboard ? (
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : keyboardAware ? 'height' : undefined}
           keyboardVerticalOffset={keyboardVerticalOffset}
           style={styles.keyboardAvoiding}
         >

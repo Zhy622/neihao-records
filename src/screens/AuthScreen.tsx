@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { ApiError } from '../api/client';
 import { useAuth } from '../auth/AuthProvider';
 import { HapticPressable } from '../components/HapticPressable';
-import { Screen } from '../components/Screen';
 import { AppColors, fonts, useAppTheme, useThemedStyles } from '../theme';
 
 type AuthMode = 'login' | 'register';
@@ -22,7 +23,6 @@ export function AuthScreen() {
   const { colors } = useAppTheme();
   const styles = useThemedStyles(createStyles);
   const { signIn, signUp } = useAuth();
-  const scrollViewRef = useRef<ScrollView>(null);
   const { height } = useWindowDimensions();
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
@@ -41,14 +41,6 @@ export function AuthScreen() {
     setConfirmPassword('');
     setPasswordVisible(false);
     setConfirmPasswordVisible(false);
-  };
-
-  const revealFormActions = () => {
-    setTimeout(() => scrollViewRef.current?.scrollTo({ y: 180, animated: true }), 180);
-  };
-
-  const revealPasswordField = () => {
-    setTimeout(() => scrollViewRef.current?.scrollTo({ y: 120, animated: true }), 250);
   };
 
   const submit = async () => {
@@ -106,12 +98,13 @@ export function AuthScreen() {
   );
 
   return (
-    <Screen
-      backgroundColor={colors.background}
-      keyboardAvoiding
-      keyboardAvoidingMode="fullscreen"
-      scrollViewRef={scrollViewRef}
-      contentStyle={[styles.content, isCompact && styles.compactContent]}
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
+      <KeyboardAwareScrollView
+        bottomOffset={20}
+        contentContainerStyle={[styles.content, isCompact && styles.compactContent]}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        style={[styles.scroll, { backgroundColor: colors.background }]}
     >
       <View style={[styles.brand, isCompact && styles.compactBrand]}>
         <Text style={styles.name}>情绪笔录</Text>
@@ -163,7 +156,6 @@ export function AuthScreen() {
             autoCapitalize: 'none',
             autoComplete: mode === 'login' ? 'current-password' : 'new-password',
             onChangeText: setPassword,
-            onFocus: mode === 'register' ? revealPasswordField : undefined,
             placeholder: '请输入您的密码',
             secureTextEntry: !passwordVisible,
             value: password,
@@ -172,7 +164,6 @@ export function AuthScreen() {
             autoCapitalize: 'none',
             autoComplete: 'new-password',
             onChangeText: setConfirmPassword,
-            onFocus: revealFormActions,
             placeholder: '请再次输入密码',
             secureTextEntry: !confirmPasswordVisible,
             value: confirmPassword,
@@ -204,11 +195,14 @@ export function AuthScreen() {
           </View>
         </View>
       </View>
-    </Screen>
+      </KeyboardAwareScrollView>
+    </SafeAreaView>
   );
 }
 
 const createStyles = (colors: AppColors) => ({
+  safe: { flex: 1 },
+  scroll: { flex: 1 },
   content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingTop: 48, paddingBottom: 32, gap: 38 },
   compactContent: { justifyContent: 'flex-start', paddingTop: 28, gap: 24 },
   brand: { alignItems: 'center', gap: 9 },

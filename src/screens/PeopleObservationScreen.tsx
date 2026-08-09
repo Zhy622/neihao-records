@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { Keyboard, LayoutChangeEvent, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -27,18 +27,16 @@ function Field({
   children,
   hint,
   icon,
-  onLayout,
 }: {
   label: string;
   children: React.ReactNode;
   hint?: string;
   icon: keyof typeof Ionicons.glyphMap;
-  onLayout?: (event: LayoutChangeEvent) => void;
 }) {
   const { colors } = useAppTheme();
   const styles = useThemedStyles(createStyles);
   return (
-    <View style={styles.field} onLayout={onLayout}>
+    <View style={styles.field}>
       <View style={styles.labelRow}>
         <Ionicons name={icon} size={17} color={colors.brand} />
         <Text style={styles.label}>{label}</Text>
@@ -97,10 +95,6 @@ export function PeopleObservationScreen() {
   const db = useSQLiteContext();
   const { session } = useAuth();
   const { alert } = useAppAlert();
-  const scrollViewRef = useRef<ScrollView>(null);
-  const formOffsetRef = useRef(0);
-  const reflectionFieldsOffsetRef = useRef(0);
-  const fieldOffsets = useRef<Record<string, number>>({});
   const emotionSheetRef = useRef<BottomSheetModal>(null);
   const emotionSnapPoints = useMemo(() => ['46%'], []);
   const [alias, setAlias] = useState('');
@@ -130,17 +124,6 @@ export function PeopleObservationScreen() {
   const openEmotionSheet = () => {
     Keyboard.dismiss();
     setTimeout(() => emotionSheetRef.current?.present(), 50);
-  };
-
-  const recordFieldOffset = (field: string) => (event: LayoutChangeEvent) => {
-    fieldOffsets.current[field] = event.nativeEvent.layout.y;
-  };
-
-  const revealInputArea = (field: string) => {
-    setTimeout(() => {
-      const y = formOffsetRef.current + reflectionFieldsOffsetRef.current + (fieldOffsets.current[field] ?? 0) - 120;
-      scrollViewRef.current?.scrollTo({ y: Math.max(y, 0), animated: true });
-    }, 300);
   };
 
   const resetObservation = () => {
@@ -212,9 +195,7 @@ export function PeopleObservationScreen() {
   return (
     <Screen
       backgroundColor={colors.background}
-      keyboardAvoiding
-      keyboardAvoidingMode="fullscreen"
-      scrollViewRef={scrollViewRef}
+      keyboardAware
       contentStyle={styles.content}
     >
       <View style={styles.quoteCard}>
@@ -222,13 +203,12 @@ export function PeopleObservationScreen() {
         <Text style={styles.quoteSignature}>— 观照 · 小记</Text>
       </View>
 
-      <View style={styles.form} onLayout={(event) => { formOffsetRef.current = event.nativeEvent.layout.y; }}>
+      <View style={styles.form}>
         <View style={styles.basicFields}>
-          <Field icon="person-outline" label="人物代号" hint="可以是昵称、角色名或只有你看得懂的代号。" onLayout={recordFieldOffset('alias')}>
+          <Field icon="person-outline" label="人物代号" hint="可以是昵称、角色名或只有你看得懂的代号。">
             <TextInput
               value={alias}
               onChangeText={setAlias}
-              // onFocus={() => revealInputArea('alias')}
               placeholder="例如：A 同事 / 那位朋友 / 高中同学"
               placeholderTextColor={colors.placeholder}
               style={styles.input}
@@ -245,12 +225,11 @@ export function PeopleObservationScreen() {
           </Field>
         </View>
 
-        <View style={styles.reflectionFields} onLayout={(event) => { reflectionFieldsOffsetRef.current = event.nativeEvent.layout.y; }}>
-          <Field icon="location-outline" label="触发场景" onLayout={recordFieldOffset('triggerScene')}>
+        <View style={styles.reflectionFields}>
+          <Field icon="location-outline" label="触发场景">
             <TextInput
               value={triggerScene}
               onChangeText={setTriggerScene}
-              onFocus={() => revealInputArea('triggerScene')}
               placeholder="我是在什么情况下想到 TA 的？"
               placeholderTextColor={colors.placeholder}
               style={[styles.input, styles.multiline]}
@@ -258,11 +237,10 @@ export function PeopleObservationScreen() {
             />
           </Field>
 
-          <Field icon="eye-off-outline" label="我轻蔑 TA 的点" hint="可以诚实一点写，先不急着评判自己。" onLayout={recordFieldOffset('contemptPoints')}>
+          <Field icon="eye-off-outline" label="我轻蔑 TA 的点" hint="可以诚实一点写，先不急着评判自己。">
             <TextInput
               value={contemptPoints}
               onChangeText={setContemptPoints}
-              onFocus={() => revealInputArea('contemptPoints')}
               placeholder="我看不上的地方是什么？"
               placeholderTextColor={colors.placeholder}
               style={[styles.input, styles.multiline]}
@@ -270,11 +248,10 @@ export function PeopleObservationScreen() {
             />
           </Field>
 
-          <Field icon="sparkles-outline" label="我自卑或羡慕 TA 的点" onLayout={recordFieldOffset('admirePoints')}>
+          <Field icon="sparkles-outline" label="我自卑或羡慕 TA 的点">
             <TextInput
               value={admirePoints}
               onChangeText={setAdmirePoints}
-              onFocus={() => revealInputArea('admirePoints')}
               placeholder="TA 的什么地方让我不舒服、羡慕或不服气？"
               placeholderTextColor={colors.placeholder}
               style={[styles.input, styles.multiline]}
@@ -282,11 +259,10 @@ export function PeopleObservationScreen() {
             />
           </Field>
 
-          <Field icon="accessibility-outline" label="TA 比我强的具体能力" onLayout={recordFieldOffset('otherStrengths')}>
+          <Field icon="accessibility-outline" label="TA 比我强的具体能力">
             <TextInput
               value={otherStrengths}
               onChangeText={setOtherStrengths}
-              onFocus={() => revealInputArea('otherStrengths')}
               placeholder="例如：表达更直接、执行更快、更会争取资源"
               placeholderTextColor={colors.placeholder}
               style={[styles.input, styles.multiline]}
@@ -294,11 +270,10 @@ export function PeopleObservationScreen() {
             />
           </Field>
 
-          <Field icon="shield-checkmark-outline" label="我比 TA 强或不弱的地方" onLayout={recordFieldOffset('myStrengths')}>
+          <Field icon="shield-checkmark-outline" label="我比 TA 强或不弱的地方">
             <TextInput
               value={myStrengths}
               onChangeText={setMyStrengths}
-              onFocus={() => revealInputArea('myStrengths')}
               placeholder="例如：更稳定、更细致、更愿意复盘"
               placeholderTextColor={colors.placeholder}
               style={[styles.input, styles.multiline]}
