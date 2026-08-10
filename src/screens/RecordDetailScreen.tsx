@@ -597,7 +597,7 @@ export function RecordDetailScreen({
 
       {aiInsight ? (
         <Animated.View entering={FadeInUp.duration(260).springify().damping(18)}>
-          <SoftCard colors={['#FFFEFC', '#EEF5EF']} style={styles.aiResultCard}>
+          <SoftCard colors={[colors.card, colors.purpleSoft]} style={styles.aiResultCard}>
             <View style={styles.aiResultHeader}>
               <AiGradientIcon size={34} />
               <View style={styles.aiHeaderText}>
@@ -700,8 +700,8 @@ const createStyles = (colors: AppColors) => ({
   aiResultTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 18 },
   aiResultMeta: { color: colors.muted, fontFamily: fonts.regular, fontSize: 12 },
   aiInsightLine: { gap: 6 },
-  aiInsightLabel: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 14 },
-  aiInsightText: { color: colors.text, fontFamily: fonts.regular, fontSize: 15, lineHeight: 23 },
+  aiInsightLabel: { color: colors.brand, fontFamily: fonts.semibold, fontSize: 14 },
+  aiInsightText: { color: colors.text, fontFamily: fonts.regular, fontSize: 14, lineHeight: 23 },
   primaryButton: { flex: 1, height: 52, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 28, backgroundColor: colors.brand },
   primaryButtonText: { color: colors.buttonForeground, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
   secondaryButton: { flex: 1, height: 52, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderRadius: 28, backgroundColor: colors.cardSecondary },
