@@ -665,7 +665,7 @@ const createStyles = (colors: AppColors) => ({
   detailCell: { flex: 1, gap: 4 },
   detailLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   detailLabel: { color: colors.placeholder, fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
-  detailValue: { color: colors.text, fontFamily: fonts.regular, fontSize: 16, lineHeight: 26 },
+  detailValue: { color: colors.text, fontFamily: fonts.regular, fontSize: 14, lineHeight: 26 },
   mutedDetailValue: { color: colors.textSecondary, fontFamily: fonts.regular },
   intensityRow: { height: 20, flexDirection: 'row', alignItems: 'center', gap: 8 },
   intensityTrack: { flex: 1, height: 6, overflow: 'hidden', borderRadius: 999, backgroundColor: colors.border },
@@ -675,7 +675,7 @@ const createStyles = (colors: AppColors) => ({
   detailContentCard: { gap: 12, paddingVertical: 24, paddingLeft: 24, paddingRight: 24, borderLeftWidth: 4, borderRadius: 24, borderCurve: 'continuous', backgroundColor: colors.cardSecondary, boxShadow: `0 1px 1px ${colors.shadow}` },
   contentCardHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   contentCardLabel: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
-  note: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 16, lineHeight: 26 },
+  note: { color: colors.textSecondary, fontFamily: fonts.regular, fontSize: 14, lineHeight: 26 },
   actions: { flexDirection: 'row', gap: 16 },
   aiActionWrap: { alignItems: 'center', paddingTop: 2 },
   aiAction: {

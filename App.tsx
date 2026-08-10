@@ -131,7 +131,7 @@ function RootNavigation() {
                     style={{ padding: 4, borderRadius: 18 }}
                     onPress={() => navigation.navigate('Stats')}
                   >
-                    <Ionicons name="trending-up-outline" size={22} color={colors.textSecondary} />
+                    <Ionicons name="trending-up-outline" size={22} color={colors.brand} />
                   </HapticPressable>
                 ),
               })}
